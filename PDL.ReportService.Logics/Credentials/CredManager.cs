@@ -20,9 +20,9 @@ namespace PDL.ReportService.Logics.Credentials
             try
             {
                 if (!islive)
-                    conStr = $"Data Source=192.168.10.2;Initial Catalog={db};User ID=Satish_Dev;Password=Satish@2067;Connection Timeout=120;Trusted_Connection=False;MultipleActiveResultSets=True;Encrypt=false";
+                    conStr = $"Data Source=192.168.10.2;Initial Catalog={db};User ID=;Password=;Connection Timeout=120;Trusted_Connection=False;MultipleActiveResultSets=True;Encrypt=false";
                 else
-                    conStr = $"Data Source=192.168.10.2;Initial Catalog={db};User ID=Satish_Dev;Password=Satish@2067;Connection Timeout=120;Trusted_Connection=False;MultipleActiveResultSets=True;Encrypt=false";
+                    conStr = $"Data Source=192.168.10.2;Initial Catalog={db};User ID=;Password=;Connection Timeout=120;Trusted_Connection=False;MultipleActiveResultSets=True;Encrypt=false";
 
 
                 newConn = new SqlConnection(conStr);
