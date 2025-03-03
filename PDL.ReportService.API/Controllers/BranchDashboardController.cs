@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.Helper;
+using System.Security.Claims;
 using System.Xml.Linq;
 
 namespace PDL.ReportService.API.Controllers
@@ -122,8 +123,7 @@ namespace PDL.ReportService.API.Controllers
         {
             try
             {
-                //string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                string activeuser = "159";
+                string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 List<FiCreatorMaster> result = _branchDashboardService.GetCreators(activeuser, GetIslive());
                 if (result != null)
                 {
@@ -131,34 +131,24 @@ namespace PDL.ReportService.API.Controllers
                     {
                         statuscode = 200,
                         message = resourceManager.GetString("GETSUCCESS"),
-                        data = new
-                        {
-                            data = result
-                        }
+                        data =result
                     });
                 }
                 else
                 {
                     return Ok(new
                     {
-                        statuscode = 400,
-                        message = resourceManager.GetString("GETFAIL"),
-                        data = new
-                        {
-                            data = new List<FiCreatorMaster>()
-                        }
+                        statuscode = 201,
+                        message = resourceManager.GetString("GETFAIL")
+                        
                     });
                 }
             }
             catch (Exception ex)
             {
-                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "BranchDashboard_GetBranchesByCreators");
-                return Ok(new
-                {
-                    statuscode = 400,
-                    message = resourceManager.GetString("BADREQUEST"),
-                    data = string.Empty
-                });
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetCreators_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
+
             }
         }
         [HttpGet]
@@ -166,8 +156,7 @@ namespace PDL.ReportService.API.Controllers
         {
             try
             {
-                // string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                string activeuser = "159";
+                string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 List<BranchWithCreator> result = _branchDashboardService.GetBranches(CreatorId, activeuser, GetIslive());
                 if (result != null && result.Count > 0)
                 {
@@ -175,34 +164,24 @@ namespace PDL.ReportService.API.Controllers
                     {
                         statuscode = 200,
                         message = resourceManager.GetString("GETSUCCESS"),
-                        data = new
-                        {
-                            branches = result
-                        }
+                        data = result
                     });
                 }
                 else
                 {
                     return Ok(new
                     {
-                        statuscode = 204, // No Content
-                        message = resourceManager.GetString("GETFAIL"),
-                        data = new
-                        {
-                            branches = new List<BranchWithCreator>()
-                        }
+                        statuscode = 201, 
+                        message = resourceManager.GetString("GETFAIL")
+                        
                     });
                 }
             }
             catch (Exception ex)
             {
-                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "BranchDashboard_GetBranchesByCreators");
-                return Ok(new
-                {
-                    statuscode = 400,
-                    message = resourceManager.GetString("BADREQUEST"),
-                    data = string.Empty
-                });
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetBranches_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
+
             }
         }
 

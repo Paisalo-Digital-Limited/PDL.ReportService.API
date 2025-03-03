@@ -232,7 +232,7 @@ namespace PDL.ReportService.Logics.BLL
                 using (var cmd = new SqlCommand("Usp_GetCreatorsByUser", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@UserId", "135");
+                    cmd.Parameters.AddWithValue("@UserId", activeuser);
 
                     var creators = new List<FiCreatorMaster>();
 
