@@ -223,6 +223,68 @@ namespace PDL.ReportService.Logics.BLL
             }
         }
         #endregion
-      
+        #region API GetCreators BY--------------- Kartik -------
+        public List<FiCreatorMaster> GetCreators(string activeuser, bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_GetCreatorsByUser", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserId", "135");
+
+                    var creators = new List<FiCreatorMaster>();
+
+                    con.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            creators.Add(new FiCreatorMaster
+                            {
+                                CreatorID = reader.GetInt32(0),
+                                CreatorName = reader.GetString(1)
+                            });
+                        }
+                    }
+                    return creators;
+                }
+            }
+        }
+
+        public List<BranchWithCreator> GetBranches(string creatorIds, string activeUser, bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_GetBranchesByCreators", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserId", int.Parse(activeUser));
+                    cmd.Parameters.AddWithValue("@CreatorIds", string.IsNullOrEmpty(creatorIds) ? "ALL" : creatorIds);
+
+                    var branches = new List<BranchWithCreator>();
+                    con.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            branches.Add(new BranchWithCreator
+                            {
+                                BranchCode = reader.GetString(0),
+                                BranchName = reader.GetString(1),
+                                CreatorId = reader.IsDBNull(2) ? "ALL" : reader.GetInt32(2).ToString(),
+                                CreatorName = reader.IsDBNull(3) ? "" : reader.GetString(3)
+                            });
+                        }
+                    }
+                    return branches;
+                }
+            }
+        }
+
+        #endregion
     }
 }
