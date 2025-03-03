@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.BLL;
 
@@ -18,6 +19,20 @@ namespace PDL.ReportService.Repository.Repository
                 return branchDashboard.GetMasterData(CreatorID,BranchCode,FromDate,ToDate,activeuser,islive);
             }
         }
-
+        public List<FiCreatorMaster> GetCreators(string activeuser, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetCreators(activeuser, islive);
+            }
+        }
+        public List<BranchWithCreator> GetBranches(string CreatorId, string activeuser, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetBranches(CreatorId, activeuser, islive);
+            }
+        }
+       
     }
 }
