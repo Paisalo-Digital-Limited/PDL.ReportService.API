@@ -4,8 +4,10 @@ using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Logics.Credentials;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -63,14 +65,164 @@ namespace PDL.ReportService.Logics.BLL
                         cmd.Dispose();
                     }
                 }
-                return branchDash;
+                return branchDash; 
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
         }
-
         #endregion
+        #region Collection ---------Satish Maurya----------
+        public CollectionStatusVM CollectionStatus(string SmCode,bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            DataTable fihq = CollectionStatusFICHQ(SmCode, dbname, islive);
+            DataTable dt = new DataTable();
+            if (fihq.Rows.Count > 0)
+            {
+                using (SqlConnection con = _credManager.getConnections(dbname, islive))
+                {
+
+                    string query = "Usp_GetCollectionStatus";
+
+                    using (SqlCommand cmd = new SqlCommand(query, con))
+                    {
+                        cmd.CommandTimeout = 600;
+                        var da = new SqlDataAdapter(cmd);
+                        if (con.State == ConnectionState.Closed)
+                            con.Open();
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@Mode", "CollectionStatus");
+                        cmd.Parameters.AddWithValue("@SmCode", SmCode);
+
+                        da.Fill(dt);
+                        con.Close();
+                        cmd.Dispose();
+                    }
+                }
+            }
+
+            CollectionStatusVM data = new CollectionStatusVM();
+            List<Emi> emilist = new List<Emi>();
+            List<EmiCollection> emiCollectionslist = new List<EmiCollection>();
+
+            foreach (DataRow row in fihq.Rows)
+            {
+                Emi item = new Emi
+
+                {
+                    AMT = Convert.ToDecimal(row["AMT"]),
+                    PVN_RCP_DT = Convert.ToDateTime(row["PVN_RCP_DT"])
+                };
+                emilist.Add(item);
+            }
+
+            foreach (DataRow row in dt.Rows)
+            {
+                EmiCollection item = new EmiCollection
+                {
+                    CR = Convert.ToDecimal(row["CR"]),
+                    VDATE = Convert.ToDateTime(row["VDATE"])
+                };
+                emiCollectionslist.Add(item);
+            }
+            data.emis = emilist;
+            data.emiCollections = emiCollectionslist;
+            return data;
+        }
+        public DataTable CollectionStatusFICHQ(string SmCode, string dbname, bool islive)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+
+                string query = "Usp_GetCollectionStatus";
+
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandTimeout = 600;
+                    var da = new SqlDataAdapter(cmd);
+                    if (con.State == ConnectionState.Closed)
+                        con.Open();
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "CollectionStatusFICHQ");
+                    cmd.Parameters.AddWithValue("@SmCode", SmCode);
+
+                    da.Fill(dt);
+                    con.Close();
+                    cmd.Dispose();
+                }
+            }
+            return dt;
+        }
+        #endregion
+        #region Api BranchDashboard Count BY--------------- Satish Maurya-------
+        public List<BranchDashBoardDataModel> GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            List<BranchDashBoardDataModel> dashboardList = new List<BranchDashBoardDataModel>();
+            try
+            {
+                using (SqlConnection con = _credManager.getConnections(dbname, islive))
+                {
+                    string query = "Usp_BranchDashBoard";
+                    using (SqlCommand cmd = new SqlCommand(query, con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.AddWithValue("@Mode", "GetBranchDashboardData");
+                        cmd.Parameters.AddWithValue("@CreatorBranchId", Convert.ToString(CreatorBranchId));
+                        cmd.Parameters.AddWithValue("@FromDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ToDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Type",Type);
+
+                        con.Open();
+
+                        using (SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection))
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    var dashboardModel = new BranchDashBoardDataModel
+                                    {
+                                        FullName = reader["Full_Name"]?.ToString(),
+                                        CreatorName = reader["CreatorName"]?.ToString(),
+                                        FICode = reader["FICode"]?.ToString(),
+                                        SmCode = reader["SmCode"]?.ToString(),
+                                        Current_City = reader["Current_City"]?.ToString(),
+                                        Group_code = reader["Group_code"]?.ToString(),
+                                        LoanDuration = Convert.ToInt32(reader["Loan_Duration"]),
+                                        CreationDate = reader["CreatedOn"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["CreatedOn"],
+                                        Approved = reader["Approved"]?.ToString(),
+                                    };
+
+                                    if (Type.ToUpper().Trim() == "SOURCING")
+                                    {
+                                        dashboardModel.FatherName = reader["FatherName"] as string;
+                                        dashboardModel.Income = reader["Income"] != DBNull.Value ? (decimal?)reader["Income"] : null;
+                                        dashboardModel.Expense = reader["Expenses"] != DBNull.Value ? Convert.ToDecimal(reader["Expenses"]) : 0; // Default to 0 if DBNull
+                                    }
+                                    dashboardList.Add(dashboardModel);
+                                }
+                            }
+                            else
+                            {
+                            }
+                        }
+                        con.Close();
+                        cmd.Dispose();
+                    }
+                }
+                return dashboardList;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        #endregion
+      
     }
 }

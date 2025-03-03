@@ -10,5 +10,7 @@ namespace PDL.ReportService.Interfaces.Interfaces
     public interface IBranchDashboardService
     {
         BranchDashBoardVM GetMasterData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive);
+        CollectionStatusVM CollectionStatus(string SmCode, bool islive);
+        List<BranchDashBoardDataModel> GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive);
     }
 }

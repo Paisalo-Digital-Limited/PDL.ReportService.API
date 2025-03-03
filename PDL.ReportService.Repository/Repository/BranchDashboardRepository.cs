@@ -19,6 +19,20 @@ namespace PDL.ReportService.Repository.Repository
                 return branchDashboard.GetMasterData(CreatorBranchId, FromDate, ToDate, islive);
             }
         }
+        public CollectionStatusVM CollectionStatus(string SmCode, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.CollectionStatus(SmCode, islive);
+            }
+        }
+        public List<BranchDashBoardDataModel> GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate, Type, islive);
+            }
+        }
 
     }
 }

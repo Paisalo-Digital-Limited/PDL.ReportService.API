@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.Helper;
+using System.Xml.Linq;
 
 namespace PDL.ReportService.API.Controllers
 {
@@ -43,6 +45,72 @@ namespace PDL.ReportService.API.Controllers
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetMasterData_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
+            }
+        }
+        #endregion
+        #region Collection ---------Satish Maurya----------
+        [HttpGet]
+        public IActionResult CollectionStatus(string SmCode)
+        {
+            try
+            {
+                CollectionStatusVM res = _branchDashboardService.CollectionStatus(SmCode, GetIslive());
+                if (res != null)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = res
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201,
+                        message = resourceManager.GetString("GETFAIL"),
+                        data = ""
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetFiCollection_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
+            }
+        }
+        #endregion
+        #region Api BranchDashboard Count BY--------------- Satish Maurya-------
+        [HttpGet]
+        public IActionResult GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type)
+        {
+            try
+            {
+                List<BranchDashBoardDataModel> res = _branchDashboardService.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate, Type, GetIslive());
+                if (res.Count>0)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = res
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201,
+                        message = resourceManager.GetString("GETFAIL"),
+                        data = ""
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetBranchDashboardData_BranchDashboard");
                 return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
             }
         }
