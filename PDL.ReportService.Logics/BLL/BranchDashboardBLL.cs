@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Logics.Credentials;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ using System.Xml.Linq;
 
 namespace PDL.ReportService.Logics.BLL
 {
-    public class BranchDashboardBLL:BaseBLL
+    public class BranchDashboardBLL : BaseBLL
     {
         private readonly IConfiguration _configuration;
         private readonly CredManager _credManager;
@@ -21,10 +22,10 @@ namespace PDL.ReportService.Logics.BLL
             _credManager = new CredManager(configuration);
         }
         #region Api BranchDashboard BY--------------- Satish Maurya-------
-        public string GetMasterData(string CreatorID, string BranchCode, DateTime? FromDate, DateTime? ToDate, string activeuser, bool islive)
+        public BranchDashBoardVM GetMasterData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
-
+            BranchDashBoardVM branchDash = new BranchDashBoardVM();
             try
             {
                 using (SqlConnection con = _credManager.getConnections(dbname, islive))
@@ -35,11 +36,9 @@ namespace PDL.ReportService.Logics.BLL
                         cmd.CommandType = CommandType.StoredProcedure;
 
                         cmd.Parameters.AddWithValue("@Mode", "GetMasterData");
-                        cmd.Parameters.AddWithValue("@CreatorID", CreatorID); 
-                        cmd.Parameters.AddWithValue("@BranchCode", BranchCode);
+                        cmd.Parameters.AddWithValue("@CreatorBranchId", Convert.ToString(CreatorBranchId));
                         cmd.Parameters.AddWithValue("@FromDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
                         cmd.Parameters.AddWithValue("@ToDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
-                        cmd.Parameters.AddWithValue("@CreatedBy", activeuser);
 
                         con.Open();
 
@@ -49,16 +48,22 @@ namespace PDL.ReportService.Logics.BLL
                             {
                                 while (rdrUser.Read())
                                 {
-                                    CreatorID = rdrUser["CreatorID"] != DBNull.Value ? rdrUser["CreatorID"].ToString() : "0"; 
+                                    branchDash.Total_FirstEsign_Count = rdrUser["Total_FirstEsign_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_FirstEsign_Count"]) : 0;
+                                    branchDash.Total_Sanctioned_Count = rdrUser["Total_Sanctioned_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_Sanctioned_Count"]) : 0;
+                                    branchDash.Total_SecondEsign_Count = rdrUser["Total_SecondEsign_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_SecondEsign_Count"]) : 0;
+                                    branchDash.Total_Disbursed_Count = rdrUser["Total_Disbursed_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_Disbursed_Count"]) : 0;
+                                    branchDash.Total_Count = rdrUser["Total_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_Count"]) : 0;
                                 }
                             }
                             else
                             {
                             }
                         }
+                        con.Close();
+                        cmd.Dispose();
                     }
                 }
-                return CreatorID; 
+                return branchDash;
             }
             catch (Exception ex)
             {

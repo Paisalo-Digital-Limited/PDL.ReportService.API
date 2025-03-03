@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.Helper;
 
@@ -15,13 +16,11 @@ namespace PDL.ReportService.API.Controllers
         }
         #region Api BranchDashboard BY--------------- Satish Maurya-------
         [HttpGet]
-        public IActionResult GetMasterData(string?  CreatorID , string? BranchCode, DateTime? FromDate, DateTime? ToDate)
+        public IActionResult GetMasterData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate)
         {
             try
             {
-                //string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                string activeuser = "159";
-                string res = _branchDashboardService.GetMasterData(CreatorID, BranchCode, FromDate, ToDate, activeuser, GetIslive());
+                BranchDashBoardVM res = _branchDashboardService.GetMasterData(CreatorBranchId, FromDate, ToDate, GetIslive());
                 if (res != null)
                 {
                     return Ok(new

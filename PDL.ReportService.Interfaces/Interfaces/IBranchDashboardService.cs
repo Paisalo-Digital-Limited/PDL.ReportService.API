@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PDL.ReportService.Entites.VM;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,6 @@ namespace PDL.ReportService.Interfaces.Interfaces
 {
     public interface IBranchDashboardService
     {
-        string GetMasterData(string? CreatorID, string? BranchCode, DateTime? FromDate, DateTime? ToDate, string activeuser, bool islive);
+        BranchDashBoardVM GetMasterData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive);
     }
 }
