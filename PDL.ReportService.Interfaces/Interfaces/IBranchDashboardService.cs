@@ -9,9 +9,6 @@ namespace PDL.ReportService.Interfaces.Interfaces
 {
     public interface IBranchDashboardService
     {
-        string GetMasterData(string? CreatorID, string? BranchCode, DateTime? FromDate, DateTime? ToDate, string activeuser, bool islive);
-        //DropdownResult GetCreatorsAndBranches(string CreatorID, string activeuser, bool islive);
-        List<FiCreatorMaster> GetCreators(string activeuser, bool islive);
-        List<BranchWithCreator> GetBranches(string CreatorId, string activeuser, bool islive);
+        BranchDashBoardVM GetMasterData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive);
     }
 }
