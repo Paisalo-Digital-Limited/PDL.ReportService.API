@@ -14,6 +14,21 @@ namespace PDL.ReportService.Entites.VM
         public int Total_Disbursed_Count { get; set; }
         public int Total_Count { get; set; }
     }
-           
+    public class BranchDashBoardDataModel
+    {
+        public string FullName { get; set; }
+        public string FatherName { get; set; }
+        public string CreatorName { get; set; }
+        public string FICode { get; set; }
+        public string SmCode { get; set; }
+        public string Current_City { get; set; }
+        public string Group_code { get; set; }
+        public decimal? Income { get; set; }
+        public decimal? Expense { get; set; }
+        public int? LoanDuration { get; set; }
+        public DateTime? CreationDate { get; set; }
+        public string Approved { get; set; }
+
+    }
 
 }
