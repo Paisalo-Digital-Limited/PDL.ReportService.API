@@ -65,7 +65,7 @@ namespace PDL.ReportService.Logics.BLL
                         cmd.Dispose();
                     }
                 }
-                return branchDash; 
+                return branchDash;
             }
             catch (Exception ex)
             {
@@ -74,7 +74,7 @@ namespace PDL.ReportService.Logics.BLL
         }
         #endregion
         #region Collection ---------Satish Maurya----------
-        public CollectionStatusVM CollectionStatus(string SmCode,bool islive)
+        public CollectionStatusVM CollectionStatus(string SmCode, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             DataTable fihq = CollectionStatusFICHQ(SmCode, dbname, islive);
@@ -175,7 +175,7 @@ namespace PDL.ReportService.Logics.BLL
                         cmd.Parameters.AddWithValue("@CreatorBranchId", Convert.ToString(CreatorBranchId));
                         cmd.Parameters.AddWithValue("@FromDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
                         cmd.Parameters.AddWithValue("@ToDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Type",Type);
+                        cmd.Parameters.AddWithValue("@Type", Type);
 
                         con.Open();
 
@@ -243,8 +243,8 @@ namespace PDL.ReportService.Logics.BLL
                         {
                             creators.Add(new FiCreatorMaster
                             {
-                                CreatorID = reader.GetInt32(0),
-                                CreatorName = reader.GetString(1)
+                                CreatorID = reader["CreatorID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["CreatorID"]),
+                                CreatorName = reader["CreatorName"] == DBNull.Value ? null : reader["CreatorName"]?.ToString()
                             });
                         }
                     }
@@ -273,10 +273,10 @@ namespace PDL.ReportService.Logics.BLL
                         {
                             branches.Add(new BranchWithCreator
                             {
-                                BranchCode = reader.GetString(0),
-                                BranchName = reader.GetString(1),
-                                CreatorId = reader.IsDBNull(2) ? "ALL" : reader.GetInt32(2).ToString(),
-                                CreatorName = reader.IsDBNull(3) ? "" : reader.GetString(3)
+                                BranchCode = reader["BranchCode"] == DBNull.Value ? null : reader["BranchCode"]?.ToString(),
+                                BranchName = reader["BranchName"] == DBNull.Value ? null : reader["BranchName"]?.ToString(),
+                                CreatorId = reader["CreatorID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["CreatorID"]),
+                                CreatorName = reader["CreatorName"] == DBNull.Value ? null : reader["CreatorName"]?.ToString()
                             });
                         }
                     }
