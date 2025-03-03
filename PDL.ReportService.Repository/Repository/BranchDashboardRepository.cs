@@ -30,8 +30,9 @@ namespace PDL.ReportService.Repository.Repository
         {
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
-                return branchDashboard.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate,Type, islive);
+                return branchDashboard.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate, Type, islive);
             }
         }
+
     }
 }

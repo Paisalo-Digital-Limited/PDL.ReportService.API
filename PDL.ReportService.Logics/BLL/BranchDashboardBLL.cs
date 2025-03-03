@@ -4,6 +4,7 @@ using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Logics.Credentials;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Reflection.PortableExecutable;
@@ -64,7 +65,7 @@ namespace PDL.ReportService.Logics.BLL
                         cmd.Dispose();
                     }
                 }
-                return branchDash;
+                return branchDash; 
             }
             catch (Exception ex)
             {
@@ -222,5 +223,6 @@ namespace PDL.ReportService.Logics.BLL
             }
         }
         #endregion
+      
     }
 }
