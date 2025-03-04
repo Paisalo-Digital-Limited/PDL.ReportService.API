@@ -28,7 +28,13 @@ namespace PDL.ReportService.Entites.VM
         public int? LoanDuration { get; set; }
         public DateTime? CreationDate { get; set; }
         public string Approved { get; set; }
-
+        public string SchCode { get; set; }
+        public decimal? SanctionedAmt { get; set; }
+        public DateTime? DtFin { get; set; }
+        public decimal? Loan_amount { get; set; }
+        public decimal? InstAmt { get; set; }
+        public decimal? Invest { get; set; }
+        public DateTime? DtPos { get; set; }
     }
 
 }

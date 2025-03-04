@@ -105,7 +105,6 @@ namespace PDL.ReportService.API.Controllers
                     {
                         statuscode = 201,
                         message = resourceManager.GetString("GETFAIL"),
-                        data = ""
                     });
                 }
             }
@@ -116,7 +115,6 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         #endregion
-
         #region API GetBranchesByCreators BY--------------- Kartik -------
         [HttpGet]
         public IActionResult GetCreators()
