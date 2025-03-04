@@ -202,7 +202,25 @@ namespace PDL.ReportService.Logics.BLL
                                     {
                                         dashboardModel.FatherName = reader["FatherName"] as string;
                                         dashboardModel.Income = reader["Income"] != DBNull.Value ? (decimal?)reader["Income"] : null;
-                                        dashboardModel.Expense = reader["Expenses"] != DBNull.Value ? Convert.ToDecimal(reader["Expenses"]) : 0; // Default to 0 if DBNull
+                                        dashboardModel.Expense = reader["Expenses"] != DBNull.Value ? Convert.ToDecimal(reader["Expenses"]) : 0;
+                                    }
+                                    else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION")
+                                    {
+                                        dashboardModel.SchCode = reader["SchCode"]?.ToString();
+                                        dashboardModel.SanctionedAmt = reader["SanctionedAmt"] as decimal?;
+                                        dashboardModel.DtFin = reader["Dt_Fin"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["Dt_Fin"];
+                                    }
+                                    else if (Type.ToUpper().Trim() == "SECONDESIGN" || Type.ToUpper().Trim() == "SECONDESIGNPENDING")
+                                    {
+                                        dashboardModel.Loan_amount = reader["Loan_amount"] as decimal?;
+                                    }
+                                    else if (Type.ToUpper().Trim() == "DISBURSED")
+                                    {
+                                        dashboardModel.InstAmt = Convert.ToDecimal(reader["INST_AMT"]);
+                                        dashboardModel.Invest = Convert.ToDecimal(reader["INVEST"]);
+                                        dashboardModel.DtFin = reader["Dt_Fin"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["Dt_Fin"];
+                                        dashboardModel.DtPos = reader["DT_POS"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["DT_POS"];
+
                                     }
                                     dashboardList.Add(dashboardModel);
                                 }
