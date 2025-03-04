@@ -47,5 +47,26 @@ namespace PDL.ReportService.Repository.Repository
                 return branchDashboard.GetBranches(CreatorId, activeuser, islive);
             }
         }
+        public List<GetFirstEsign> GetFirstEsign(int CreatorId, long FiCode, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetFirstEsign(CreatorId, FiCode, islive);
+            }
+        }
+        public List<GetSecoundEsign> GetSecoundEsign(int CreatorId, long FiCode, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetSecoundEsign(CreatorId, FiCode, islive);
+            }
+        }
+        public object GetCaseNotVisible(int CreatorId, long FiCode, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetCaseNotVisible(CreatorId, FiCode, islive);
+            }
+        }
     }
 }
