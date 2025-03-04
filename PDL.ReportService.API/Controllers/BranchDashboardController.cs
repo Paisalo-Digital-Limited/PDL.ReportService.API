@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.Helper;
+using System.Security.Claims;
 using System.Xml.Linq;
 
 namespace PDL.ReportService.API.Controllers
@@ -104,7 +105,6 @@ namespace PDL.ReportService.API.Controllers
                     {
                         statuscode = 201,
                         message = resourceManager.GetString("GETFAIL"),
-                        data = ""
                     });
                 }
             }
@@ -115,5 +115,75 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         #endregion
+        #region API GetBranchesByCreators BY--------------- Kartik -------
+        [HttpGet]
+        public IActionResult GetCreators()
+        {
+            try
+            {
+                string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                List<FiCreatorMaster> result = _branchDashboardService.GetCreators(activeuser, GetIslive());
+                if (result != null)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data =result
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201,
+                        message = resourceManager.GetString("GETFAIL")
+                        
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetCreators_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
+
+            }
+        }
+        [HttpGet]
+        public IActionResult GetBranches(string CreatorId)
+        {
+            try
+            {
+                string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                List<BranchWithCreator> result = _branchDashboardService.GetBranches(CreatorId, activeuser, GetIslive());
+                if (result != null && result.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201, 
+                        message = resourceManager.GetString("GETFAIL")
+                        
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetBranches_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
+
+            }
+        }
+
+        #endregion
+
     }
 }

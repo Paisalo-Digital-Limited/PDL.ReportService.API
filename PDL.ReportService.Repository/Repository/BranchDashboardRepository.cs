@@ -33,6 +33,19 @@ namespace PDL.ReportService.Repository.Repository
                 return branchDashboard.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate, Type, islive);
             }
         }
-
+        public List<FiCreatorMaster> GetCreators(string activeuser, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetCreators(activeuser, islive);
+            }
+        }
+        public List<BranchWithCreator> GetBranches(string CreatorId, string activeuser, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetBranches(CreatorId, activeuser, islive);
+            }
+        }
     }
 }
