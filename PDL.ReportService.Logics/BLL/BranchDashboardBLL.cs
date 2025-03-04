@@ -158,7 +158,7 @@ namespace PDL.ReportService.Logics.BLL
         }
         #endregion
         #region Api BranchDashboard Count BY--------------- Satish Maurya-------
-        public List<BranchDashBoardDataModel> GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
+        public List<BranchDashBoardDataModel> GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             List<BranchDashBoardDataModel> dashboardList = new List<BranchDashBoardDataModel>();
@@ -176,6 +176,8 @@ namespace PDL.ReportService.Logics.BLL
                         cmd.Parameters.AddWithValue("@FromDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
                         cmd.Parameters.AddWithValue("@ToDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
                         cmd.Parameters.AddWithValue("@Type", Type);
+                        cmd.Parameters.AddWithValue("@PageNumber", pageNumber);
+                        cmd.Parameters.AddWithValue("@PageSize", pageSize);
 
                         con.Open();
 

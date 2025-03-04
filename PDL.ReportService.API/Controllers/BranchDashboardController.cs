@@ -85,11 +85,11 @@ namespace PDL.ReportService.API.Controllers
         #endregion
         #region Api BranchDashboard Count BY--------------- Satish Maurya-------
         [HttpGet]
-        public IActionResult GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type)
+        public IActionResult GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize)
         {
             try
             {
-                List<BranchDashBoardDataModel> res = _branchDashboardService.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate, Type, GetIslive());
+                List<BranchDashBoardDataModel> res = _branchDashboardService.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate, Type,pageNumber,pageSize, GetIslive());
                 if (res.Count>0)
                 {
                     return Ok(new

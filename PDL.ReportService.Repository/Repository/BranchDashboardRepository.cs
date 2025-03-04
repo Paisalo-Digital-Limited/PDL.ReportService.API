@@ -26,11 +26,11 @@ namespace PDL.ReportService.Repository.Repository
                 return branchDashboard.CollectionStatus(SmCode, islive);
             }
         }
-        public List<BranchDashBoardDataModel> GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
+        public List<BranchDashBoardDataModel> GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, bool islive)
         {
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
-                return branchDashboard.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate, Type, islive);
+                return branchDashboard.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate, Type,pageNumber,pageSize, islive);
             }
         }
         public List<FiCreatorMaster> GetCreators(string activeuser, bool islive)
