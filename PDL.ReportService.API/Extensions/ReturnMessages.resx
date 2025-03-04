@@ -171,4 +171,10 @@
   <data name="CASEALREADYINSANCTONED" xml:space="preserve">
     <value>This case is already in sanctioned</value>
   </data>
+  <data name="DOWNLOADONE" xml:space="preserve">
+    <value>Download One Pager</value>
+  </data>
+  <data name="IMEINOTFOUND" xml:space="preserve">
+    <value>IMEI No Not Found</value>
+  </data>
 </root>
