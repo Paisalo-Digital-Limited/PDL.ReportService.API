@@ -16,6 +16,7 @@ namespace PDL.ReportService.Entites.VM
     }
     public class BranchDashBoardDataModel
     {
+        public long Fi_Id { get; set; }
         public string FullName { get; set; }
         public string FatherName { get; set; }
         public string CreatorName { get; set; }

@@ -189,13 +189,14 @@ namespace PDL.ReportService.Logics.BLL
                                 {
                                     var dashboardModel = new BranchDashBoardDataModel
                                     {
+                                        Fi_Id = reader["Fi_Id"] == DBNull.Value ? 0 : Convert.ToInt64(reader["Fi_Id"]),
                                         FullName = reader["Full_Name"]?.ToString(),
                                         CreatorName = reader["CreatorName"]?.ToString(),
                                         FICode = reader["FICode"]?.ToString(),
                                         SmCode = reader["SmCode"]?.ToString(),
                                         Current_City = reader["Current_City"]?.ToString(),
                                         Group_code = reader["Group_code"]?.ToString(),
-                                        LoanDuration = Convert.ToInt32(reader["Loan_Duration"]),
+                                        LoanDuration = reader["Loan_Duration"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Loan_Duration"]),
                                         CreationDate = reader["CreatedOn"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["CreatedOn"],
                                         Approved = reader["Approved"]?.ToString(),
                                     };
