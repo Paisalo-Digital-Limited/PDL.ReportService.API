@@ -158,7 +158,7 @@ namespace PDL.ReportService.Logics.BLL
         }
         #endregion
         #region Api BranchDashboard Count BY--------------- Satish Maurya-------
-        public List<BranchDashBoardDataModel> GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
+        public List<BranchDashBoardDataModel> GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             List<BranchDashBoardDataModel> dashboardList = new List<BranchDashBoardDataModel>();
@@ -176,6 +176,8 @@ namespace PDL.ReportService.Logics.BLL
                         cmd.Parameters.AddWithValue("@FromDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
                         cmd.Parameters.AddWithValue("@ToDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
                         cmd.Parameters.AddWithValue("@Type", Type);
+                        cmd.Parameters.AddWithValue("@PageNumber", pageNumber);
+                        cmd.Parameters.AddWithValue("@PageSize", pageSize);
 
                         con.Open();
 
@@ -303,6 +305,157 @@ namespace PDL.ReportService.Logics.BLL
             }
         }
 
+        #endregion
+        #region BranchDashboard ChatBot query Api  BY--------------- Satish Maurya-------
+        public List<GetFirstEsign> GetFirstEsign(int CreatorId, long FiCode, bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "GETFIRSTESIGN");
+                    cmd.Parameters.AddWithValue("@CreatorId", CreatorId);
+                    cmd.Parameters.AddWithValue("@FiCode", FiCode);
+
+                    var res = new List<GetFirstEsign>();
+                    con.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            res.Add(new GetFirstEsign
+                            {
+                                BorrSignStatus = reader["BorrSignStatus"] == DBNull.Value ? null : reader["BorrSignStatus"]?.ToString(),
+                                Creation_Date = reader["Creation_Date"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["Creation_Date"]
+
+                            });
+                        }
+                    }
+                    return res;
+                }
+            }
+        }
+        public List<GetSecoundEsign> GetSecoundEsign(int CreatorId, long FiCode, bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "GETSECOUNDESIGN");
+                    cmd.Parameters.AddWithValue("@CreatorId", CreatorId);
+                    cmd.Parameters.AddWithValue("@FiCode", FiCode);
+
+                    var res = new List<GetSecoundEsign>();
+                    con.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            res.Add(new GetSecoundEsign
+                            {
+                                Download_One_Pager_Status = reader["Download_One_Pager_Status"] == DBNull.Value ? null : reader["Download_One_Pager_Status"]?.ToString(),
+                                Eligible_CSO_Id = reader["Eligible_CSO_Id"] == DBNull.Value ? null : reader["Eligible_CSO_Id"]?.ToString(),
+                                Esign_Applicable_Status = reader["Esign_Applicable_Status"] == DBNull.Value ? null : reader["Esign_Applicable_Status"]?.ToString(),
+
+                            });
+                        }
+                    }
+                    return res;
+                }
+            }
+        }
+        public object GetCaseNotVisible(int CreatorId, long FiCode, bool islive)
+        {
+            string query = "Usp_BranchDashBoard";
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            DataTable dataTable = new DataTable();
+            int data = 0;
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand(query, con))
+                {
+                    DataTable dt = new DataTable();
+                    var da = new SqlDataAdapter(cmd);
+                    if (con.State == ConnectionState.Closed)
+                        con.Open();
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "CHECKONEPAGER");
+                    cmd.Parameters.AddWithValue("@CreatorId", CreatorId);
+                    cmd.Parameters.AddWithValue("@FiCode", FiCode);
+
+                    da.Fill(dt);
+                    con.Close();
+                    cmd.Dispose();
+                    var smcode = dt.Rows[0]["SmCode"];
+
+                    if (smcode == DBNull.Value || string.IsNullOrEmpty(smcode.ToString()))
+                    {
+                        return data = -1;
+                    }
+                    else
+                    {
+                        DataTable dtt = new DataTable();
+                        using (var cmdd = new SqlCommand(query, con))
+                        {
+                            if (con.State == ConnectionState.Closed)
+                                con.Open();
+                            cmdd.CommandType = CommandType.StoredProcedure;
+                            cmdd.Parameters.AddWithValue("@Mode", "GETIMEINO");
+                            cmd.Parameters.AddWithValue("@CreatorId", CreatorId);
+                            cmd.Parameters.AddWithValue("@FiCode", FiCode);
+
+                            SqlDataAdapter dsa = new SqlDataAdapter(cmdd);
+                            dsa.Fill(dtt);
+
+                            con.Close();
+                            cmdd.Dispose();
+                        }
+
+                        if (dtt.Rows.Count > 0)
+                        {
+                            foreach (DataRow row in dtt.Rows)
+                            {
+                                var IMEINO = row["IMEINO"];
+                                var GroupCode = row["Group_code"];
+                                var CreatorID = row["CreatorID"];
+
+                                if (IMEINO == DBNull.Value || string.IsNullOrEmpty(IMEINO.ToString()))
+                                {
+                                    return data = -2;
+                                }
+                                else
+                                {
+
+                                    using (var command = new SqlCommand("GetPendingESignData", con))
+                                    {
+                                        if (con.State == ConnectionState.Closed)
+                                            con.Open();
+                                        command.CommandType = CommandType.StoredProcedure;
+                                        command.Parameters.AddWithValue("@CreatorID", CreatorID);
+                                        command.Parameters.AddWithValue("@GroupCode", GroupCode);
+                                        command.Parameters.AddWithValue("@IMEINO", IMEINO);
+
+                                        SqlDataAdapter dataAdapter = new SqlDataAdapter(command);
+                                        dataAdapter.Fill(dataTable);
+
+                                        con.Close();
+                                        command.Dispose();
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return dataTable;
+        }
         #endregion
     }
 }

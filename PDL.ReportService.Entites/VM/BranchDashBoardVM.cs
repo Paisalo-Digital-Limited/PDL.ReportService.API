@@ -36,5 +36,16 @@ namespace PDL.ReportService.Entites.VM
         public decimal? Invest { get; set; }
         public DateTime? DtPos { get; set; }
     }
-
+    public class GetFirstEsign
+    {
+        public string BorrSignStatus { get; set; }
+        public DateTime? Creation_Date { get; set; }
+        
+    }
+    public class GetSecoundEsign
+    {
+        public string Download_One_Pager_Status { get; set; }
+        public string Eligible_CSO_Id { get; set; }
+        public string Esign_Applicable_Status { get; set; }
+    }
 }
