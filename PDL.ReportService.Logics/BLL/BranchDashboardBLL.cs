@@ -200,7 +200,7 @@ namespace PDL.ReportService.Logics.BLL
                                         Approved = reader["Approved"]?.ToString(),
                                     };
 
-                                    if (Type.ToUpper().Trim() == "SOURCING")
+                                    if (Type.ToUpper().Trim() == "SOURCING"|| Type.ToUpper().Trim() == "ALL")
                                     {
                                         dashboardModel.FatherName = reader["FatherName"] as string;
                                         dashboardModel.Income = reader["Income"] != DBNull.Value ? (decimal?)reader["Income"] : null;
