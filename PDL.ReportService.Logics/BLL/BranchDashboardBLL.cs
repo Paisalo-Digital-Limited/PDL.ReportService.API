@@ -277,7 +277,6 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
-
         public List<BranchWithCreator> GetBranches(string creatorIds, string activeUser, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
@@ -309,7 +308,6 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
-
         #endregion
         #region BranchDashboard ChatBot query Api  BY--------------- Satish Maurya-------
         public List<GetFirstEsign> GetFirstEsign(int CreatorId, long FiCode, bool islive)
@@ -462,7 +460,6 @@ namespace PDL.ReportService.Logics.BLL
             return dataTable;
         }
         #endregion
-
         #region Api BranchDashboard TotalDemand && TotalCollection BY--------------- Satish Maurya-------
         public List<TotalDemandAndCollection> GetTotalDemandAndCollection(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
         {
@@ -489,6 +486,78 @@ namespace PDL.ReportService.Logics.BLL
                                 AdvanceCollection = reader["AdvanceCollection"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["AdvanceCollection"]),
                                 OD = reader["OD"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["OD"]),
                                 TotalEfficiency = reader["TotalEfficiency"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["TotalEfficiency"])
+                            });
+                        }
+                    }
+                    return res;
+                }
+            }
+        }
+        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate,bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "GetCollectionCount");
+                    cmd.Parameters.AddWithValue("@CreatorBranchId", Convert.ToString(CreatorBranchId));
+                    cmd.Parameters.AddWithValue("@FromDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ToDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    var res = new List<GetCollectionCountVM>();
+                    con.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            res.Add(new GetCollectionCountVM
+                            {
+                                FICode = reader["FICode"] == DBNull.Value ? 0 : Convert.ToInt64(reader["FICode"]),
+                                FullName = reader["Name"] == DBNull.Value ? null : reader["Name"].ToString(),
+                                CreatorName = reader["CreatorName"] == DBNull.Value ? null : reader["CreatorName"].ToString(),
+                                Branch_code = reader["Branch_code"] == DBNull.Value ? null : reader["Branch_code"].ToString(),
+                                SmCode = reader["SmCode"] == DBNull.Value ? null : reader["SmCode"].ToString(),
+                                VNO = reader["VNO"] == DBNull.Value ? null : reader["VNO"].ToString(),
+                                CR = reader["CR"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["CR"]),
+                                VDATE = reader["VDATE"] == DBNull.Value ? null : reader["VDATE"].ToString(),
+                            });
+                        }
+                    }
+                    return res;
+                }
+            }
+        }
+        public List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "GetDemandCount");
+                    cmd.Parameters.AddWithValue("@CreatorBranchId", Convert.ToString(CreatorBranchId));
+                    cmd.Parameters.AddWithValue("@FromDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ToDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    var res = new List<GetDemandCountVM>();
+                    con.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            res.Add(new GetDemandCountVM
+                            {
+                                FICode = reader["FICode"] == DBNull.Value ? 0 : Convert.ToInt64(reader["FICode"]),
+                                FullName = reader["Name"] == DBNull.Value ? null : reader["Name"].ToString(),
+                                CreatorName = reader["CreatorName"] == DBNull.Value ? null : reader["CreatorName"].ToString(),
+                                Branch_code = reader["Branch_code"] == DBNull.Value ? null : reader["Branch_code"].ToString(),
+                                SmCode = reader["SmCode"] == DBNull.Value ? null : reader["SmCode"].ToString(),
+                                INSTALL = reader["INSTALL"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["INSTALL"]),
+                                AMT = reader["AMT"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["AMT"]),
+                                PVN_RCP_DT = reader["PVN_RCP_DT"] == DBNull.Value ? null : reader["PVN_RCP_DT"].ToString() 
                             });
                         }
                     }
