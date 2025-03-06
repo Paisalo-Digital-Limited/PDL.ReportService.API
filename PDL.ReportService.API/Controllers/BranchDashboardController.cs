@@ -316,11 +316,11 @@ namespace PDL.ReportService.API.Controllers
         #endregion
         #region Api BranchDashboard TotalDemand && TotalCollection BY--------------- Satish Maurya-------
         [HttpGet]
-        public IActionResult GetTotalDemandAndCollection(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string? Type)
+        public IActionResult GetTotalDemandAndCollection(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate)
         {
             try
             {
-                List<TotalDemandAndCollection> res = _branchDashboardService.GetTotalDemandAndCollection(CreatorBranchId, FromDate, ToDate, Type, GetIslive());
+                List<TotalDemandAndCollection> res = _branchDashboardService.GetTotalDemandAndCollection(CreatorBranchId, FromDate, ToDate, GetIslive());
                 if (res.Count > 0)
                 {
                     return Ok(new
@@ -347,11 +347,11 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         [HttpGet]
-        public IActionResult GetCollectionCountList(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate)
+        public IActionResult GetCollectionCountList(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type)
         {
             try
             {
-                List<GetCollectionCountVM> res = _branchDashboardService.GetCollectionCount(CreatorBranchId, FromDate, ToDate, GetIslive());
+                List<GetCollectionCountVM> res = _branchDashboardService.GetCollectionCount(CreatorBranchId, FromDate, ToDate,Type, GetIslive());
                 if (res.Count > 0)
                 {
                     return Ok(new

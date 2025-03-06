@@ -50,14 +50,14 @@ namespace PDL.ReportService.Logics.BLL
                             {
                                 while (rdrUser.Read())
                                 {
-                                    branchDash.Total_FirstEsign_Count = rdrUser["Total_FirstEsign_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_FirstEsign_Count"]) : 0;
-                                    branchDash.Total_Sanctioned_Count = rdrUser["Total_Sanctioned_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_Sanctioned_Count"]) : 0;
-                                    branchDash.Total_SecondEsign_Count = rdrUser["Total_SecondEsign_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_SecondEsign_Count"]) : 0;
-                                    branchDash.Total_Disbursed_Count = rdrUser["Total_Disbursed_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_Disbursed_Count"]) : 0;
-                                    branchDash.Total_Count = rdrUser["Total_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_Count"]) : 0;
-                                    branchDash.Total_PostSanction_Count = rdrUser["Total_PostSanction_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_PostSanction_Count"]) : 0;
-                                    branchDash.Total_ReadyForAudit_Count = rdrUser["Total_ReadyForAudit_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_ReadyForAudit_Count"]) : 0;
-                                    branchDash.Total_ReadyForNeft_Count = rdrUser["Total_ReadyForNeft_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_ReadyForNeft_Count"]) : 0;
+                                    branchDash.Total_FirstEsign_Count = rdrUser["Total_FirstEsign_Count"] != DBNull.Value ? Convert.ToInt64(rdrUser["Total_FirstEsign_Count"]) : 0;
+                                    branchDash.Total_Sanctioned_Count = rdrUser["Total_Sanctioned_Count"] != DBNull.Value ? Convert.ToInt64(rdrUser["Total_Sanctioned_Count"]) : 0;
+                                    branchDash.Total_SecondEsign_Count = rdrUser["Total_SecondEsign_Count"] != DBNull.Value ? Convert.ToInt64(rdrUser["Total_SecondEsign_Count"]) : 0;
+                                    branchDash.Total_Disbursed_Count = rdrUser["Total_Disbursed_Count"] != DBNull.Value ? Convert.ToInt64(rdrUser["Total_Disbursed_Count"]) : 0;
+                                    branchDash.Total_Count = rdrUser["Total_Count"] != DBNull.Value ? Convert.ToInt64(rdrUser["Total_Count"]) : 0;
+                                    branchDash.Total_PostSanction_Count = rdrUser["Total_PostSanction_Count"] != DBNull.Value ? Convert.ToInt64(rdrUser["Total_PostSanction_Count"]) : 0;
+                                    branchDash.Total_ReadyForAudit_Count = rdrUser["Total_ReadyForAudit_Count"] != DBNull.Value ? Convert.ToInt64(rdrUser["Total_ReadyForAudit_Count"]) : 0;
+                                    branchDash.Total_ReadyForNeft_Count = rdrUser["Total_ReadyForNeft_Count"] != DBNull.Value ? Convert.ToInt64(rdrUser["Total_ReadyForNeft_Count"]) : 0;
                                 }
                             }
                             else
@@ -462,7 +462,7 @@ namespace PDL.ReportService.Logics.BLL
         }
         #endregion
         #region Api BranchDashboard TotalDemand && TotalCollection BY--------------- Satish Maurya-------
-        public List<TotalDemandAndCollection> GetTotalDemandAndCollection(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
+        public List<TotalDemandAndCollection> GetTotalDemandAndCollection(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             using (SqlConnection con = _credManager.getConnections(dbname, islive))
@@ -494,21 +494,29 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
-        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate,bool islive)
+        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate,string Type, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
+            List<GetCollectionCountVM> res = new List<GetCollectionCountVM>();
             using (SqlConnection con = _credManager.getConnections(dbname, islive))
             {
                 using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@Mode", "GetCollectionCount");
-                    cmd.Parameters.AddWithValue("@CreatorBranchId", Convert.ToString(CreatorBranchId));
-                    cmd.Parameters.AddWithValue("@FromDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ToDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
-                    var res = new List<GetCollectionCountVM>();
+                    
+                    string mode = Type == "Collection" ? "GetCollectionCount" : Type == "AdvanceCollection" ? "GetAdvanceCollectionCount" : null;
+                    if (mode != null)
+                    {
+                        cmd.Parameters.AddWithValue("@Mode", mode);
+                        cmd.Parameters.AddWithValue("@CreatorBranchId", CreatorBranchId);
+                        cmd.Parameters.AddWithValue("@FromDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ToDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    }
+                    else
+                    {
+                        return res; 
+                    }
                     con.Open();
-
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())

@@ -69,18 +69,18 @@ namespace PDL.ReportService.Repository.Repository
                 return branchDashboard.GetCaseNotVisible(CreatorId, FiCode, islive);
             }
         }
-        public List<TotalDemandAndCollection> GetTotalDemandAndCollection(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
+        public List<TotalDemandAndCollection> GetTotalDemandAndCollection(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
         {
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
-                return branchDashboard.GetTotalDemandAndCollection(CreatorBranchId, FromDate, ToDate, Type, islive);
+                return branchDashboard.GetTotalDemandAndCollection(CreatorBranchId, FromDate, ToDate, islive);
             }
         }
-        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
+        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
         {
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
-                return branchDashboard.GetCollectionCount(CreatorBranchId, FromDate, ToDate, islive);
+                return branchDashboard.GetCollectionCount(CreatorBranchId, FromDate, ToDate,Type, islive);
             }
         }
         public List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
