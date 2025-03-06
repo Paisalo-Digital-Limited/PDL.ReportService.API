@@ -8,14 +8,14 @@ namespace PDL.ReportService.Entites.VM
 {
     public class BranchDashBoardVM
     {
-        public int Total_FirstEsign_Count { get; set; }
-        public int Total_Sanctioned_Count { get; set; }
-        public int Total_SecondEsign_Count { get; set; }
-        public int Total_Disbursed_Count { get; set; }
-        public int Total_Count { get; set; }
-        public int Total_PostSanction_Count { get; set; }
-        public int Total_ReadyForAudit_Count { get; set; }
-        public int Total_ReadyForNeft_Count { get; set; }
+        public Int64 Total_FirstEsign_Count { get; set; }
+        public Int64 Total_Sanctioned_Count { get; set; }
+        public Int64 Total_SecondEsign_Count { get; set; }
+        public Int64 Total_Disbursed_Count { get; set; }
+        public Int64 Total_Count { get; set; }
+        public Int64 Total_PostSanction_Count { get; set; }
+        public Int64 Total_ReadyForAudit_Count { get; set; }
+        public Int64 Total_ReadyForNeft_Count { get; set; }
     }
     public class BranchDashBoardDataModel
     {
