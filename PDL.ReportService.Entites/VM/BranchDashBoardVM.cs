@@ -15,6 +15,7 @@ namespace PDL.ReportService.Entites.VM
         public int Total_Count { get; set; }
         public int Total_PostSanction_Count { get; set; }
         public int Total_ReadyForAudit_Count { get; set; }
+        public int Total_ReadyForNeft_Count { get; set; }
     }
     public class BranchDashBoardDataModel
     {
