@@ -59,6 +59,7 @@ namespace PDL.ReportService.Logics.BLL
                                     branchDash.Total_Count = rdrUser["Total_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_Count"]) : 0;
                                     branchDash.Total_PostSanction_Count = rdrUser["Total_PostSanction_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_PostSanction_Count"]) : 0;
                                     branchDash.Total_ReadyForAudit_Count = rdrUser["Total_ReadyForAudit_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_ReadyForAudit_Count"]) : 0;
+                                    branchDash.Total_ReadyForNeft_Count = rdrUser["Total_ReadyForNeft_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_ReadyForNeft_Count"]) : 0;
                                 }
                             }
                             else
@@ -211,7 +212,7 @@ namespace PDL.ReportService.Logics.BLL
                                         dashboardModel.Income = reader["Income"] != DBNull.Value ? (decimal?)reader["Income"] : null;
                                         dashboardModel.Expense = reader["Expenses"] != DBNull.Value ? Convert.ToDecimal(reader["Expenses"]) : 0;
                                     }
-                                    else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION" || Type.ToUpper().Trim() == "READYFORAUDIT")
+                                    else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION"||Type.ToUpper().Trim()== "READYFORAUDIT"||Type.ToUpper().Trim() == "READYFORNEFT")
                                     {
                                         dashboardModel.SchCode = reader["SchCode"]?.ToString();
                                         dashboardModel.Bank_IFCS = reader["Bank_IFCS"]?.ToString();
