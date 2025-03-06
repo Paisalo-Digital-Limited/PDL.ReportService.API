@@ -90,5 +90,20 @@ namespace PDL.ReportService.Repository.Repository
                 return branchDashboard.GetDemandCount(CreatorBranchId, FromDate, ToDate, islive);
             }
         }
+        public List<RaiseQueryVM> GetRaiseQuery(int Fi_Id, string activeuser, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetRaiseQuery(Fi_Id,activeuser, islive);
+            }
+        }
+        public int InsertRaiseQuery(RaiseQueryVM obj, string activeUser, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                int codeCreator = branchDashboard.InsertRaiseQuery(obj, activeUser, islive);
+                return codeCreator;
+            }
+        }
     }
 }
