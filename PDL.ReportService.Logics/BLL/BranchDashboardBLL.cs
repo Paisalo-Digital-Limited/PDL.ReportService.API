@@ -55,6 +55,8 @@ namespace PDL.ReportService.Logics.BLL
                                     branchDash.Total_SecondEsign_Count = rdrUser["Total_SecondEsign_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_SecondEsign_Count"]) : 0;
                                     branchDash.Total_Disbursed_Count = rdrUser["Total_Disbursed_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_Disbursed_Count"]) : 0;
                                     branchDash.Total_Count = rdrUser["Total_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_Count"]) : 0;
+                                    branchDash.Total_PostSanction_Count = rdrUser["Total_PostSanction_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_PostSanction_Count"]) : 0;
+                                    branchDash.Total_ReadyForAudit_Count = rdrUser["Total_ReadyForAudit_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_ReadyForAudit_Count"]) : 0;
                                 }
                             }
                             else
@@ -189,26 +191,29 @@ namespace PDL.ReportService.Logics.BLL
                                 {
                                     var dashboardModel = new BranchDashBoardDataModel
                                     {
+                                        Fi_Id = reader["Fi_Id"] == DBNull.Value ? 0 : Convert.ToInt64(reader["Fi_Id"]),
                                         FullName = reader["Full_Name"]?.ToString(),
                                         CreatorName = reader["CreatorName"]?.ToString(),
                                         FICode = reader["FICode"]?.ToString(),
                                         SmCode = reader["SmCode"]?.ToString(),
                                         Current_City = reader["Current_City"]?.ToString(),
                                         Group_code = reader["Group_code"]?.ToString(),
-                                        LoanDuration = Convert.ToInt32(reader["Loan_Duration"]),
+                                        LoanDuration = reader["Loan_Duration"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Loan_Duration"]),
                                         CreationDate = reader["CreatedOn"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["CreatedOn"],
                                         Approved = reader["Approved"]?.ToString(),
                                     };
 
-                                    if (Type.ToUpper().Trim() == "SOURCING")
+                                    if (Type.ToUpper().Trim() == "SOURCING"|| Type.ToUpper().Trim() == "ALL")
                                     {
                                         dashboardModel.FatherName = reader["FatherName"] as string;
                                         dashboardModel.Income = reader["Income"] != DBNull.Value ? (decimal?)reader["Income"] : null;
                                         dashboardModel.Expense = reader["Expenses"] != DBNull.Value ? Convert.ToDecimal(reader["Expenses"]) : 0;
                                     }
-                                    else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION")
+                                    else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION"||Type.ToUpper().Trim()== "READYFORAUDIT")
                                     {
                                         dashboardModel.SchCode = reader["SchCode"]?.ToString();
+                                        dashboardModel.Bank_IFCS = reader["Bank_IFCS"]?.ToString();
+                                        dashboardModel.Bank_Ac = reader["Bank_Ac"]?.ToString();
                                         dashboardModel.SanctionedAmt = reader["SanctionedAmt"] as decimal?;
                                         dashboardModel.DtFin = reader["Dt_Fin"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["Dt_Fin"];
                                     }
@@ -272,7 +277,6 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
-
         public List<BranchWithCreator> GetBranches(string creatorIds, string activeUser, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
@@ -304,7 +308,6 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
-
         #endregion
         #region BranchDashboard ChatBot query Api  BY--------------- Satish Maurya-------
         public List<GetFirstEsign> GetFirstEsign(int CreatorId, long FiCode, bool islive)
@@ -455,6 +458,112 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
             return dataTable;
+        }
+        #endregion
+        #region Api BranchDashboard TotalDemand && TotalCollection BY--------------- Satish Maurya-------
+        public List<TotalDemandAndCollection> GetTotalDemandAndCollection(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_BranchDashboard_TotalDetails", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@CreatorBranchId", Convert.ToString(CreatorBranchId));
+                    cmd.Parameters.AddWithValue("@StartDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@EndDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    var res = new List<TotalDemandAndCollection>();
+                    con.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            res.Add(new TotalDemandAndCollection
+                            {
+                                TotalDemand = reader["TotalDemand"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["TotalDemand"]),
+                                TotalCollection = reader["TotalCollection"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["TotalCollection"]),
+                                AdvanceCollection = reader["AdvanceCollection"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["AdvanceCollection"]),
+                                OD = reader["OD"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["OD"]),
+                                TotalEfficiency = reader["TotalEfficiency"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["TotalEfficiency"])
+                            });
+                        }
+                    }
+                    return res;
+                }
+            }
+        }
+        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate,bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "GetCollectionCount");
+                    cmd.Parameters.AddWithValue("@CreatorBranchId", Convert.ToString(CreatorBranchId));
+                    cmd.Parameters.AddWithValue("@FromDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ToDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    var res = new List<GetCollectionCountVM>();
+                    con.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            res.Add(new GetCollectionCountVM
+                            {
+                                FICode = reader["FICode"] == DBNull.Value ? 0 : Convert.ToInt64(reader["FICode"]),
+                                FullName = reader["Name"] == DBNull.Value ? null : reader["Name"].ToString(),
+                                CreatorName = reader["CreatorName"] == DBNull.Value ? null : reader["CreatorName"].ToString(),
+                                Branch_code = reader["Branch_code"] == DBNull.Value ? null : reader["Branch_code"].ToString(),
+                                SmCode = reader["SmCode"] == DBNull.Value ? null : reader["SmCode"].ToString(),
+                                VNO = reader["VNO"] == DBNull.Value ? null : reader["VNO"].ToString(),
+                                CR = reader["CR"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["CR"]),
+                                VDATE = reader["VDATE"] == DBNull.Value ? null : reader["VDATE"].ToString(),
+                            });
+                        }
+                    }
+                    return res;
+                }
+            }
+        }
+        public List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "GetDemandCount");
+                    cmd.Parameters.AddWithValue("@CreatorBranchId", Convert.ToString(CreatorBranchId));
+                    cmd.Parameters.AddWithValue("@FromDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ToDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    var res = new List<GetDemandCountVM>();
+                    con.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            res.Add(new GetDemandCountVM
+                            {
+                                FICode = reader["FICode"] == DBNull.Value ? 0 : Convert.ToInt64(reader["FICode"]),
+                                FullName = reader["Name"] == DBNull.Value ? null : reader["Name"].ToString(),
+                                CreatorName = reader["CreatorName"] == DBNull.Value ? null : reader["CreatorName"].ToString(),
+                                Branch_code = reader["Branch_code"] == DBNull.Value ? null : reader["Branch_code"].ToString(),
+                                SmCode = reader["SmCode"] == DBNull.Value ? null : reader["SmCode"].ToString(),
+                                INSTALL = reader["INSTALL"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["INSTALL"]),
+                                AMT = reader["AMT"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["AMT"]),
+                                PVN_RCP_DT = reader["PVN_RCP_DT"] == DBNull.Value ? null : reader["PVN_RCP_DT"].ToString() 
+                            });
+                        }
+                    }
+                    return res;
+                }
+            }
         }
         #endregion
     }
