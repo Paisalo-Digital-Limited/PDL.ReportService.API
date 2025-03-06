@@ -38,17 +38,28 @@ namespace PDL.ReportService.Entites.VM
         public decimal? InstAmt { get; set; }
         public decimal? Invest { get; set; }
         public DateTime? DtPos { get; set; }
+        public string? Bank_Ac { get; set; }
+        public string? Bank_IFCS { get; set; }
     }
     public class GetFirstEsign
     {
         public string BorrSignStatus { get; set; }
         public DateTime? Creation_Date { get; set; }
-        
+
     }
     public class GetSecoundEsign
     {
         public string Download_One_Pager_Status { get; set; }
         public string Eligible_CSO_Id { get; set; }
         public string Esign_Applicable_Status { get; set; }
+    }
+    public class TotalDemandAndCollection
+    {
+
+        public decimal? TotalDemand { get; set; }
+        public decimal? TotalCollection { get; set; }
+        public decimal? AdvanceCollection { get; set; }
+        public decimal? OD { get; set; }
+        public decimal? TotalEfficiency { get; set; }
     }
 }
