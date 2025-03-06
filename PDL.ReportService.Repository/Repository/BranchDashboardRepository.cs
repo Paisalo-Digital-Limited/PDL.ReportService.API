@@ -2,6 +2,7 @@
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.BLL;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PDL.ReportService.Repository.Repository
 {
@@ -66,6 +67,13 @@ namespace PDL.ReportService.Repository.Repository
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
                 return branchDashboard.GetCaseNotVisible(CreatorId, FiCode, islive);
+            }
+        }
+        public List<TotalDemandAndCollection> GetTotalDemandAndCollection(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetTotalDemandAndCollection(CreatorBranchId, FromDate, ToDate, Type, islive);
             }
         }
     }
