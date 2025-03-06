@@ -443,7 +443,7 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         [HttpPost]
-        public IActionResult InsertRaiseQuery([FromForm]  RaiseQueryVM obj)
+        public IActionResult InsertRaiseQuery(RaiseQueryVM obj)
         {
             string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
