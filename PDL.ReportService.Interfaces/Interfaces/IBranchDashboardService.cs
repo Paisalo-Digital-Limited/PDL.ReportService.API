@@ -21,6 +21,8 @@ namespace PDL.ReportService.Interfaces.Interfaces
         List<TotalDemandAndCollection> GetTotalDemandAndCollection(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate,string? Type, bool islive);
         List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive);
         List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive);
+        List<RaiseQueryVM> GetRaiseQuery(int Fi_Id, string activeuser, bool islive);
+        int InsertRaiseQuery(RaiseQueryVM obj, string activeuser, bool islive);
 
     }
 }
