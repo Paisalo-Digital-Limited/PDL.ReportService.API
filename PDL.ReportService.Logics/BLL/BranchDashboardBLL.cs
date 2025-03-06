@@ -209,7 +209,7 @@ namespace PDL.ReportService.Logics.BLL
                                         dashboardModel.Income = reader["Income"] != DBNull.Value ? (decimal?)reader["Income"] : null;
                                         dashboardModel.Expense = reader["Expenses"] != DBNull.Value ? Convert.ToDecimal(reader["Expenses"]) : 0;
                                     }
-                                    else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION"||Type.ToUpper().Trim()== "READYFORAUDIT")
+                                    else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION"||Type.ToUpper().Trim()== "READYFORAUDIT"||Type.ToUpper().Trim() == "READYFORNEFT")
                                     {
                                         dashboardModel.SchCode = reader["SchCode"]?.ToString();
                                         dashboardModel.Bank_IFCS = reader["Bank_IFCS"]?.ToString();
