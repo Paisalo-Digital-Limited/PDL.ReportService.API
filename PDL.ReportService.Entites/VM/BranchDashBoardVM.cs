@@ -62,4 +62,28 @@ namespace PDL.ReportService.Entites.VM
         public decimal? OD { get; set; }
         public decimal? TotalEfficiency { get; set; }
     }
+    public class GetCollectionCountVM
+    {
+
+        public string CreatorName { get; set; }
+        public Int64 FICode { get; set; }
+        public string Branch_code { get; set; }
+        public string SmCode { get; set; }
+        public string FullName { get; set; }
+        public decimal? CR { get; set; }
+        public string? VNO { get; set; }
+        public string? VDATE { get; set; }
+    }
+    public class GetDemandCountVM
+    {
+
+        public string CreatorName { get; set; }
+        public Int64 FICode { get; set; }
+        public string Branch_code { get; set; }
+        public string SmCode { get; set; }
+        public string FullName { get; set; }
+        public decimal? INSTALL { get; set; }
+        public decimal? AMT { get; set; }
+        public string? PVN_RCP_DT { get; set; }
+    }
 }

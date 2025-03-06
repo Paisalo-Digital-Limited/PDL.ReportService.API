@@ -141,8 +141,8 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         statuscode = 201,
-                        message = resourceManager.GetString("GETFAIL")
-                        
+                        message = resourceManager.GetString("GETFAIL"),
+                        data=""
                     });
                 }
             }
@@ -174,8 +174,8 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         statuscode = 201, 
-                        message = resourceManager.GetString("GETFAIL")
-                        
+                        message = resourceManager.GetString("GETFAIL"),
+                        data=0
                     });
                 }
             }
@@ -208,8 +208,8 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         statuscode = 201,
-                        message = resourceManager.GetString("GETFAIL")
-
+                        message = resourceManager.GetString("GETFAIL"),
+                        data=0
                     });
                 }
             }
@@ -240,8 +240,8 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         statuscode = 201,
-                        message = resourceManager.GetString("GETFAIL")
-
+                        message = resourceManager.GetString("GETFAIL"),
+                        data=0
                     });
                 }
             }
@@ -336,6 +336,7 @@ namespace PDL.ReportService.API.Controllers
                     {
                         statuscode = 201,
                         message = resourceManager.GetString("GETFAIL"),
+                        data=0
                     });
                 }
             }
@@ -343,6 +344,68 @@ namespace PDL.ReportService.API.Controllers
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetTotalDemandAndCollection_BranchDashboard");
                 return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST"))});
+            }
+        }
+        [HttpGet]
+        public IActionResult GetCollectionCountList(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate)
+        {
+            try
+            {
+                List<GetCollectionCountVM> res = _branchDashboardService.GetCollectionCount(CreatorBranchId, FromDate, ToDate, GetIslive());
+                if (res.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = res
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201,
+                        message = resourceManager.GetString("GETFAIL"),
+                        data= 0
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetCollectionCount_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
+            }
+        }
+        [HttpGet]
+        public IActionResult GetDemandCountList(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate)
+        {
+            try
+            {
+                List<GetDemandCountVM> res = _branchDashboardService.GetDemandCount(CreatorBranchId, FromDate, ToDate, GetIslive());
+                if (res.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = res
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201,
+                        message = resourceManager.GetString("GETFAIL"),
+                        data = 0
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetDemandCount_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
             }
         }
         #endregion

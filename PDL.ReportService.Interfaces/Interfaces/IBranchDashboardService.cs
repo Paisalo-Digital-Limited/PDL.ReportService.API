@@ -19,6 +19,8 @@ namespace PDL.ReportService.Interfaces.Interfaces
         List<GetSecoundEsign> GetSecoundEsign(int CreatorId, long FiCode, bool islive);
         object GetCaseNotVisible(int CreatorId, long FiCode, bool islive);
         List<TotalDemandAndCollection> GetTotalDemandAndCollection(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate,string? Type, bool islive);
+        List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive);
+        List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive);
 
     }
 }

@@ -76,5 +76,19 @@ namespace PDL.ReportService.Repository.Repository
                 return branchDashboard.GetTotalDemandAndCollection(CreatorBranchId, FromDate, ToDate, Type, islive);
             }
         }
+        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetCollectionCount(CreatorBranchId, FromDate, ToDate, islive);
+            }
+        }
+        public List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetDemandCount(CreatorBranchId, FromDate, ToDate, islive);
+            }
+        }
     }
 }
