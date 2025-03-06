@@ -602,26 +602,26 @@ namespace PDL.ReportService.Logics.BLL
                                 data.Name = reader["Name"] == DBNull.Value ? null : reader["Name"]?.ToString();
                                 data.Type = reader["Type"] == DBNull.Value ? null : reader["Type"]?.ToString();
                                 data.Query = reader["Query"] == DBNull.Value ? null : reader["Query"]?.ToString();
-                                data.ErrorImage = reader["ErrorImage"] == DBNull.Value ? null : reader["ErrorImage"]?.ToString();
+                                data.ImagPath = reader["ErrorImage"] == DBNull.Value ? null : reader["ErrorImage"]?.ToString();
                                 data.Createdon = reader["Createdon"] != DBNull.Value ? Convert.ToDateTime(reader["Createdon"]) : null;
                             };
 
-                            if (data.ErrorImage != null)
+                            if (data.ImagPath != null)
                             {
                                 using (var sftp = new SftpClient(sftpHost, sftpUsername, sftpPassword))
                                 {
                                     sftp.Connect();
 
-                                    string networkFilePath = $"{newBaseUrl}/FiDocs/{Fi_Id}/{data.ErrorImage}";
+                                    string networkFilePath = $"{newBaseUrl}/FiDocs/{Fi_Id}/{data.ImagPath}";
 
-                                    data.ErrorImage = networkFilePath;
+                                    data.ImagPath = networkFilePath;
 
                                     sftp.Disconnect();
                                 }
                             }
                             else
                             {
-                                data.ErrorImage = "";
+                                data.ImagPath = "";
                             }
 
                             raiseQueries.Add(data);
