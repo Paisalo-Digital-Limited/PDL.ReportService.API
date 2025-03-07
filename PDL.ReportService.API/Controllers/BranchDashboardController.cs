@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.Helper;
+using Renci.SshNet;
 using System.Data;
 using System.Security.Claims;
 using System.Xml.Linq;
@@ -410,6 +411,7 @@ namespace PDL.ReportService.API.Controllers
         }
         #endregion
 
+        #region GET AND INSERT RaiseQuery BY ---- AMIT KUMAR ------
         [HttpGet]
         public IActionResult GetRaiseQuery()
         {
@@ -475,5 +477,39 @@ namespace PDL.ReportService.API.Controllers
                 return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
             }
         }
+
+        [HttpPost] 
+        public  IActionResult RequestForDeath([FromForm] RequestForDeathVM obj)
+        {
+            string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            try
+            {
+                int res = _branchDashboardService.RequestForDeath(obj, activeuser, GetIslive());
+                if (res > 0)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = (resourceManager.GetString("INSERTSUCCESS")),
+                        data = res
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201,
+                        message = (resourceManager.GetString("INSERTFAIL")),
+                        data = string.Empty
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "RequestForDeath_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
+            }
+        }
+        #endregion
     }
 }
