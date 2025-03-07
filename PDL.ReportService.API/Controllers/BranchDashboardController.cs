@@ -416,6 +416,42 @@ namespace PDL.ReportService.API.Controllers
         }
         #endregion
 
+        // NOC
+        [HttpPost]
+        public IActionResult NOCQuery(NOCQueryVM obj)
+        {
+            string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            try
+            {
+                int res = _branchDashboardService.NOCQuery(obj, activeuser, GetIslive());
+                if (res > 0)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = (resourceManager.GetString("INSERTSUCCESS")),
+                        data = res
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201,
+                        message = (resourceManager.GetString("INSERTFAIL")),
+                        data = string.Empty
+                    });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "NOCQuery_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
+            }
+        }
+
+        #region GET AND INSERT RaiseQuery BY ---- AMIT KUMAR ------
         [HttpGet]
         public IActionResult GetRaiseQuery()
         {
@@ -467,7 +503,7 @@ namespace PDL.ReportService.API.Controllers
                 else
                 {
                     return Ok(new
-                    {   
+                    {
                         statuscode = 201,
                         message = (resourceManager.GetString("INSERTFAIL")),
                         data = string.Empty
@@ -482,14 +518,13 @@ namespace PDL.ReportService.API.Controllers
             }
         }
 
-        // NOC
         [HttpPost]
-        public IActionResult NOCQuery(NOCQueryVM obj)
+        public IActionResult RequestForDeath([FromForm] RequestForDeathVM obj)
         {
             string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
-                int res = _branchDashboardService.NOCQuery(obj, activeuser, GetIslive());
+                int res = _branchDashboardService.RequestForDeath(obj, activeuser, GetIslive());
                 if (res > 0)
                 {
                     return Ok(new
@@ -508,14 +543,14 @@ namespace PDL.ReportService.API.Controllers
                         data = string.Empty
                     });
                 }
-
             }
             catch (Exception ex)
             {
-                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "NOCQuery_BranchDashboard");
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "RequestForDeath_BranchDashboard");
                 return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
             }
         }
+        #endregion
     }
 
 }
