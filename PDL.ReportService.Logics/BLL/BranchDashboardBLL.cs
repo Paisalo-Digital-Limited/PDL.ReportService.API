@@ -629,6 +629,7 @@ namespace PDL.ReportService.Logics.BLL
                                 data.Name = reader["Name"] == DBNull.Value ? null : reader["Name"]?.ToString();
                                 data.Type = reader["Type"] == DBNull.Value ? null : reader["Type"]?.ToString();
                                 data.Query = reader["Query"] == DBNull.Value ? null : reader["Query"]?.ToString();
+                                data.Reply = reader["Reply"] == DBNull.Value ? null : reader["Reply"]?.ToString();
                                 data.ImagPath = reader["ErrorImage"] == DBNull.Value ? null : reader["ErrorImage"]?.ToString();
                                 data.Createdon = reader["Createdon"] != DBNull.Value ? Convert.ToDateTime(reader["Createdon"]) : null;
                             };
