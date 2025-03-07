@@ -74,6 +74,8 @@ namespace PDL.ReportService.Entites.VM
         public decimal? CR { get; set; }
         public string? VNO { get; set; }
         public string? VDATE { get; set; }
+        public decimal? OD { get; set; }
+
     }
     public class GetDemandCountVM
     {

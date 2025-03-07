@@ -1,7 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Logics.Credentials;
 using Renci.SshNet;
@@ -504,13 +502,17 @@ namespace PDL.ReportService.Logics.BLL
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             List<GetCollectionCountVM> res = new List<GetCollectionCountVM>();
+
             using (SqlConnection con = _credManager.getConnections(dbname, islive))
             {
                 using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    string mode = Type == "Collection" ? "GetCollectionCount" : Type == "AdvanceCollection" ? "GetAdvanceCollectionCount" : null;
+                    string mode = Type == "Collection" ? "GetCollectionCount" :
+                                         Type == "AdvanceCollection" ? "GetAdvanceCollectionCount" :
+                                         Type == "OverDue" ? "GetOverDue" : null;
+
                     if (mode != null)
                     {
                         cmd.Parameters.AddWithValue("@Mode", mode);
@@ -522,12 +524,14 @@ namespace PDL.ReportService.Logics.BLL
                     {
                         return res;
                     }
+
                     con.Open();
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            res.Add(new GetCollectionCountVM
+                            // Handle the common fields for all types
+                            var collectionItem = new GetCollectionCountVM
                             {
                                 FICode = reader["FICode"] == DBNull.Value ? 0 : Convert.ToInt64(reader["FICode"]),
                                 FullName = reader["Name"] == DBNull.Value ? null : reader["Name"].ToString(),
@@ -537,7 +541,19 @@ namespace PDL.ReportService.Logics.BLL
                                 VNO = reader["VNO"] == DBNull.Value ? null : reader["VNO"].ToString(),
                                 CR = reader["CR"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["CR"]),
                                 VDATE = reader["VDATE"] == DBNull.Value ? null : reader["VDATE"].ToString(),
-                            });
+                            };
+
+                            // Handle specific cases based on Type
+                            if (Type == "OverDue")
+                            {
+                                collectionItem.OD = reader["OD"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["OD"]);
+                            }
+                            else
+                            {
+                                collectionItem.OD = null; // For other types, set OD to null
+                            }
+
+                            res.Add(collectionItem);
                         }
                     }
                     return res;
