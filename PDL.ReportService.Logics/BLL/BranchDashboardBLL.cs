@@ -1,5 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Logics.Credentials;
 using Renci.SshNet;
@@ -20,6 +22,8 @@ namespace PDL.ReportService.Logics.BLL
     {
         private readonly IConfiguration _configuration;
         private readonly CredManager _credManager;
+        private readonly object IWebHostEnvironment;
+
         public BranchDashboardBLL(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -212,7 +216,7 @@ namespace PDL.ReportService.Logics.BLL
                                         dashboardModel.Income = reader["Income"] != DBNull.Value ? (decimal?)reader["Income"] : null;
                                         dashboardModel.Expense = reader["Expenses"] != DBNull.Value ? Convert.ToDecimal(reader["Expenses"]) : 0;
                                     }
-                                    else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION"||Type.ToUpper().Trim()== "READYFORAUDIT"||Type.ToUpper().Trim() == "READYFORNEFT")
+                                    else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION" || Type.ToUpper().Trim() == "READYFORAUDIT" || Type.ToUpper().Trim() == "READYFORNEFT")
                                     {
                                         dashboardModel.SchCode = reader["SchCode"]?.ToString();
                                         dashboardModel.Bank_IFCS = reader["Bank_IFCS"]?.ToString();
@@ -469,7 +473,7 @@ namespace PDL.ReportService.Logics.BLL
             string dbname = Helper.Helper.GetDBName(_configuration);
             using (SqlConnection con = _credManager.getConnections(dbname, islive))
             {
-                using (var cmd = new SqlCommand("Usp_BranchDashboard_TotalDetails", con))
+                using (var cmd = new SqlCommand("Usp_BranchDashboardTotalDetails", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@CreatorBranchId", Convert.ToString(CreatorBranchId));
@@ -496,7 +500,7 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
-        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate,string Type, bool islive)
+        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             List<GetCollectionCountVM> res = new List<GetCollectionCountVM>();
@@ -505,7 +509,7 @@ namespace PDL.ReportService.Logics.BLL
                 using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    
+
                     string mode = Type == "Collection" ? "GetCollectionCount" : Type == "AdvanceCollection" ? "GetAdvanceCollectionCount" : null;
                     if (mode != null)
                     {
@@ -516,7 +520,7 @@ namespace PDL.ReportService.Logics.BLL
                     }
                     else
                     {
-                        return res; 
+                        return res;
                     }
                     con.Open();
                     using (var reader = cmd.ExecuteReader())
@@ -699,5 +703,139 @@ namespace PDL.ReportService.Logics.BLL
 
             return affected;
         }
+        #region Api CheckNOC BY--------------- Satish Maurya-------
+        public async Task<string> CheckNOC(string smcode, string activeuser, bool islive)
+        {
+            string result = "2"; // Default value if no records found
+            string query = "Usp_BranchDashBoard";
+            string dbname = Helper.Helper.GetDBName(_configuration);
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                try
+                {
+                    await con.OpenAsync();
+
+                    using (var cmd = new SqlCommand(query, con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@Mode", "CheckNOC");
+                        cmd.Parameters.AddWithValue("@SmCode", smcode);
+
+                        var dt = new DataTable();
+                        using (var da = new SqlDataAdapter(cmd))
+                        {
+                            da.Fill(dt);
+                        }
+
+                        // Check if rows exist
+                        if (dt.Rows.Count > 0 && dt.Columns.Contains("COMP_DT"))
+                        {
+                            foreach (DataRow row in dt.Rows)
+                            {
+                                if (row["COMP_DT"] == DBNull.Value)
+                                {
+                                    result = await GetUniqueKey(con, smcode, activeuser);
+                                }
+                                else
+                                {
+                                    result = JsonConvert.SerializeObject(dt);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    result = $"Error: {ex.Message}";
+                }
+            }
+
+            return result;
+        }
+
+        private async Task<string> GetUniqueKey(SqlConnection con, string smcode, string activeuser)
+        {
+            string uniqueKey = "Error: Unable to retrieve UniqueKey";
+
+            try
+            {
+                using (var cmd = new SqlCommand("BRANCHDASHBOARDUNIQUECODE", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@smcode", smcode);
+                    cmd.Parameters.AddWithValue("@CreatedBy", activeuser);
+
+                    SqlParameter outputParam = new SqlParameter("@UniqueKey", SqlDbType.VarChar, 50)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(outputParam);
+
+                    await cmd.ExecuteNonQueryAsync();
+
+                    uniqueKey = outputParam.Value.ToString();
+
+                    if (string.IsNullOrEmpty(uniqueKey))
+                    {
+                        uniqueKey = "Error: UniqueKey is null or empty";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                uniqueKey = $"Error: {ex.Message}";
+            }
+
+            return $"UniqueKey: {uniqueKey}";
+        }
+        public string ProcessJsonForPdf(string result)
+        {
+            //JArray jsonArray = JArray.Parse(result);
+            //JToken firstItem = jsonArray.FirstOrDefault();
+
+            //if (firstItem != null)
+            //{
+
+            //    var file = Path.Combine(IWebHostEnvironment.WebRootPath,"NOC", "NOC/NOC.html");
+            //    string text = System.IO.File.ReadAllText(file);
+            //    StringBuilder sb = new StringBuilder(text);
+
+            //    sb.Replace("{{UNIQUE_CASE_CODE}}", firstItem["CODE"]?.ToString());
+            //    sb.Replace("{{BORROWER_NAME}}", firstItem["FullName"]?.ToString());
+            //    sb.Replace("{{ADDRESS}}", firstItem["FullAddress"]?.ToString());
+            //    sb.Replace("{{BORROWER_SPOUSE_NAME}}", firstItem["BORROWER_SPOUSE_NAME"]?.ToString());
+
+            //    if (DateTime.TryParse(firstItem["COMP_DT"]?.ToString(), out DateTime compDt))
+            //    {
+            //        sb.Replace("{{DATE}}", compDt.ToString("dd-MM-yyyy"));
+
+            //        string year = compDt.ToString("yyyy");
+            //        string dayMonth = compDt.ToString("ddMM");
+            //        string refernumber = $"{firstItem["CODE"]}/{year}/{dayMonth}";
+            //        sb.Replace("{{referancenumber}}", refernumber);
+            //    }
+            //    else
+            //    {
+            //        sb.Replace("{{DATE}}", string.Empty);
+            //    }
+
+            //    var docPicPath = Path.Combine(_hostEnvironment.WebRootPath, "NOC/logo.png");
+            //    byte[] imageBytes = System.IO.File.ReadAllBytes(docPicPath);
+            //    string base64String = Convert.ToBase64String(imageBytes);
+            //    sb.Replace("{{logo}}", $"data:image/png;base64,{base64String}");
+
+            //    string htmlContent = sb.ToString();
+            //    var htmlToPdf = new NReco.PdfGenerator.HtmlToPdfConverter();
+            //    var pdfBytes = htmlToPdf.GeneratePdf(htmlContent);
+
+            //    return (200, "Get Record Successfully", Convert.ToBase64String(pdfBytes));
+            //}
+
+            //return (201, "No Record Found", "No data found in the JSON array.");
+            return null;
+        }
+
+        #endregion
     }
 }
