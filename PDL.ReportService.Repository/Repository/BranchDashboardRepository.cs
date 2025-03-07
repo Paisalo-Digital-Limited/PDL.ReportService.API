@@ -105,12 +105,19 @@ namespace PDL.ReportService.Repository.Repository
                 return codeCreator;
             }
         }
-        public string CheckNOC(string smcode, string activeUser, bool islive)
+        public Task<string> CheckNOC(string smcode, string activeUser, bool islive)
         {
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
                 return branchDashboard.CheckNOC(smcode, activeUser, islive);
-                 
+            }
+        }
+        public string ProcessJsonForPdf(string result)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.ProcessJsonForPdf(result);
+
             }
         }
     }
