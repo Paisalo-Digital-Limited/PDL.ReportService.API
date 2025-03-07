@@ -581,7 +581,7 @@ namespace PDL.ReportService.Logics.BLL
             }
         }
         #endregion
-        public List<RaiseQueryVM> GetRaiseQuery(int Fi_Id, string activeuser, bool islive)
+        public List<RaiseQueryVM> GetRaiseQuery(string activeuser, bool islive)
         {
             List<RaiseQueryVM> raiseQueries = new List<RaiseQueryVM>();
             string dbname = Helper.Helper.GetDBName(_configuration);
@@ -597,7 +597,7 @@ namespace PDL.ReportService.Logics.BLL
                 using (var cmd = new SqlCommand("Usp_InsertRaiseQuery", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@Fi_Id", Fi_Id);
+                    cmd.Parameters.AddWithValue("@UserId", activeuser);
                     cmd.Parameters.AddWithValue("@Mode", "GetRaiseQuery");
 
 
@@ -610,7 +610,6 @@ namespace PDL.ReportService.Logics.BLL
                         {
                             RaiseQueryVM data = new RaiseQueryVM();
                             {
-                                data.Fi_ID = reader["Fi_ID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Fi_ID"]);
                                 data.Name = reader["Name"] == DBNull.Value ? null : reader["Name"]?.ToString();
                                 data.Type = reader["Type"] == DBNull.Value ? null : reader["Type"]?.ToString();
                                 data.Query = reader["Query"] == DBNull.Value ? null : reader["Query"]?.ToString();
@@ -624,7 +623,7 @@ namespace PDL.ReportService.Logics.BLL
                                 {
                                     sftp.Connect();
 
-                                    string networkFilePath = $"{newBaseUrl}/FiDocs/{Fi_Id}/{data.ImagPath}";
+                                    string networkFilePath = $"{newBaseUrl}/FiDocs/{activeuser}/{data.ImagPath}";
 
                                     data.ImagPath = networkFilePath;
 
@@ -655,8 +654,6 @@ namespace PDL.ReportService.Logics.BLL
             string dbname = Helper.Helper.GetDBName(_configuration); ;
 
             string fileName = obj.Imag.FileName;
-            string fiCode = string.Empty;
-            string creator = string.Empty;
 
             string query = "Usp_InsertRaiseQuery";
 
@@ -667,19 +664,18 @@ namespace PDL.ReportService.Logics.BLL
                     cmd.CommandType = CommandType.StoredProcedure;
 
                     cmd.Parameters.AddWithValue("@Mode", "InsertRaiseQuery");
-                    cmd.Parameters.Add("@Fi_Id", SqlDbType.BigInt).Value = obj.Fi_ID;
                     cmd.Parameters.Add("@Query", SqlDbType.VarChar).Value = obj.Query;
                     cmd.Parameters.Add("@Type", SqlDbType.VarChar).Value = obj.Type;
                     cmd.Parameters.Add("@Img", SqlDbType.VarChar).Value = fileName;
-                    cmd.Parameters.Add("@UserId", SqlDbType.VarChar).Value = 169;
+                    cmd.Parameters.Add("@UserId", SqlDbType.VarChar).Value = activeuser;
 
                     con.Open();
                     affected = cmd.ExecuteNonQuery();
                 }
                 if (affected > 0)
                 {
-                    string folderName = $"{obj.Fi_ID}";
-                    string remoteDir = $"/Data/FiDocs/{obj.Fi_ID}"; // Target directory
+                    string folderName = $"{activeuser}";
+                    string remoteDir = $"/Data/FiDocs/{activeuser}"; // Target directory
                     string remoteFilePath = $"{remoteDir}/{obj.Imag.FileName}";
                     using var memoryStream = new MemoryStream();
                     obj.Imag.CopyTo(memoryStream);

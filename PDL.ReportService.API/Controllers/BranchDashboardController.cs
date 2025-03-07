@@ -417,12 +417,12 @@ namespace PDL.ReportService.API.Controllers
         #endregion
 
         [HttpGet]
-        public IActionResult GetRaiseQuery(int Fi_Id)
+        public IActionResult GetRaiseQuery()
         {
             try
             {
                 string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                List<RaiseQueryVM> result = _branchDashboardService.GetRaiseQuery(Fi_Id, activeuser, GetIslive());
+                List<RaiseQueryVM> result = _branchDashboardService.GetRaiseQuery(activeuser, GetIslive());
                 if (result != null && result.Count > 0)
                 {
                     return Ok(new
