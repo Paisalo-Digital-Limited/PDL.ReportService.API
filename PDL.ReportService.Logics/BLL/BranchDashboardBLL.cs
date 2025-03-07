@@ -826,6 +826,7 @@ namespace PDL.ReportService.Logics.BLL
 
                     cmd.Parameters.AddWithValue("@Mode", "InsertNOCQuery");
                     cmd.Parameters.Add("@Query", SqlDbType.VarChar).Value = obj.Query;
+                    cmd.Parameters.Add("@Smcode", SqlDbType.VarChar).Value = obj.SmCode;
                     cmd.Parameters.Add("@Type", SqlDbType.VarChar).Value = "NOC";
                     cmd.Parameters.Add("@Img", SqlDbType.VarChar).Value = fileName;
                     cmd.Parameters.Add("@UserId", SqlDbType.VarChar).Value = activeuser;
@@ -835,8 +836,8 @@ namespace PDL.ReportService.Logics.BLL
                 }
                 if (affected > 0)
                 {
-                    string folderName = $"{activeuser}";
-                    string remoteDir = $"/Data/FiDocs/{activeuser}";
+                    string folderName = $"{obj.SmCode}";
+                    string remoteDir = $"/Data/FiDocs/{folderName}";
                     string remoteFilePath = $"{remoteDir}/{fileName}";
                     using var memoryStream = new MemoryStream();
                     obj.Image.CopyTo(memoryStream);
