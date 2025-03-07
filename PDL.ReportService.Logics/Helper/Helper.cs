@@ -1,10 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
+using Renci.SshNet;
 
 namespace PDL.ReportService.Logics.Helper
 {
@@ -71,6 +68,22 @@ namespace PDL.ReportService.Logics.Helper
             string salt = configuration["encryptSalts:dbName"];
             val = Helper.Decrypt(val, salt);
             return val;
+        }
+
+        public static void EnsureDirectoryExists(SftpClient sftp, string path)
+        {
+            string[] directories = path.Split('/');
+            string currentPath = "";
+            foreach (string dir in directories)
+            {
+                if (string.IsNullOrEmpty(dir)) continue; // Skip empty parts
+                currentPath += $"/{dir}";
+                if (!sftp.Exists(currentPath))
+                {
+                    sftp.CreateDirectory(currentPath);
+                    Console.WriteLine($"Created directory: {currentPath}");
+                }
+            }
         }
     }
 }

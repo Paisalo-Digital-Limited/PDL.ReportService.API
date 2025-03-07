@@ -69,18 +69,18 @@ namespace PDL.ReportService.Repository.Repository
                 return branchDashboard.GetCaseNotVisible(CreatorId, FiCode, islive);
             }
         }
-        public List<TotalDemandAndCollection> GetTotalDemandAndCollection(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
+        public List<TotalDemandAndCollection> GetTotalDemandAndCollection(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
         {
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
-                return branchDashboard.GetTotalDemandAndCollection(CreatorBranchId, FromDate, ToDate, Type, islive);
+                return branchDashboard.GetTotalDemandAndCollection(CreatorBranchId, FromDate, ToDate, islive);
             }
         }
-        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
+        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
         {
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
-                return branchDashboard.GetCollectionCount(CreatorBranchId, FromDate, ToDate, islive);
+                return branchDashboard.GetCollectionCount(CreatorBranchId, FromDate, ToDate,Type, islive);
             }
         }
         public List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
@@ -88,6 +88,30 @@ namespace PDL.ReportService.Repository.Repository
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
                 return branchDashboard.GetDemandCount(CreatorBranchId, FromDate, ToDate, islive);
+            }
+        }
+        public List<RaiseQueryVM> GetRaiseQuery(string activeuser, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetRaiseQuery(activeuser, islive);
+            }
+        }
+        public int InsertRaiseQuery(RaiseQueryVM obj, string activeUser, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                int codeCreator = branchDashboard.InsertRaiseQuery(obj, activeUser, islive);
+                return codeCreator;
+            }
+        }
+
+        public int NOCQuery(NOCQueryVM obj, string activeUser, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                int codeCreator = branchDashboard.NOCQuery(obj, activeUser, islive);
+                return codeCreator;
             }
         }
     }
