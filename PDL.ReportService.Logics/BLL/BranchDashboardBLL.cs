@@ -727,7 +727,7 @@ namespace PDL.ReportService.Logics.BLL
             string sftpHost = _configuration["SftpHost"];
             string sftpPassword = _configuration["SftpPassword"];
             string sftpBasePath = _configuration["SftpfilePath"];
-            string dbname = Helper.Helper.GetDBName(_configuration); ;
+            string dbname = Helper.Helper.GetDBName(_configuration); 
 
             string fileName = obj.Image.FileName;
 
