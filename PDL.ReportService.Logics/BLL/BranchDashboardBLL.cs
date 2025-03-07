@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 using System.Xml.Linq;
 
 namespace PDL.ReportService.Logics.BLL
@@ -720,7 +721,7 @@ namespace PDL.ReportService.Logics.BLL
 
             return affected;
         }
-        public int RequestForDeath(RequestForDeathVM obj, string activeuser, bool islive)
+        public string RequestForDeath(RequestForDeathVM obj, string activeuser, bool islive)
         {
             int affected = 0;
             string sftpUsername = _configuration["SftpUsername"];
@@ -729,6 +730,7 @@ namespace PDL.ReportService.Logics.BLL
             string dbname = Helper.Helper.GetDBName(_configuration);
             List<string> savedFileNames = new List<string>();
             string query = "Usp_InsertRequestForDeathForm";
+            string transactionid = null;
 
             using (SqlConnection con = _credManager.getConnections(dbname, islive))
             {
@@ -740,40 +742,46 @@ namespace PDL.ReportService.Logics.BLL
                         savedFileNames.Add(fileName);
                     }
                 }
-
                 string allFileNames = string.Join(",", savedFileNames);
 
                 using (var cmd = new SqlCommand(query, con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
+                 
                     cmd.Parameters.Add("@SmCode", SqlDbType.VarChar).Value = obj.SmCode;
                     cmd.Parameters.Add("@Type", SqlDbType.VarChar).Value = obj.Type;
                     cmd.Parameters.Add("@Query", SqlDbType.VarChar).Value = obj.Query;
                     cmd.Parameters.Add("@Img", SqlDbType.VarChar).Value = allFileNames;
                     cmd.Parameters.Add("@RequestBy", SqlDbType.Int).Value = activeuser;
                     cmd.Parameters.Add("@CreatedBy", SqlDbType.Int).Value = activeuser;
+    
+                    SqlParameter outputParam = new SqlParameter("@TransactionId", SqlDbType.VarChar, 20)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(outputParam);
 
                     con.Open();
                     affected = cmd.ExecuteNonQuery();
+
+                    transactionid = outputParam.Value.ToString();
+                    //obj.SmCode = TransactionId; // Update the object with the generated Smcode
                 }
 
                 if (affected > 0)
                 {
                     string remoteDir = $"/Data/FiDocs/{activeuser}";
-
                     using (var sftp = new SftpClient(sftpHost, sftpUsername, sftpPassword))
                     {
                         try
                         {
                             sftp.Connect();
                             Helper.Helper.EnsureDirectoryExists(sftp, remoteDir);
-
                             foreach (var file in obj.DeathFiles)
                             {
                                 if (file.Length > 0)
                                 {
                                     string remoteFilePath = $"{remoteDir}/{obj.Type}{file.FileName}";
-
                                     using (var memoryStream = new MemoryStream())
                                     {
                                         file.CopyTo(memoryStream);
@@ -795,7 +803,7 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
 
-            return affected;
+            return transactionid;
         }
         public int NOCQuery(NOCQueryVM obj, string activeuser, bool islive)
         {
