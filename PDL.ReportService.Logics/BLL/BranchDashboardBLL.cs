@@ -212,7 +212,7 @@ namespace PDL.ReportService.Logics.BLL
                                         dashboardModel.Income = reader["Income"] != DBNull.Value ? (decimal?)reader["Income"] : null;
                                         dashboardModel.Expense = reader["Expenses"] != DBNull.Value ? Convert.ToDecimal(reader["Expenses"]) : 0;
                                     }
-                                    else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION"||Type.ToUpper().Trim()== "READYFORAUDIT"||Type.ToUpper().Trim() == "READYFORNEFT")
+                                    else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION" || Type.ToUpper().Trim() == "READYFORAUDIT" || Type.ToUpper().Trim() == "READYFORNEFT")
                                     {
                                         dashboardModel.SchCode = reader["SchCode"]?.ToString();
                                         dashboardModel.Bank_IFCS = reader["Bank_IFCS"]?.ToString();
@@ -469,7 +469,7 @@ namespace PDL.ReportService.Logics.BLL
             string dbname = Helper.Helper.GetDBName(_configuration);
             using (SqlConnection con = _credManager.getConnections(dbname, islive))
             {
-                using (var cmd = new SqlCommand("Usp_BranchDashboard_TotalDetails", con))
+                using (var cmd = new SqlCommand("Usp_BranchDashboardTotalDetails", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@CreatorBranchId", Convert.ToString(CreatorBranchId));
@@ -496,7 +496,7 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
-        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate,string Type, bool islive)
+        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             List<GetCollectionCountVM> res = new List<GetCollectionCountVM>();
@@ -505,7 +505,7 @@ namespace PDL.ReportService.Logics.BLL
                 using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    
+
                     string mode = Type == "Collection" ? "GetCollectionCount" : Type == "AdvanceCollection" ? "GetAdvanceCollectionCount" : null;
                     if (mode != null)
                     {
@@ -516,7 +516,7 @@ namespace PDL.ReportService.Logics.BLL
                     }
                     else
                     {
-                        return res; 
+                        return res;
                     }
                     con.Open();
                     using (var reader = cmd.ExecuteReader())
@@ -703,5 +703,99 @@ namespace PDL.ReportService.Logics.BLL
 
             return affected;
         }
+        #region Api CheckNOC BY--------------- Satish Maurya-------
+        public string CheckNOC(string smcode, string activeuser)
+        {
+            string result = "2"; // Default to "2" if no records found or error occurs
+            string query = "BRANCHDASHBOARD";
+
+            using (var con = new SqlConnection(_configuration.GetConnectionString("PaisaloConnection")))
+            {
+                try
+                {
+                    // Open connection
+                    con.Open();
+
+                    using (var cmd = new SqlCommand(query, con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@Mode", "CHECKNOC");
+                        cmd.Parameters.AddWithValue("@smcode", smcode);
+
+                        var dt = new DataTable();
+                        using (var da = new SqlDataAdapter(cmd))
+                        {
+                            da.Fill(dt);
+                        }
+
+                        // Check if rows exist
+                        if (dt.Rows.Count > 0 && dt.Columns.Contains("COMP_DT"))
+                        {
+                            // Check COMP_DT column value for each row
+                            foreach (DataRow row in dt.Rows)
+                            {
+                                if (row["COMP_DT"] == DBNull.Value)
+                                {
+                                    // If COMP_DT is null, call another stored procedure to get UniqueKey
+                                    result = GetUniqueKey(con, smcode, activeuser);
+                                }
+                                else
+                                {
+                                   // result = JsonConvert.SerializeObject(dt);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log or handle the error properly
+                    result = $"Error: {ex.Message}";
+                }
+            }
+
+            return result;
+        }
+
+        private string GetUniqueKey(SqlConnection con, string smcode, string activeuser)
+        {
+            string uniqueKey = "Error: Unable to retrieve UniqueKey";
+
+            try
+            {
+                using (var cmd = new SqlCommand("BRANCHDASHBOARDUNIQUECODE", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@smcode", smcode);
+                    cmd.Parameters.AddWithValue("@CreatedBy", activeuser);
+
+                    SqlParameter outputParam = new SqlParameter("@UniqueKey", SqlDbType.VarChar, 50)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(outputParam);
+
+                    cmd.ExecuteNonQuery();
+
+                    // Get the output parameter value
+                    uniqueKey = outputParam.Value.ToString();
+
+                    // Check if the unique key is not null or empty
+                    if (string.IsNullOrEmpty(uniqueKey))
+                    {
+                        uniqueKey = "Error: UniqueKey is null or empty";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle exception for UniqueKey fetching
+                uniqueKey = $"Error: {ex.Message}";
+            }
+
+            return $"UniqueKey: {uniqueKey}";
+        }
+
+        #endregion
     }
 }

@@ -23,6 +23,8 @@ namespace PDL.ReportService.Interfaces.Interfaces
         List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive);
         List<RaiseQueryVM> GetRaiseQuery(int Fi_Id, string activeuser, bool islive);
         int InsertRaiseQuery(RaiseQueryVM obj, string activeuser, bool islive);
+        string CheckNOC(string smcode, string activeuser, bool islive);
+
 
     }
 }
