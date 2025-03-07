@@ -50,7 +50,7 @@ namespace PDL.ReportService.API.Controllers
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetMasterData_BranchDashboard");
-                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST"))});
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
             }
         }
         #endregion
@@ -115,7 +115,7 @@ namespace PDL.ReportService.API.Controllers
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetBranchDashboardData_BranchDashboard");
-                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST"))});
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
             }
         }
         #endregion
@@ -133,7 +133,7 @@ namespace PDL.ReportService.API.Controllers
                     {
                         statuscode = 200,
                         message = resourceManager.GetString("GETSUCCESS"),
-                        data =result
+                        data = result
                     });
                 }
                 else
@@ -142,14 +142,14 @@ namespace PDL.ReportService.API.Controllers
                     {
                         statuscode = 201,
                         message = resourceManager.GetString("GETFAIL"),
-                        data=""
+                        data = ""
                     });
                 }
             }
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetCreators_BranchDashboard");
-                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST"))});
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
 
             }
         }
@@ -173,16 +173,16 @@ namespace PDL.ReportService.API.Controllers
                 {
                     return Ok(new
                     {
-                        statuscode = 201, 
+                        statuscode = 201,
                         message = resourceManager.GetString("GETFAIL"),
-                        data=0
+                        data = 0
                     });
                 }
             }
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetBranches_BranchDashboard");
-                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST"))});
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
 
             }
         }
@@ -209,14 +209,14 @@ namespace PDL.ReportService.API.Controllers
                     {
                         statuscode = 201,
                         message = resourceManager.GetString("GETFAIL"),
-                        data=0
+                        data = 0
                     });
                 }
             }
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetFirstEsign_BranchDashboard");
-                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST"))});
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
 
             }
         }
@@ -241,14 +241,14 @@ namespace PDL.ReportService.API.Controllers
                     {
                         statuscode = 201,
                         message = resourceManager.GetString("GETFAIL"),
-                        data=0
+                        data = 0
                     });
                 }
             }
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetSecoundEsign_BranchDashboard");
-                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST"))});
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
 
             }
         }
@@ -309,7 +309,7 @@ namespace PDL.ReportService.API.Controllers
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetSecoundEsign_BranchDashboard");
-                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST"))});
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
 
             }
         }
@@ -336,14 +336,14 @@ namespace PDL.ReportService.API.Controllers
                     {
                         statuscode = 201,
                         message = resourceManager.GetString("GETFAIL"),
-                        data=0
+                        data = 0
                     });
                 }
             }
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetTotalDemandAndCollection_BranchDashboard");
-                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST"))});
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
             }
         }
         [HttpGet]
@@ -351,7 +351,7 @@ namespace PDL.ReportService.API.Controllers
         {
             try
             {
-                List<GetCollectionCountVM> res = _branchDashboardService.GetCollectionCount(CreatorBranchId, FromDate, ToDate,Type, GetIslive());
+                List<GetCollectionCountVM> res = _branchDashboardService.GetCollectionCount(CreatorBranchId, FromDate, ToDate, Type, GetIslive());
                 if (res.Count > 0)
                 {
                     return Ok(new
@@ -367,7 +367,7 @@ namespace PDL.ReportService.API.Controllers
                     {
                         statuscode = 201,
                         message = resourceManager.GetString("GETFAIL"),
-                        data= 0
+                        data = 0
                     });
                 }
             }
@@ -472,6 +472,41 @@ namespace PDL.ReportService.API.Controllers
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "InsertRaiseQuery_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
+            }
+        }
+
+        // NOC
+        [HttpPost]
+        public IActionResult NOCQuery(NOCQueryVM obj)
+        {
+            string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            try
+            {
+                int res = _branchDashboardService.NOCQuery(obj, activeuser, GetIslive());
+                if (res > 0)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = (resourceManager.GetString("INSERTSUCCESS")),
+                        data = res
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201,
+                        message = (resourceManager.GetString("INSERTFAIL")),
+                        data = string.Empty
+                    });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "NOCQuery_BranchDashboard");
                 return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
             }
         }

@@ -31,7 +31,7 @@ namespace PDL.ReportService.Repository.Repository
         {
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
-                return branchDashboard.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate, Type,pageNumber,pageSize, islive);
+                return branchDashboard.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate, Type, pageNumber, pageSize, islive);
             }
         }
         public List<FiCreatorMaster> GetCreators(string activeuser, bool islive)
@@ -80,7 +80,7 @@ namespace PDL.ReportService.Repository.Repository
         {
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
-                return branchDashboard.GetCollectionCount(CreatorBranchId, FromDate, ToDate,Type, islive);
+                return branchDashboard.GetCollectionCount(CreatorBranchId, FromDate, ToDate, Type, islive);
             }
         }
         public List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
@@ -102,6 +102,15 @@ namespace PDL.ReportService.Repository.Repository
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
                 int codeCreator = branchDashboard.InsertRaiseQuery(obj, activeUser, islive);
+                return codeCreator;
+            }
+        }
+
+        public int NOCQuery(NOCQueryVM obj, string activeUser, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                int codeCreator = branchDashboard.NOCQuery(obj, activeUser, islive);
                 return codeCreator;
             }
         }

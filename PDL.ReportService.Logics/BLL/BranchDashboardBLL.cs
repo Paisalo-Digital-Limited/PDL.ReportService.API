@@ -212,7 +212,7 @@ namespace PDL.ReportService.Logics.BLL
                                         dashboardModel.Income = reader["Income"] != DBNull.Value ? (decimal?)reader["Income"] : null;
                                         dashboardModel.Expense = reader["Expenses"] != DBNull.Value ? Convert.ToDecimal(reader["Expenses"]) : 0;
                                     }
-                                    else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION"||Type.ToUpper().Trim()== "READYFORAUDIT"||Type.ToUpper().Trim() == "READYFORNEFT")
+                                    else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION" || Type.ToUpper().Trim() == "READYFORAUDIT" || Type.ToUpper().Trim() == "READYFORNEFT")
                                     {
                                         dashboardModel.SchCode = reader["SchCode"]?.ToString();
                                         dashboardModel.Bank_IFCS = reader["Bank_IFCS"]?.ToString();
@@ -496,7 +496,7 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
-        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate,string Type, bool islive)
+        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             List<GetCollectionCountVM> res = new List<GetCollectionCountVM>();
@@ -505,7 +505,7 @@ namespace PDL.ReportService.Logics.BLL
                 using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    
+
                     string mode = Type == "Collection" ? "GetCollectionCount" : Type == "AdvanceCollection" ? "GetAdvanceCollectionCount" : null;
                     if (mode != null)
                     {
@@ -516,7 +516,7 @@ namespace PDL.ReportService.Logics.BLL
                     }
                     else
                     {
-                        return res; 
+                        return res;
                     }
                     con.Open();
                     using (var reader = cmd.ExecuteReader())
@@ -694,6 +694,56 @@ namespace PDL.ReportService.Logics.BLL
                     {
                         sftp.Disconnect();
                     }
+                }
+            }
+
+            return affected;
+        }
+
+        public int NOCQuery(NOCQueryVM obj, string activeuser, bool islive)
+        {
+            int affected = 0;
+            string sftpUsername = _configuration["SftpUsername"];
+            string sftpHost = _configuration["SftpHost"];
+            string sftpPassword = _configuration["SftpPassword"];
+            string sftpBasePath = _configuration["SftpfilePath"];
+            string dbname = Helper.Helper.GetDBName(_configuration); ;
+
+            string fileName = obj.Image.FileName;
+
+            string query = "Usp_InsertNOC";
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@Mode", "InsertNOCQuery");
+                    cmd.Parameters.Add("@Query", SqlDbType.VarChar).Value = obj.Query;
+                    cmd.Parameters.Add("@Type", SqlDbType.VarChar).Value = "NOC";
+                    cmd.Parameters.Add("@Img", SqlDbType.VarChar).Value = fileName;
+                    cmd.Parameters.Add("@UserId", SqlDbType.VarChar).Value = activeuser;
+
+                    con.Open();
+                    affected = cmd.ExecuteNonQuery();
+                }
+                if (affected > 0)
+                {
+                    string folderName = $"{activeuser}";
+                    string remoteDir = $"/Data/FiDocs/{activeuser}";
+                    string remoteFilePath = $"{remoteDir}/{fileName}";
+                    using var memoryStream = new MemoryStream();
+                    obj.Image.CopyTo(memoryStream);
+                    memoryStream.Position = 0;
+                    using var sftp = new SftpClient(sftpHost, sftpUsername, sftpPassword);
+
+                    sftp.Connect();
+                    Helper.Helper.EnsureDirectoryExists(sftp, remoteDir);
+                    memoryStream.Position = 0;
+                    sftp.UploadFile(memoryStream, remoteFilePath);
+
+                    sftp.Disconnect();
                 }
             }
 
