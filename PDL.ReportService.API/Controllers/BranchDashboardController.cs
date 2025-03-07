@@ -481,6 +481,41 @@ namespace PDL.ReportService.API.Controllers
                 return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
             }
         }
+
+        // NOC
+        [HttpPost]
+        public IActionResult NOCQuery(NOCQueryVM obj)
+        {
+            string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            try
+            {
+                int res = _branchDashboardService.NOCQuery(obj, activeuser, GetIslive());
+                if (res > 0)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = (resourceManager.GetString("INSERTSUCCESS")),
+                        data = res
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201,
+                        message = (resourceManager.GetString("INSERTFAIL")),
+                        data = string.Empty
+                    });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "NOCQuery_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
+            }
+        }
     }
 
 }

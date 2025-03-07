@@ -719,5 +719,55 @@ namespace PDL.ReportService.Logics.BLL
 
             return affected;
         }
+
+        public int NOCQuery(NOCQueryVM obj, string activeuser, bool islive)
+        {
+            int affected = 0;
+            string sftpUsername = _configuration["SftpUsername"];
+            string sftpHost = _configuration["SftpHost"];
+            string sftpPassword = _configuration["SftpPassword"];
+            string sftpBasePath = _configuration["SftpfilePath"];
+            string dbname = Helper.Helper.GetDBName(_configuration); ;
+
+            string fileName = obj.Image.FileName;
+
+            string query = "Usp_InsertNOC";
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@Mode", "InsertNOCQuery");
+                    cmd.Parameters.Add("@Query", SqlDbType.VarChar).Value = obj.Query;
+                    cmd.Parameters.Add("@Type", SqlDbType.VarChar).Value = "NOC";
+                    cmd.Parameters.Add("@Img", SqlDbType.VarChar).Value = fileName;
+                    cmd.Parameters.Add("@UserId", SqlDbType.VarChar).Value = activeuser;
+
+                    con.Open();
+                    affected = cmd.ExecuteNonQuery();
+                }
+                if (affected > 0)
+                {
+                    string folderName = $"{activeuser}";
+                    string remoteDir = $"/Data/FiDocs/{activeuser}";
+                    string remoteFilePath = $"{remoteDir}/{fileName}";
+                    using var memoryStream = new MemoryStream();
+                    obj.Image.CopyTo(memoryStream);
+                    memoryStream.Position = 0;
+                    using var sftp = new SftpClient(sftpHost, sftpUsername, sftpPassword);
+
+                    sftp.Connect();
+                    Helper.Helper.EnsureDirectoryExists(sftp, remoteDir);
+                    memoryStream.Position = 0;
+                    sftp.UploadFile(memoryStream, remoteFilePath);
+
+                    sftp.Disconnect();
+                }
+            }
+
+            return affected;
+        }
     }
 }

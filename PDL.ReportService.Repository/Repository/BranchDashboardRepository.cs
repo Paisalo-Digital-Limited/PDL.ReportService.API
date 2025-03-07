@@ -105,5 +105,14 @@ namespace PDL.ReportService.Repository.Repository
                 return codeCreator;
             }
         }
+
+        public int NOCQuery(NOCQueryVM obj, string activeUser, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                int codeCreator = branchDashboard.NOCQuery(obj, activeUser, islive);
+                return codeCreator;
+            }
+        }
     }
 }
