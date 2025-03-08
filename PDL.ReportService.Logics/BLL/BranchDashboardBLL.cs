@@ -855,5 +855,65 @@ namespace PDL.ReportService.Logics.BLL
 
             return affected;
         }
+
+        public List<ReadyForPuchVM> GetReadyforPuchData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_GetReadyForPuchData", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@CreatorBranchId", Convert.ToString(CreatorBranchId));
+                    cmd.Parameters.AddWithValue("@StartDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@EndDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+
+                    var res = new List<ReadyForPuchVM>();
+                    con.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            res.Add(new ReadyForPuchVM
+                            {
+                                ID = reader["ID"] == DBNull.Value ? 0 : Convert.ToInt64(reader["ID"]),
+                                FullName = reader["Full_Name"] == DBNull.Value ? string.Empty : reader["Full_Name"].ToString(),
+                                FICode = reader["FICode"] == DBNull.Value ? string.Empty : reader["FICode"].ToString(),
+                                Creator = reader["Creator"] == DBNull.Value ? string.Empty : reader["Creator"].ToString(),
+                                Branch_code = reader["Branch_code"] == DBNull.Value ? string.Empty : reader["Branch_code"].ToString(),
+                                Group_code = reader["Group_code"] == DBNull.Value ? string.Empty : reader["Group_code"].ToString(),
+                                Loan_amount = reader["Loan_amount"] == DBNull.Value ? 0 : Convert.ToSingle(reader["Loan_amount"]),
+                                Date = reader["Creation_Date"] == DBNull.Value ? string.Empty : reader["Creation_Date"].ToString()
+                            });
+                        }
+                    }
+                    return res;
+                }
+            }
+        }
+
+        public int ReadyforPuchData(long id, string activeuser, bool islive)
+        {
+            int affected = 0;
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            string query = "Usp_UpdateFiCurrentStatus";
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@Id", SqlDbType.Int).Value = id;
+                    cmd.Parameters.Add("@UserId", SqlDbType.VarChar).Value = activeuser;
+
+                    con.Open();
+                    affected = cmd.ExecuteNonQuery();
+                }
+            }
+
+            return affected;
+        }
     }
 }

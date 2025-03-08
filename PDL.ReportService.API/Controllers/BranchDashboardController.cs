@@ -451,6 +451,7 @@ namespace PDL.ReportService.API.Controllers
             }
         }
 
+
         #region GET AND INSERT RaiseQuery BY ---- AMIT KUMAR ------
         [HttpGet]
         public IActionResult GetRaiseQuery()
@@ -552,6 +553,74 @@ namespace PDL.ReportService.API.Controllers
         }
 
         #endregion
+
+        [HttpGet]
+        public IActionResult GetReadyforPuchData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate)
+        {
+            try
+            {
+                string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                List<ReadyForPuchVM> result = _branchDashboardService.GetReadyforPuchData(CreatorBranchId, FromDate, ToDate, GetIslive());
+                if (result != null && result.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201,
+                        message = resourceManager.GetString("GETFAIL"),
+                        data = 0
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetReadyforPuchData_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
+
+            }
+        }
+
+        [HttpPost]
+        public IActionResult ReadyforPuchData([FromForm] long id)
+        {
+            try
+            {
+                string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int result = _branchDashboardService.ReadyforPuchData(id, activeuser, GetIslive());
+                if (result > 0)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201,
+                        message = resourceManager.GetString("GETFAIL"),
+                        data = 0
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetReadyforPuchData_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
+
+            }
+        }
     }
 
 }

@@ -120,5 +120,22 @@ namespace PDL.ReportService.Repository.Repository
                 return codeCreator;
             }
         }
+
+        public List<ReadyForPuchVM> GetReadyforPuchData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetReadyforPuchData(CreatorBranchId, FromDate, ToDate, islive);
+            }
+        }
+
+        public int ReadyforPuchData(long id, string activeUser, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                int codeCreator = branchDashboard.ReadyforPuchData(id, activeUser, islive);
+                return codeCreator;
+            }
+        }
     }
 }
