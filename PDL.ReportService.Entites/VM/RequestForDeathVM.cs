@@ -2,21 +2,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace PDL.ReportService.Entites.VM
 {
-    public class RaiseQueryVM
+    public class RequestForDeathVM
     {
-        public string? Name { get; set; }
+        public string? SmCode { get; set; }
         public string? Type { get; set; }
         public string? Query { get; set; }
-        public string? Reply { get; set; }
-        public string? ImagPath { get; set; }
-        public DateTime? Createdon { get; set; }
-        public IFormFile? Imag { get; set; }
-
+        public List<IFormFile?> DeathFiles { get; set; }
     }
 }

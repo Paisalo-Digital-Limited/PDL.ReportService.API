@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 using System.Xml.Linq;
 
 namespace PDL.ReportService.Logics.BLL
@@ -629,6 +630,7 @@ namespace PDL.ReportService.Logics.BLL
                                 data.Name = reader["Name"] == DBNull.Value ? null : reader["Name"]?.ToString();
                                 data.Type = reader["Type"] == DBNull.Value ? null : reader["Type"]?.ToString();
                                 data.Query = reader["Query"] == DBNull.Value ? null : reader["Query"]?.ToString();
+                                data.Reply = reader["Reply"] == DBNull.Value ? null : reader["Reply"]?.ToString();
                                 data.ImagPath = reader["ErrorImage"] == DBNull.Value ? null : reader["ErrorImage"]?.ToString();
                                 data.Createdon = reader["Createdon"] != DBNull.Value ? Convert.ToDateTime(reader["Createdon"]) : null;
                             };
@@ -714,6 +716,140 @@ namespace PDL.ReportService.Logics.BLL
                     {
                         sftp.Disconnect();
                     }
+                }
+            }
+
+            return affected;
+        }
+        public string RequestForDeath(RequestForDeathVM obj, string activeuser, bool islive)
+        {
+            int affected = 0;
+            string sftpUsername = _configuration["SftpUsername"];
+            string sftpHost = _configuration["SftpHost"];
+            string sftpPassword = _configuration["SftpPassword"];
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            List<string> savedFileNames = new List<string>();
+            string query = "Usp_InsertRequestForDeathForm";
+            string transactionid = null;
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                foreach (var file in obj.DeathFiles)
+                {
+                    if (file.Length > 0)
+                    {
+                        string fileName = $"{obj.Type}{file.FileName}";
+                        savedFileNames.Add(fileName);
+                    }
+                }
+                string allFileNames = string.Join(",", savedFileNames);
+
+                using (var cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                 
+                    cmd.Parameters.Add("@SmCode", SqlDbType.VarChar).Value = obj.SmCode;
+                    cmd.Parameters.Add("@Type", SqlDbType.VarChar).Value = obj.Type;
+                    cmd.Parameters.Add("@Query", SqlDbType.VarChar).Value = obj.Query;
+                    cmd.Parameters.Add("@Img", SqlDbType.VarChar).Value = allFileNames;
+                    cmd.Parameters.Add("@RequestBy", SqlDbType.Int).Value = activeuser;
+                    cmd.Parameters.Add("@CreatedBy", SqlDbType.Int).Value = activeuser;
+    
+                    SqlParameter outputParam = new SqlParameter("@TransactionId", SqlDbType.VarChar, 20)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(outputParam);
+
+                    con.Open();
+                    affected = cmd.ExecuteNonQuery();
+
+                    transactionid = outputParam.Value.ToString();
+                    //obj.SmCode = TransactionId; // Update the object with the generated Smcode
+                }
+
+                if (affected > 0)
+                {
+                    string remoteDir = $"/Data/FiDocs/{activeuser}";
+                    using (var sftp = new SftpClient(sftpHost, sftpUsername, sftpPassword))
+                    {
+                        try
+                        {
+                            sftp.Connect();
+                            Helper.Helper.EnsureDirectoryExists(sftp, remoteDir);
+                            foreach (var file in obj.DeathFiles)
+                            {
+                                if (file.Length > 0)
+                                {
+                                    string remoteFilePath = $"{remoteDir}/{obj.Type}{file.FileName}";
+                                    using (var memoryStream = new MemoryStream())
+                                    {
+                                        file.CopyTo(memoryStream);
+                                        memoryStream.Position = 0;
+                                        sftp.UploadFile(memoryStream, remoteFilePath);
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error during SFTP upload: {ex.Message}");
+                        }
+                        finally
+                        {
+                            sftp.Disconnect();
+                        }
+                    }
+                }
+            }
+
+            return transactionid;
+        }
+        public int NOCQuery(NOCQueryVM obj, string activeuser, bool islive)
+        {
+            int affected = 0;
+            string sftpUsername = _configuration["SftpUsername"];
+            string sftpHost = _configuration["SftpHost"];
+            string sftpPassword = _configuration["SftpPassword"];
+            string sftpBasePath = _configuration["SftpfilePath"];
+            string dbname = Helper.Helper.GetDBName(_configuration); 
+
+            string fileName = obj.Image.FileName;
+
+            string query = "Usp_InsertNOC";
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@Mode", "InsertNOCQuery");
+                    cmd.Parameters.Add("@Query", SqlDbType.VarChar).Value = obj.Query;
+                    cmd.Parameters.Add("@Smcode", SqlDbType.VarChar).Value = obj.SmCode;
+                    cmd.Parameters.Add("@Type", SqlDbType.VarChar).Value = "NOC";
+                    cmd.Parameters.Add("@Img", SqlDbType.VarChar).Value = fileName;
+                    cmd.Parameters.Add("@UserId", SqlDbType.VarChar).Value = activeuser;
+
+                    con.Open();
+                    affected = cmd.ExecuteNonQuery();
+                }
+                if (affected > 0)
+                {
+                    string folderName = $"{obj.SmCode}";
+                    string remoteDir = $"/Data/FiDocs/{folderName}";
+                    string remoteFilePath = $"{remoteDir}/{fileName}";
+                    using var memoryStream = new MemoryStream();
+                    obj.Image.CopyTo(memoryStream);
+                    memoryStream.Position = 0;
+                    using var sftp = new SftpClient(sftpHost, sftpUsername, sftpPassword);
+
+                    sftp.Connect();
+                    Helper.Helper.EnsureDirectoryExists(sftp, remoteDir);
+                    memoryStream.Position = 0;
+                    sftp.UploadFile(memoryStream, remoteFilePath);
+
+                    sftp.Disconnect();
                 }
             }
 
