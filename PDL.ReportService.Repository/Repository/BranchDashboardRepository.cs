@@ -121,11 +121,11 @@ namespace PDL.ReportService.Repository.Repository
             }
         }
 
-        public List<ReadyForPuchVM> GetReadyforPushData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
+        public List<ReadyForPuchVM> GetReadyforPushData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, int pageNumber, int pageSize, bool islive)
         {
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
-                return branchDashboard.GetReadyforPushData(CreatorBranchId, FromDate, ToDate, islive);
+                return branchDashboard.GetReadyforPushData(CreatorBranchId, FromDate, ToDate, pageNumber, pageSize, islive);
             }
         }
 
