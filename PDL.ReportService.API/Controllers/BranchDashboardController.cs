@@ -610,13 +610,13 @@ namespace PDL.ReportService.API.Controllers
                     {
                         statuscode = 201,
                         message = resourceManager.GetString("GETFAIL"),
-                        data = 0
+                        data = result
                     });
                 }
             }
             catch (Exception ex)
             {
-                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetReadyforPuchData_BranchDashboard");
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "ReadyforPushData_BranchDashboard");
                 return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
 
             }

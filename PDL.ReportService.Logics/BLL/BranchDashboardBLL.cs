@@ -911,7 +911,6 @@ namespace PDL.ReportService.Logics.BLL
                     cmd.Parameters.Add("@UserId", SqlDbType.VarChar).Value = activeuser;
 
                     con.Open();
-                    con.Open();
                     affected = cmd.ExecuteNonQuery();
                 }
             }
