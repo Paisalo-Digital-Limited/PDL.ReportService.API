@@ -25,7 +25,7 @@ namespace PDL.ReportService.Interfaces.Interfaces
         int InsertRaiseQuery(RaiseQueryVM obj, string activeuser, bool islive);
         string RequestForDeath(RequestForDeathVM obj, string activeuser, bool islive);
         int NOCQuery(NOCQueryVM obj, string activeuser, bool islive);
-        List<ReadyForPuchVM> GetReadyforPuchData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive);
-        int ReadyforPuchData(long id, string activeuser, bool islive);
+        List<ReadyForPuchVM> GetReadyforPushData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive);
+        int ReadyforPushData(long id, string activeuser, bool islive);
     }
 }

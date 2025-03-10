@@ -856,7 +856,7 @@ namespace PDL.ReportService.Logics.BLL
             return affected;
         }
 
-        public List<ReadyForPuchVM> GetReadyforPuchData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
+        public List<ReadyForPuchVM> GetReadyforPushData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
 
@@ -894,7 +894,7 @@ namespace PDL.ReportService.Logics.BLL
             }
         }
 
-        public int ReadyforPuchData(long id, string activeuser, bool islive)
+        public int ReadyforPushData(long id, string activeuser, bool islive)
         {
             int affected = 0;
             string dbname = Helper.Helper.GetDBName(_configuration);
@@ -908,6 +908,7 @@ namespace PDL.ReportService.Logics.BLL
                     cmd.Parameters.Add("@Id", SqlDbType.Int).Value = id;
                     cmd.Parameters.Add("@UserId", SqlDbType.VarChar).Value = activeuser;
 
+                    con.Open();
                     con.Open();
                     affected = cmd.ExecuteNonQuery();
                 }

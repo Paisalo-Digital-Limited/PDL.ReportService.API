@@ -555,12 +555,12 @@ namespace PDL.ReportService.API.Controllers
         #endregion
 
         [HttpGet]
-        public IActionResult GetReadyforPuchData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate)
+        public IActionResult GetReadyforPushData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate)
         {
             try
             {
                 string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                List<ReadyForPuchVM> result = _branchDashboardService.GetReadyforPuchData(CreatorBranchId, FromDate, ToDate, GetIslive());
+                List<ReadyForPuchVM> result = _branchDashboardService.GetReadyforPushData(CreatorBranchId, FromDate, ToDate, GetIslive());
                 if (result != null && result.Count > 0)
                 {
                     return Ok(new
@@ -589,12 +589,12 @@ namespace PDL.ReportService.API.Controllers
         }
 
         [HttpPost]
-        public IActionResult ReadyforPuchData([FromForm] long id)
+        public IActionResult ReadyforPushData([FromForm] long id)
         {
             try
             {
                 string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int result = _branchDashboardService.ReadyforPuchData(id, activeuser, GetIslive());
+                int result = _branchDashboardService.ReadyforPushData(id, activeuser, GetIslive());
                 if (result > 0)
                 {
                     return Ok(new

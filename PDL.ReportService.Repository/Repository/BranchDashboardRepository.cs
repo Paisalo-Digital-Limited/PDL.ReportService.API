@@ -31,7 +31,7 @@ namespace PDL.ReportService.Repository.Repository
         {
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
-                return branchDashboard.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate, Type,pageNumber,pageSize, islive);
+                return branchDashboard.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate, Type, pageNumber, pageSize, islive);
             }
         }
         public List<FiCreatorMaster> GetCreators(string activeuser, bool islive)
@@ -80,7 +80,7 @@ namespace PDL.ReportService.Repository.Repository
         {
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
-                return branchDashboard.GetCollectionCount(CreatorBranchId, FromDate, ToDate,Type, islive);
+                return branchDashboard.GetCollectionCount(CreatorBranchId, FromDate, ToDate, Type, islive);
             }
         }
         public List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
@@ -121,19 +121,19 @@ namespace PDL.ReportService.Repository.Repository
             }
         }
 
-        public List<ReadyForPuchVM> GetReadyforPuchData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
+        public List<ReadyForPuchVM> GetReadyforPushData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
         {
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
-                return branchDashboard.GetReadyforPuchData(CreatorBranchId, FromDate, ToDate, islive);
+                return branchDashboard.GetReadyforPushData(CreatorBranchId, FromDate, ToDate, islive);
             }
         }
 
-        public int ReadyforPuchData(long id, string activeUser, bool islive)
+        public int ReadyforPushData(long id, string activeUser, bool islive)
         {
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
-                int codeCreator = branchDashboard.ReadyforPuchData(id, activeUser, islive);
+                int codeCreator = branchDashboard.ReadyforPushData(id, activeUser, islive);
                 return codeCreator;
             }
         }
