@@ -600,7 +600,7 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         statuscode = 200,
-                        message = resourceManager.GetString("GETSUCCESS"),
+                        message = resourceManager.GetString("PUSHRECORD"),
                         data = result
                     });
                 }
@@ -609,7 +609,7 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         statuscode = 201,
-                        message = resourceManager.GetString("GETFAIL"),
+                        message = resourceManager.GetString("NOTPUSHRECORD"),
                         data = result
                     });
                 }
