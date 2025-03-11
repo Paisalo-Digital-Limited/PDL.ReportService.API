@@ -540,6 +540,9 @@ namespace PDL.ReportService.Logics.BLL
                                 Branch_code = reader["Branch_code"] == DBNull.Value ? null : reader["Branch_code"].ToString(),
                                 SmCode = reader["SmCode"] == DBNull.Value ? null : reader["SmCode"].ToString(),
                                 VNO = reader["VNO"] == DBNull.Value ? null : reader["VNO"].ToString(),
+                                TotalDemand = reader["TotalDemand"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["TotalDemand"]),
+                                TotalCollection = reader["TotalCollection"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["TotalCollection"]),
+                                AdvanceCollection = reader["Result"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["Result"]),
                                 CR = reader["CR"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["CR"]),
                                 VDATE = reader["VDATE"] == DBNull.Value ? null : reader["VDATE"].ToString(),
                             };

@@ -75,6 +75,9 @@ namespace PDL.ReportService.Entites.VM
         public string? VNO { get; set; }
         public string? VDATE { get; set; }
         public decimal? OD { get; set; }
+        public decimal? TotalDemand { get; set; }
+        public decimal? TotalCollection { get; set; }
+        public decimal? AdvanceCollection { get; set; }
 
     }
     public class GetDemandCountVM
