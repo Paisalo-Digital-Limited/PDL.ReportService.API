@@ -544,7 +544,7 @@ namespace PDL.ReportService.Logics.BLL
                                 TotalCollection = reader["TotalCollection"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["TotalCollection"]),
                                 AdvanceCollection = reader["Result"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["Result"]),
                                 CR = reader["CR"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["CR"]),
-                                VDATE = reader["VDATE"] == DBNull.Value ? null : reader["VDATE"].ToString(),
+                                VDATE = reader["VDATE"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["VDATE"]) : null,
                             };
 
                             // Handle specific cases based on Type

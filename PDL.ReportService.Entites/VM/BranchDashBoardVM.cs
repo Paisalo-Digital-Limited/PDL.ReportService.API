@@ -73,7 +73,7 @@ namespace PDL.ReportService.Entites.VM
         public string FullName { get; set; }
         public decimal? CR { get; set; }
         public string? VNO { get; set; }
-        public string? VDATE { get; set; }
+        public DateTime? VDATE { get; set; }
         public decimal? OD { get; set; }
         public decimal? TotalDemand { get; set; }
         public decimal? TotalCollection { get; set; }
