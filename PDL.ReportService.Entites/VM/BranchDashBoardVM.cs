@@ -78,6 +78,7 @@ namespace PDL.ReportService.Entites.VM
         public decimal? TotalDemand { get; set; }
         public decimal? TotalCollection { get; set; }
         public decimal? AdvanceCollection { get; set; }
+        public int? Count { get; set; }
 
     }
     public class GetDemandCountVM

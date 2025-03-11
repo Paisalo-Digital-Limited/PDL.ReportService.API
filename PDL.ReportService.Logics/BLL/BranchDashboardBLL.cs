@@ -541,7 +541,7 @@ namespace PDL.ReportService.Logics.BLL
                                 Branch_code = reader["Branch_code"] == DBNull.Value ? null : reader["Branch_code"].ToString(),
                                 SmCode = reader["SmCode"] == DBNull.Value ? null : reader["SmCode"].ToString(),
                                 VNO = reader["VNO"] == DBNull.Value ? null : reader["VNO"].ToString(),
-
+                                Count = reader["TotalCount"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["TotalCount"]),
                                 CR = reader["CR"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["CR"]),
                                 VDATE = reader["VDATE"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["VDATE"]) : null,
                             };
@@ -550,6 +550,7 @@ namespace PDL.ReportService.Logics.BLL
                                 collectionItem.TotalDemand = reader["TotalDemand"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["TotalDemand"]);
                                 collectionItem.TotalCollection = reader["TotalCollection"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["TotalCollection"]);
                                 collectionItem.AdvanceCollection = reader["Result"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["Result"]);
+                                //collectionItem.Count = reader["TotalCount"] == DBNull.Value ? 0 : Convert.ToInt64(reader["TotalCount"]);
                             }
                             else if (Type == "OverDue")
                             {
@@ -561,6 +562,7 @@ namespace PDL.ReportService.Logics.BLL
                                 collectionItem.TotalCollection = null;
                                 collectionItem.AdvanceCollection = null;
                                 collectionItem.OD = null;
+                                collectionItem.Count = null;
 
                             }
                             res.Add(collectionItem);
