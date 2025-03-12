@@ -2,14 +2,18 @@
 using Microsoft.Extensions.Configuration;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Logics.Credentials;
+using Renci.SshNet;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 using System.Xml.Linq;
 
 namespace PDL.ReportService.Logics.BLL
@@ -18,6 +22,8 @@ namespace PDL.ReportService.Logics.BLL
     {
         private readonly IConfiguration _configuration;
         private readonly CredManager _credManager;
+        private readonly object IWebHostEnvironment;
+
         public BranchDashboardBLL(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -50,13 +56,14 @@ namespace PDL.ReportService.Logics.BLL
                             {
                                 while (rdrUser.Read())
                                 {
-                                    branchDash.Total_FirstEsign_Count = rdrUser["Total_FirstEsign_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_FirstEsign_Count"]) : 0;
-                                    branchDash.Total_Sanctioned_Count = rdrUser["Total_Sanctioned_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_Sanctioned_Count"]) : 0;
-                                    branchDash.Total_SecondEsign_Count = rdrUser["Total_SecondEsign_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_SecondEsign_Count"]) : 0;
-                                    branchDash.Total_Disbursed_Count = rdrUser["Total_Disbursed_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_Disbursed_Count"]) : 0;
-                                    branchDash.Total_Count = rdrUser["Total_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_Count"]) : 0;
-                                    branchDash.Total_PostSanction_Count = rdrUser["Total_PostSanction_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_PostSanction_Count"]) : 0;
-                                    branchDash.Total_ReadyForAudit_Count = rdrUser["Total_ReadyForAudit_Count"] != DBNull.Value ? Convert.ToInt32(rdrUser["Total_ReadyForAudit_Count"]) : 0;
+                                    branchDash.Total_FirstEsign_Count = rdrUser["Total_FirstEsign_Count"] != DBNull.Value ? Convert.ToInt64(rdrUser["Total_FirstEsign_Count"]) : 0;
+                                    branchDash.Total_Sanctioned_Count = rdrUser["Total_Sanctioned_Count"] != DBNull.Value ? Convert.ToInt64(rdrUser["Total_Sanctioned_Count"]) : 0;
+                                    branchDash.Total_SecondEsign_Count = rdrUser["Total_SecondEsign_Count"] != DBNull.Value ? Convert.ToInt64(rdrUser["Total_SecondEsign_Count"]) : 0;
+                                    branchDash.Total_Disbursed_Count = rdrUser["Total_Disbursed_Count"] != DBNull.Value ? Convert.ToInt64(rdrUser["Total_Disbursed_Count"]) : 0;
+                                    branchDash.Total_Count = rdrUser["Total_Count"] != DBNull.Value ? Convert.ToInt64(rdrUser["Total_Count"]) : 0;
+                                    branchDash.Total_PostSanction_Count = rdrUser["Total_PostSanction_Count"] != DBNull.Value ? Convert.ToInt64(rdrUser["Total_PostSanction_Count"]) : 0;
+                                    branchDash.Total_ReadyForAudit_Count = rdrUser["Total_ReadyForAudit_Count"] != DBNull.Value ? Convert.ToInt64(rdrUser["Total_ReadyForAudit_Count"]) : 0;
+                                    branchDash.Total_ReadyForNeft_Count = rdrUser["Total_ReadyForNeft_Count"] != DBNull.Value ? Convert.ToInt64(rdrUser["Total_ReadyForNeft_Count"]) : 0;
                                 }
                             }
                             else
@@ -203,13 +210,13 @@ namespace PDL.ReportService.Logics.BLL
                                         Approved = reader["Approved"]?.ToString(),
                                     };
 
-                                    if (Type.ToUpper().Trim() == "SOURCING"|| Type.ToUpper().Trim() == "ALL")
+                                    if (Type.ToUpper().Trim() == "SOURCING" || Type.ToUpper().Trim() == "ALL")
                                     {
                                         dashboardModel.FatherName = reader["FatherName"] as string;
                                         dashboardModel.Income = reader["Income"] != DBNull.Value ? (decimal?)reader["Income"] : null;
                                         dashboardModel.Expense = reader["Expenses"] != DBNull.Value ? Convert.ToDecimal(reader["Expenses"]) : 0;
                                     }
-                                    else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION"||Type.ToUpper().Trim()== "READYFORAUDIT")
+                                    else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION" || Type.ToUpper().Trim() == "READYFORAUDIT" || Type.ToUpper().Trim() == "READYFORNEFT")
                                     {
                                         dashboardModel.SchCode = reader["SchCode"]?.ToString();
                                         dashboardModel.Bank_IFCS = reader["Bank_IFCS"]?.ToString();
@@ -461,12 +468,12 @@ namespace PDL.ReportService.Logics.BLL
         }
         #endregion
         #region Api BranchDashboard TotalDemand && TotalCollection BY--------------- Satish Maurya-------
-        public List<TotalDemandAndCollection> GetTotalDemandAndCollection(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
+        public List<TotalDemandAndCollection> GetTotalDemandAndCollection(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             using (SqlConnection con = _credManager.getConnections(dbname, islive))
             {
-                using (var cmd = new SqlCommand("Usp_BranchDashboard_TotalDetails", con))
+                using (var cmd = new SqlCommand("Usp_BranchDashboardTotalDetails", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@CreatorBranchId", Convert.ToString(CreatorBranchId));
@@ -493,26 +500,40 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
-        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate,bool islive)
+        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
+            List<GetCollectionCountVM> res = new List<GetCollectionCountVM>();
+
             using (SqlConnection con = _credManager.getConnections(dbname, islive))
             {
                 using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@Mode", "GetCollectionCount");
-                    cmd.Parameters.AddWithValue("@CreatorBranchId", Convert.ToString(CreatorBranchId));
-                    cmd.Parameters.AddWithValue("@FromDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ToDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
-                    var res = new List<GetCollectionCountVM>();
-                    con.Open();
 
+                    string mode = Type == "Collection" ? "GetCollectionCount" :
+                                         Type == "AdvanceCollection" ? "GetAdvanceCollectionCount" :
+                                         Type == "OverDue" ? "GetOverDue" : null;
+
+                    if (mode != null)
+                    {
+                        cmd.Parameters.AddWithValue("@Mode", mode);
+                        cmd.Parameters.AddWithValue("@CreatorBranchId", CreatorBranchId);
+                        cmd.Parameters.AddWithValue("@FromDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ToDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                        cmd.Parameters.AddWithValue("@PageNumber", pageNumber);
+                        cmd.Parameters.AddWithValue("@PageSize", pageSize);
+                    }
+                    else
+                    {
+                        return res;
+                    }
+                    con.Open();
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            res.Add(new GetCollectionCountVM
+                            var collectionItem = new GetCollectionCountVM
                             {
                                 FICode = reader["FICode"] == DBNull.Value ? 0 : Convert.ToInt64(reader["FICode"]),
                                 FullName = reader["Name"] == DBNull.Value ? null : reader["Name"].ToString(),
@@ -520,12 +541,35 @@ namespace PDL.ReportService.Logics.BLL
                                 Branch_code = reader["Branch_code"] == DBNull.Value ? null : reader["Branch_code"].ToString(),
                                 SmCode = reader["SmCode"] == DBNull.Value ? null : reader["SmCode"].ToString(),
                                 VNO = reader["VNO"] == DBNull.Value ? null : reader["VNO"].ToString(),
+                                Count = reader["TotalCount"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["TotalCount"]),
                                 CR = reader["CR"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["CR"]),
-                                VDATE = reader["VDATE"] == DBNull.Value ? null : reader["VDATE"].ToString(),
-                            });
+                                VDATE = reader["VDATE"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["VDATE"]) : null,
+                            };
+                            if (Type == "AdvanceCollection")
+                            {
+                                collectionItem.TotalDemand = reader["TotalDemand"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["TotalDemand"]);
+                                collectionItem.TotalCollection = reader["TotalCollection"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["TotalCollection"]);
+                                collectionItem.AdvanceCollection = reader["Result"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["Result"]);
+                                //collectionItem.Count = reader["TotalCount"] == DBNull.Value ? 0 : Convert.ToInt64(reader["TotalCount"]);
+                            }
+                            else if (Type == "OverDue")
+                            {
+                                collectionItem.OD = reader["OD"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["OD"]);
+                            }
+                            else
+                            {
+                                collectionItem.TotalDemand = null;
+                                collectionItem.TotalCollection = null;
+                                collectionItem.AdvanceCollection = null;
+                                collectionItem.OD = null;
+                                collectionItem.Count = null;
+
+                            }
+                            res.Add(collectionItem);
+
                         }
+                        return res;
                     }
-                    return res;
                 }
             }
         }
@@ -557,7 +601,7 @@ namespace PDL.ReportService.Logics.BLL
                                 SmCode = reader["SmCode"] == DBNull.Value ? null : reader["SmCode"].ToString(),
                                 INSTALL = reader["INSTALL"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["INSTALL"]),
                                 AMT = reader["AMT"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["AMT"]),
-                                PVN_RCP_DT = reader["PVN_RCP_DT"] == DBNull.Value ? null : reader["PVN_RCP_DT"].ToString() 
+                                PVN_RCP_DT = reader["PVN_RCP_DT"] == DBNull.Value ? null : reader["PVN_RCP_DT"].ToString()
                             });
                         }
                     }
@@ -566,5 +610,324 @@ namespace PDL.ReportService.Logics.BLL
             }
         }
         #endregion
+        public List<RaiseQueryVM> GetRaiseQuery(string activeuser, bool islive)
+        {
+            List<RaiseQueryVM> raiseQueries = new List<RaiseQueryVM>();
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            string path = _configuration["filePath"];
+            string sftpHost = _configuration["SftpHost"];
+            string sftpUsername = _configuration["SftpUsername"];
+            string sftpPassword = _configuration["SftpPassword"];
+            string networkPath = _configuration["NetworkPath"];
+            string newBaseUrl = _configuration["NewBaseUrl"];
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_InsertRaiseQuery", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserId", activeuser);
+                    cmd.Parameters.AddWithValue("@Mode", "GetRaiseQuery");
+
+
+                    if (con.State == ConnectionState.Closed)
+                        con.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            RaiseQueryVM data = new RaiseQueryVM();
+                            {
+                                data.Name = reader["Name"] == DBNull.Value ? null : reader["Name"]?.ToString();
+                                data.Type = reader["Type"] == DBNull.Value ? null : reader["Type"]?.ToString();
+                                data.Query = reader["Query"] == DBNull.Value ? null : reader["Query"]?.ToString();
+                                data.Reply = reader["Reply"] == DBNull.Value ? null : reader["Reply"]?.ToString();
+                                data.ImagPath = reader["ErrorImage"] == DBNull.Value ? null : reader["ErrorImage"]?.ToString();
+                                data.Createdon = reader["Createdon"] != DBNull.Value ? Convert.ToDateTime(reader["Createdon"]) : null;
+                            };
+
+                            if (data.ImagPath != null)
+                            {
+                                using (var sftp = new SftpClient(sftpHost, sftpUsername, sftpPassword))
+                                {
+                                    sftp.Connect();
+
+                                    string networkFilePath = $"{newBaseUrl}/FiDocs/{activeuser}/{data.ImagPath}";
+
+                                    data.ImagPath = networkFilePath;
+
+                                    sftp.Disconnect();
+                                }
+                            }
+                            else
+                            {
+                                data.ImagPath = "";
+                            }
+
+                            raiseQueries.Add(data);
+                        }
+                    }
+                    con.Close();
+
+                    return raiseQueries;
+                }
+            }
+        }
+        public int InsertRaiseQuery(RaiseQueryVM obj, string activeuser, bool islive)
+        {
+            int affected = 0;
+            string sftpUsername = _configuration["SftpUsername"];
+            string sftpHost = _configuration["SftpHost"];
+            string sftpPassword = _configuration["SftpPassword"];
+            string sftpBasePath = _configuration["SftpfilePath"];
+            string dbname = Helper.Helper.GetDBName(_configuration); ;
+
+            string fileName = obj.Imag.FileName;
+
+            string query = "Usp_InsertRaiseQuery";
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@Mode", "InsertRaiseQuery");
+                    cmd.Parameters.Add("@Query", SqlDbType.VarChar).Value = obj.Query;
+                    cmd.Parameters.Add("@Type", SqlDbType.VarChar).Value = obj.Type;
+                    cmd.Parameters.Add("@Img", SqlDbType.VarChar).Value = fileName;
+                    cmd.Parameters.Add("@UserId", SqlDbType.VarChar).Value = activeuser;
+
+                    con.Open();
+                    affected = cmd.ExecuteNonQuery();
+                }
+                if (affected > 0)
+                {
+                    string folderName = $"{activeuser}";
+                    string remoteDir = $"/Data/FiDocs/{activeuser}"; // Target directory
+                    string remoteFilePath = $"{remoteDir}/{obj.Imag.FileName}";
+                    using var memoryStream = new MemoryStream();
+                    obj.Imag.CopyTo(memoryStream);
+                    memoryStream.Position = 0;
+                    using var sftp = new SftpClient(sftpHost, sftpUsername, sftpPassword);
+                    try
+                    {
+                        sftp.Connect();
+                        // Ensure each level of directory exists
+                        Helper.Helper.EnsureDirectoryExists(sftp, remoteDir);
+                        // Upload file
+                        memoryStream.Position = 0;
+                        sftp.UploadFile(memoryStream, remoteFilePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error: {ex.Message}");
+                    }
+                    finally
+                    {
+                        sftp.Disconnect();
+                    }
+                }
+            }
+
+            return affected;
+        }
+        public string RequestForDeath(RequestForDeathVM obj, string activeuser, bool islive)
+        {
+            int affected = 0;
+            string sftpUsername = _configuration["SftpUsername"];
+            string sftpHost = _configuration["SftpHost"];
+            string sftpPassword = _configuration["SftpPassword"];
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            List<string> savedFileNames = new List<string>();
+            string query = "Usp_InsertRequestForDeathForm";
+            string transactionid = null;
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                foreach (var file in obj.DeathFiles)
+                {
+                    if (file.Length > 0)
+                    {
+                        string fileName = $"{obj.Type}{file.FileName}";
+                        savedFileNames.Add(fileName);
+                    }
+                }
+                string allFileNames = string.Join(",", savedFileNames);
+
+                using (var cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.Add("@SmCode", SqlDbType.VarChar).Value = obj.SmCode;
+                    cmd.Parameters.Add("@Type", SqlDbType.VarChar).Value = obj.Type;
+                    cmd.Parameters.Add("@Query", SqlDbType.VarChar).Value = obj.Query;
+                    cmd.Parameters.Add("@Img", SqlDbType.VarChar).Value = allFileNames;
+                    cmd.Parameters.Add("@RequestBy", SqlDbType.Int).Value = activeuser;
+                    cmd.Parameters.Add("@CreatedBy", SqlDbType.Int).Value = activeuser;
+
+                    SqlParameter outputParam = new SqlParameter("@TransactionId", SqlDbType.VarChar, 20)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(outputParam);
+
+                    con.Open();
+                    affected = cmd.ExecuteNonQuery();
+
+                    transactionid = outputParam.Value.ToString();
+                    //obj.SmCode = TransactionId; // Update the object with the generated Smcode
+                }
+
+                if (affected > 0)
+                {
+                    string remoteDir = $"/Data/FiDocs/{activeuser}";
+                    using (var sftp = new SftpClient(sftpHost, sftpUsername, sftpPassword))
+                    {
+                        try
+                        {
+                            sftp.Connect();
+                            Helper.Helper.EnsureDirectoryExists(sftp, remoteDir);
+                            foreach (var file in obj.DeathFiles)
+                            {
+                                if (file.Length > 0)
+                                {
+                                    string remoteFilePath = $"{remoteDir}/{obj.Type}{file.FileName}";
+                                    using (var memoryStream = new MemoryStream())
+                                    {
+                                        file.CopyTo(memoryStream);
+                                        memoryStream.Position = 0;
+                                        sftp.UploadFile(memoryStream, remoteFilePath);
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error during SFTP upload: {ex.Message}");
+                        }
+                        finally
+                        {
+                            sftp.Disconnect();
+                        }
+                    }
+                }
+            }
+
+            return transactionid;
+        }
+        public int NOCQuery(NOCQueryVM obj, string activeuser, bool islive)
+        {
+            int affected = 0;
+            string sftpUsername = _configuration["SftpUsername"];
+            string sftpHost = _configuration["SftpHost"];
+            string sftpPassword = _configuration["SftpPassword"];
+            string sftpBasePath = _configuration["SftpfilePath"];
+            string dbname = Helper.Helper.GetDBName(_configuration);
+
+            string fileName = obj.Image.FileName;
+
+            string query = "Usp_InsertNOC";
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@Mode", "InsertNOCQuery");
+                    cmd.Parameters.Add("@Query", SqlDbType.VarChar).Value = obj.Query;
+                    cmd.Parameters.Add("@Smcode", SqlDbType.VarChar).Value = obj.SmCode;
+                    cmd.Parameters.Add("@Type", SqlDbType.VarChar).Value = "NOC";
+                    cmd.Parameters.Add("@Img", SqlDbType.VarChar).Value = fileName;
+                    cmd.Parameters.Add("@UserId", SqlDbType.VarChar).Value = activeuser;
+
+                    con.Open();
+                    affected = cmd.ExecuteNonQuery();
+                }
+                if (affected > 0)
+                {
+                    string folderName = $"{obj.SmCode}";
+                    string remoteDir = $"/Data/FiDocs/{folderName}";
+                    string remoteFilePath = $"{remoteDir}/{fileName}";
+                    using var memoryStream = new MemoryStream();
+                    obj.Image.CopyTo(memoryStream);
+                    memoryStream.Position = 0;
+                    using var sftp = new SftpClient(sftpHost, sftpUsername, sftpPassword);
+
+                    sftp.Connect();
+                    Helper.Helper.EnsureDirectoryExists(sftp, remoteDir);
+                    memoryStream.Position = 0;
+                    sftp.UploadFile(memoryStream, remoteFilePath);
+
+                    sftp.Disconnect();
+                }
+            }
+
+            return affected;
+        }
+
+        public List<ReadyForPuchVM> GetReadyforPushData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, int pageNumber, int pageSize, bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_GetReadyForPuchData", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@CreatorBranchId", Convert.ToString(CreatorBranchId));
+                    cmd.Parameters.AddWithValue("@StartDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@EndDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PageNumber", pageNumber);
+                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                    var res = new List<ReadyForPuchVM>();
+                    con.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            res.Add(new ReadyForPuchVM
+                            {
+                                ID = reader["ID"] == DBNull.Value ? 0 : Convert.ToInt64(reader["ID"]),
+                                FullName = reader["Full_Name"] == DBNull.Value ? string.Empty : reader["Full_Name"].ToString(),
+                                FICode = reader["FICode"] == DBNull.Value ? string.Empty : reader["FICode"].ToString(),
+                                Creator = reader["Creator"] == DBNull.Value ? string.Empty : reader["Creator"].ToString(),
+                                Branch_code = reader["Branch_code"] == DBNull.Value ? string.Empty : reader["Branch_code"].ToString(),
+                                Group_code = reader["Group_code"] == DBNull.Value ? string.Empty : reader["Group_code"].ToString(),
+                                Loan_amount = reader["Loan_amount"] == DBNull.Value ? 0 : Convert.ToSingle(reader["Loan_amount"]),
+                                Date = reader["Creation_Date"] == DBNull.Value ? string.Empty : reader["Creation_Date"].ToString()
+                            });
+                        }
+                    }
+                    return res;
+                }
+            }
+        }
+
+        public int ReadyforPushData(long id, string activeuser, bool islive)
+        {
+            int affected = 0;
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            string query = "Usp_UpdateFiCurrentStatus";
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@Id", SqlDbType.Int).Value = id;
+                    cmd.Parameters.Add("@UserId", SqlDbType.VarChar).Value = activeuser;
+
+                    con.Open();
+                    affected = cmd.ExecuteNonQuery();
+                }
+            }
+
+            return affected;
+        }
     }
 }

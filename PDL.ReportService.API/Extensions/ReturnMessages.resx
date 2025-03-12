@@ -177,4 +177,10 @@
   <data name="IMEINOTFOUND" xml:space="preserve">
     <value>IMEI No Not Found</value>
   </data>
+  <data name="PUSHRECORD" xml:space="preserve">
+    <value>Records Push Successfully!!</value>
+  </data>
+  <data name="NOTPUSHRECORD" xml:space="preserve">
+    <value>Failed Records!!</value>
+  </data>
 </root>
