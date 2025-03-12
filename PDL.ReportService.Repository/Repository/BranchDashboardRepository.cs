@@ -31,7 +31,7 @@ namespace PDL.ReportService.Repository.Repository
         {
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
-                return branchDashboard.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate, Type,pageNumber,pageSize, islive);
+                return branchDashboard.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate, Type, pageNumber, pageSize, islive);
             }
         }
         public List<FiCreatorMaster> GetCreators(string activeuser, bool islive)
@@ -76,11 +76,11 @@ namespace PDL.ReportService.Repository.Repository
                 return branchDashboard.GetTotalDemandAndCollection(CreatorBranchId, FromDate, ToDate, islive);
             }
         }
-        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
+        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, bool islive)
         {
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
-                return branchDashboard.GetCollectionCount(CreatorBranchId, FromDate, ToDate,Type, islive);
+                return branchDashboard.GetCollectionCount(CreatorBranchId, FromDate, ToDate, Type, pageNumber, pageSize, islive);
             }
         }
         public List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
@@ -117,6 +117,23 @@ namespace PDL.ReportService.Repository.Repository
             using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
             {
                 int codeCreator = branchDashboard.NOCQuery(obj, activeUser, islive);
+                return codeCreator;
+            }
+        }
+
+        public List<ReadyForPuchVM> GetReadyforPushData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, int pageNumber, int pageSize, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetReadyforPushData(CreatorBranchId, FromDate, ToDate, pageNumber, pageSize, islive);
+            }
+        }
+
+        public int ReadyforPushData(long id, string activeUser, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                int codeCreator = branchDashboard.ReadyforPushData(id, activeUser, islive);
                 return codeCreator;
             }
         }

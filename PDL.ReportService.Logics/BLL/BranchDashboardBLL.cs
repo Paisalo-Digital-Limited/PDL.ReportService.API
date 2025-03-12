@@ -10,6 +10,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -499,7 +500,7 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
-        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive)
+        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             List<GetCollectionCountVM> res = new List<GetCollectionCountVM>();
@@ -520,18 +521,18 @@ namespace PDL.ReportService.Logics.BLL
                         cmd.Parameters.AddWithValue("@CreatorBranchId", CreatorBranchId);
                         cmd.Parameters.AddWithValue("@FromDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
                         cmd.Parameters.AddWithValue("@ToDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                        cmd.Parameters.AddWithValue("@PageNumber", pageNumber);
+                        cmd.Parameters.AddWithValue("@PageSize", pageSize);
                     }
                     else
                     {
                         return res;
                     }
-
                     con.Open();
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            // Handle the common fields for all types
                             var collectionItem = new GetCollectionCountVM
                             {
                                 FICode = reader["FICode"] == DBNull.Value ? 0 : Convert.ToInt64(reader["FICode"]),
@@ -540,24 +541,35 @@ namespace PDL.ReportService.Logics.BLL
                                 Branch_code = reader["Branch_code"] == DBNull.Value ? null : reader["Branch_code"].ToString(),
                                 SmCode = reader["SmCode"] == DBNull.Value ? null : reader["SmCode"].ToString(),
                                 VNO = reader["VNO"] == DBNull.Value ? null : reader["VNO"].ToString(),
+                                Count = reader["TotalCount"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["TotalCount"]),
                                 CR = reader["CR"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["CR"]),
-                                VDATE = reader["VDATE"] == DBNull.Value ? null : reader["VDATE"].ToString(),
+                                VDATE = reader["VDATE"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["VDATE"]) : null,
                             };
-
-                            // Handle specific cases based on Type
-                            if (Type == "OverDue")
+                            if (Type == "AdvanceCollection")
+                            {
+                                collectionItem.TotalDemand = reader["TotalDemand"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["TotalDemand"]);
+                                collectionItem.TotalCollection = reader["TotalCollection"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["TotalCollection"]);
+                                collectionItem.AdvanceCollection = reader["Result"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["Result"]);
+                                //collectionItem.Count = reader["TotalCount"] == DBNull.Value ? 0 : Convert.ToInt64(reader["TotalCount"]);
+                            }
+                            else if (Type == "OverDue")
                             {
                                 collectionItem.OD = reader["OD"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["OD"]);
                             }
                             else
                             {
-                                collectionItem.OD = null; // For other types, set OD to null
-                            }
+                                collectionItem.TotalDemand = null;
+                                collectionItem.TotalCollection = null;
+                                collectionItem.AdvanceCollection = null;
+                                collectionItem.OD = null;
+                                collectionItem.Count = null;
 
+                            }
                             res.Add(collectionItem);
+
                         }
+                        return res;
                     }
-                    return res;
                 }
             }
         }
@@ -747,14 +759,14 @@ namespace PDL.ReportService.Logics.BLL
                 using (var cmd = new SqlCommand(query, con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                 
+
                     cmd.Parameters.Add("@SmCode", SqlDbType.VarChar).Value = obj.SmCode;
                     cmd.Parameters.Add("@Type", SqlDbType.VarChar).Value = obj.Type;
                     cmd.Parameters.Add("@Query", SqlDbType.VarChar).Value = obj.Query;
                     cmd.Parameters.Add("@Img", SqlDbType.VarChar).Value = allFileNames;
                     cmd.Parameters.Add("@RequestBy", SqlDbType.Int).Value = activeuser;
                     cmd.Parameters.Add("@CreatedBy", SqlDbType.Int).Value = activeuser;
-    
+
                     SqlParameter outputParam = new SqlParameter("@TransactionId", SqlDbType.VarChar, 20)
                     {
                         Direction = ParameterDirection.Output
@@ -812,7 +824,7 @@ namespace PDL.ReportService.Logics.BLL
             string sftpHost = _configuration["SftpHost"];
             string sftpPassword = _configuration["SftpPassword"];
             string sftpBasePath = _configuration["SftpfilePath"];
-            string dbname = Helper.Helper.GetDBName(_configuration); 
+            string dbname = Helper.Helper.GetDBName(_configuration);
 
             string fileName = obj.Image.FileName;
 
@@ -850,6 +862,68 @@ namespace PDL.ReportService.Logics.BLL
                     sftp.UploadFile(memoryStream, remoteFilePath);
 
                     sftp.Disconnect();
+                }
+            }
+
+            return affected;
+        }
+
+        public List<ReadyForPuchVM> GetReadyforPushData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, int pageNumber, int pageSize, bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_GetReadyForPuchData", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@CreatorBranchId", Convert.ToString(CreatorBranchId));
+                    cmd.Parameters.AddWithValue("@StartDate", FromDate.HasValue ? (object)FromDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@EndDate", ToDate.HasValue ? (object)ToDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PageNumber", pageNumber);
+                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                    var res = new List<ReadyForPuchVM>();
+                    con.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            res.Add(new ReadyForPuchVM
+                            {
+                                ID = reader["ID"] == DBNull.Value ? 0 : Convert.ToInt64(reader["ID"]),
+                                FullName = reader["Full_Name"] == DBNull.Value ? string.Empty : reader["Full_Name"].ToString(),
+                                FICode = reader["FICode"] == DBNull.Value ? string.Empty : reader["FICode"].ToString(),
+                                Creator = reader["Creator"] == DBNull.Value ? string.Empty : reader["Creator"].ToString(),
+                                Branch_code = reader["Branch_code"] == DBNull.Value ? string.Empty : reader["Branch_code"].ToString(),
+                                Group_code = reader["Group_code"] == DBNull.Value ? string.Empty : reader["Group_code"].ToString(),
+                                Loan_amount = reader["Loan_amount"] == DBNull.Value ? 0 : Convert.ToSingle(reader["Loan_amount"]),
+                                Date = reader["Creation_Date"] == DBNull.Value ? string.Empty : reader["Creation_Date"].ToString()
+                            });
+                        }
+                    }
+                    return res;
+                }
+            }
+        }
+
+        public int ReadyforPushData(long id, string activeuser, bool islive)
+        {
+            int affected = 0;
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            string query = "Usp_UpdateFiCurrentStatus";
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@Id", SqlDbType.Int).Value = id;
+                    cmd.Parameters.Add("@UserId", SqlDbType.VarChar).Value = activeuser;
+
+                    con.Open();
+                    affected = cmd.ExecuteNonQuery();
                 }
             }
 

@@ -353,11 +353,11 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         [HttpGet]
-        public IActionResult GetCollectionCountList(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type)
+        public IActionResult GetCollectionCountList(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize)
         {
             try
             {
-                List<GetCollectionCountVM> res = _branchDashboardService.GetCollectionCount(CreatorBranchId, FromDate, ToDate, Type, GetIslive());
+                List<GetCollectionCountVM> res = _branchDashboardService.GetCollectionCount(CreatorBranchId, FromDate, ToDate, Type, pageNumber, pageSize, GetIslive());
                 if (res.Count > 0)
                 {
                     return Ok(new
@@ -450,6 +450,7 @@ namespace PDL.ReportService.API.Controllers
                 return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
             }
         }
+
 
         #region GET AND INSERT RaiseQuery BY ---- AMIT KUMAR ------
         [HttpGet]
@@ -552,6 +553,74 @@ namespace PDL.ReportService.API.Controllers
         }
 
         #endregion
+
+        [HttpGet]
+        public IActionResult GetReadyforPushData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, int pageNumber, int pageSize)
+        {
+            try
+            {
+                string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                List<ReadyForPuchVM> result = _branchDashboardService.GetReadyforPushData(CreatorBranchId, FromDate, ToDate, pageNumber, pageSize, GetIslive());
+                if (result != null && result.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201,
+                        message = resourceManager.GetString("GETFAIL"),
+                        data = 0
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetReadyforPuchData_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
+
+            }
+        }
+
+        [HttpPost]
+        public IActionResult ReadyforPushData([FromForm] long id)
+        {
+            try
+            {
+                string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int result = _branchDashboardService.ReadyforPushData(id, activeuser, GetIslive());
+                if (result > 0)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = resourceManager.GetString("PUSHRECORD"),
+                        data = result
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201,
+                        message = resourceManager.GetString("NOTPUSHRECORD"),
+                        data = result
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "ReadyforPushData_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
+
+            }
+        }
     }
 
 }

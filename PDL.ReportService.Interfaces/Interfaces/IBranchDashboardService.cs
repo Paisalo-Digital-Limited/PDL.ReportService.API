@@ -19,11 +19,13 @@ namespace PDL.ReportService.Interfaces.Interfaces
         List<GetSecoundEsign> GetSecoundEsign(int CreatorId, long FiCode, bool islive);
         object GetCaseNotVisible(int CreatorId, long FiCode, bool islive);
         List<TotalDemandAndCollection> GetTotalDemandAndCollection(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive);
-        List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, bool islive);
+        List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, bool islive);
         List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive);
         List<RaiseQueryVM> GetRaiseQuery(string activeuser, bool islive);
         int InsertRaiseQuery(RaiseQueryVM obj, string activeuser, bool islive);
         string RequestForDeath(RequestForDeathVM obj, string activeuser, bool islive);
         int NOCQuery(NOCQueryVM obj, string activeuser, bool islive);
+        List<ReadyForPuchVM> GetReadyforPushData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, int pageNumber, int pageSize, bool islive);
+        int ReadyforPushData(long id, string activeuser, bool islive);
     }
 }
