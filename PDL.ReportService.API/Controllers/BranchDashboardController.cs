@@ -29,7 +29,7 @@ namespace PDL.ReportService.API.Controllers
         }
         #region Api BranchDashboard BY--------------- Satish Maurya-------
         [HttpGet]
-        public IActionResult GetMasterData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string flag)
+        public IActionResult GetMasterData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string? flag)
         {
             try
             {
@@ -95,7 +95,7 @@ namespace PDL.ReportService.API.Controllers
         #endregion
         #region Api BranchDashboard Count BY--------------- Satish Maurya-------
         [HttpGet]
-        public IActionResult GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, string flag)
+        public IActionResult GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, string? flag)
         {
             try
             {
@@ -353,7 +353,7 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         [HttpGet]
-        public IActionResult GetCollectionCountList(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, string flag)
+        public IActionResult GetCollectionCountList(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, string? flag)
         {
             try
             {
@@ -384,7 +384,7 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         [HttpGet]
-        public IActionResult GetDemandCountList(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string flag)
+        public IActionResult GetDemandCountList(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string? flag)
         {
             try
             {

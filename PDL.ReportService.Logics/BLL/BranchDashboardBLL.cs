@@ -30,16 +30,17 @@ namespace PDL.ReportService.Logics.BLL
             _credManager = new CredManager(configuration);
         }
         #region Api BranchDashboard BY--------------- Satish Maurya-------
-        public BranchDashBoardVM GetMasterData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string flag, bool islive)
+        public BranchDashBoardVM GetMasterData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string? flag, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
+            string query = null;
             BranchDashBoardVM branchDash = new BranchDashBoardVM();
             try
             {
                 using (SqlConnection con = _credManager.getConnections(dbname, islive))
                 {
                     //string query = "Usp_BranchDashBoard";
-                    string query = null;
+
                     if (flag == "All")
                     {
                         query = "Usp_BranchDashBoardAllCreator";
@@ -176,7 +177,7 @@ namespace PDL.ReportService.Logics.BLL
         }
         #endregion
         #region Api BranchDashboard Count BY--------------- Satish Maurya-------
-        public List<BranchDashBoardDataModel> GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, string flag, bool islive)
+        public List<BranchDashBoardDataModel> GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, string? flag, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             List<BranchDashBoardDataModel> dashboardList = new List<BranchDashBoardDataModel>();
@@ -519,11 +520,11 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
-        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, string flag, bool islive)
+        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, string? flag, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             string query = null;
-            if (flag == "All")
+            if (flag.ToLower() == "all")
             {
                 query = "Usp_BranchDashBoardAllCreator";
             }
@@ -569,8 +570,7 @@ namespace PDL.ReportService.Logics.BLL
                                 Branch_code = reader["Branch_code"] == DBNull.Value ? null : reader["Branch_code"].ToString(),
                                 SmCode = reader["SmCode"] == DBNull.Value ? null : reader["SmCode"].ToString(),
                                 VNO = reader["VNO"] == DBNull.Value ? null : reader["VNO"].ToString(),
-                                Branch_Code = reader["Branch_code"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Branch_code"]),
-                                Branch_Name = reader["BranchName"]?.ToString(),
+                                Branch_Name = reader["BranchName"] == DBNull.Value ? null : reader["BranchName"].ToString(),
                                 Count = reader["TotalCount"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["TotalCount"]),
                                 CR = reader["CR"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["CR"]),
                                 VDATE = reader["VDATE"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["VDATE"]) : null,
@@ -603,7 +603,7 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
-        public List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string flag, bool islive)
+        public List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string? flag, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             string query = null;
