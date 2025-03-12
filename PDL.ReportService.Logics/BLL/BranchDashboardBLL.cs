@@ -259,6 +259,19 @@ namespace PDL.ReportService.Logics.BLL
         public List<FiCreatorMaster> GetCreators(string activeuser, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
+            // Validate activeuser
+            if (!int.TryParse(activeuser, out int userId) || userId <= 0)
+            {
+                return new List<FiCreatorMaster>
+                {
+                   new FiCreatorMaster
+                   {
+                       CreatorID = -1,
+                       CreatorName = "Invalid user ID."
+                   }
+                };
+            }
+
             using (SqlConnection con = _credManager.getConnections(dbname, islive))
             {
                 using (var cmd = new SqlCommand("Usp_GetCreatorsByUser", con))
@@ -293,7 +306,7 @@ namespace PDL.ReportService.Logics.BLL
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@UserId", int.Parse(activeUser));
-                    cmd.Parameters.AddWithValue("@CreatorIds", string.IsNullOrEmpty(creatorIds) ? "ALL" : creatorIds);
+                    cmd.Parameters.AddWithValue("@CreatorIds", creatorIds);
 
                     var branches = new List<BranchWithCreator>();
                     con.Open();

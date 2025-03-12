@@ -133,6 +133,16 @@ namespace PDL.ReportService.API.Controllers
             {
                 string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 List<FiCreatorMaster> result = _branchDashboardService.GetCreators(activeuser, GetIslive());
+                if (result != null && result.Count > 0 && result[0].CreatorID == -1)
+                {
+                    return BadRequest(new
+                    {
+                        statuscode = 400,
+                        message = result[0].CreatorName,
+                        data = ""
+                    });
+                }
+
                 if (result != null)
                 {
                     return Ok(new
