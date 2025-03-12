@@ -537,7 +537,7 @@ namespace PDL.ReportService.Logics.BLL
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             string query = null;
-            if (flag.ToLower() == "all")
+            if (flag == "All")
             {
                 query = "Usp_BranchDashBoardAllCreator";
             }
