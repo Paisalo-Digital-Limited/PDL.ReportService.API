@@ -30,15 +30,25 @@ namespace PDL.ReportService.Logics.BLL
             _credManager = new CredManager(configuration);
         }
         #region Api BranchDashboard BY--------------- Satish Maurya-------
-        public BranchDashBoardVM GetMasterData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
+        public BranchDashBoardVM GetMasterData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string? flag, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
+            string query = null;
             BranchDashBoardVM branchDash = new BranchDashBoardVM();
             try
             {
                 using (SqlConnection con = _credManager.getConnections(dbname, islive))
                 {
-                    string query = "Usp_BranchDashBoard";
+                    //string query = "Usp_BranchDashBoard";
+
+                    if (flag == "All")
+                    {
+                        query = "Usp_BranchDashBoardAllCreator";
+                    }
+                    else
+                    {
+                        query = "Usp_BranchDashBoard";
+                    }
                     using (SqlCommand cmd = new SqlCommand(query, con))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
@@ -167,7 +177,7 @@ namespace PDL.ReportService.Logics.BLL
         }
         #endregion
         #region Api BranchDashboard Count BY--------------- Satish Maurya-------
-        public List<BranchDashBoardDataModel> GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, bool islive)
+        public List<BranchDashBoardDataModel> GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, string? flag, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             List<BranchDashBoardDataModel> dashboardList = new List<BranchDashBoardDataModel>();
@@ -175,7 +185,15 @@ namespace PDL.ReportService.Logics.BLL
             {
                 using (SqlConnection con = _credManager.getConnections(dbname, islive))
                 {
-                    string query = "Usp_BranchDashBoard";
+                    string query = null;
+                    if (flag == "All")
+                    {
+                        query = "Usp_BranchDashBoardAllCreator";
+                    }
+                    else
+                    {
+                        query = "Usp_BranchDashBoard";
+                    }
                     using (SqlCommand cmd = new SqlCommand(query, con))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
@@ -204,6 +222,8 @@ namespace PDL.ReportService.Logics.BLL
                                         FICode = reader["FICode"]?.ToString(),
                                         SmCode = reader["SmCode"]?.ToString(),
                                         Current_City = reader["Current_City"]?.ToString(),
+                                        Branch_Code = reader["Branch_code"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Branch_code"]),
+                                        Branch_Name = reader["BranchName"]?.ToString(),
                                         Group_code = reader["Group_code"]?.ToString(),
                                         LoanDuration = reader["Loan_Duration"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Loan_Duration"]),
                                         CreationDate = reader["CreatedOn"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["CreatedOn"],
@@ -513,14 +533,23 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
-        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, bool islive)
+        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, string? flag, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
+            string query = null;
+            if (flag.ToLower() == "all")
+            {
+                query = "Usp_BranchDashBoardAllCreator";
+            }
+            else
+            {
+                query = "Usp_BranchDashBoard";
+            }
             List<GetCollectionCountVM> res = new List<GetCollectionCountVM>();
 
             using (SqlConnection con = _credManager.getConnections(dbname, islive))
             {
-                using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
+                using (var cmd = new SqlCommand(query, con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
 
@@ -554,6 +583,7 @@ namespace PDL.ReportService.Logics.BLL
                                 Branch_code = reader["Branch_code"] == DBNull.Value ? null : reader["Branch_code"].ToString(),
                                 SmCode = reader["SmCode"] == DBNull.Value ? null : reader["SmCode"].ToString(),
                                 VNO = reader["VNO"] == DBNull.Value ? null : reader["VNO"].ToString(),
+                                Branch_Name = reader["BranchName"] == DBNull.Value ? null : reader["BranchName"].ToString(),
                                 Count = reader["TotalCount"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["TotalCount"]),
                                 CR = reader["CR"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["CR"]),
                                 VDATE = reader["VDATE"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["VDATE"]) : null,
@@ -586,12 +616,21 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
-        public List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
+        public List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string? flag, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
+            string query = null;
+            if (flag == "All")
+            {
+                query = "Usp_BranchDashBoardAllCreator";
+            }
+            else
+            {
+                query = "Usp_BranchDashBoard";
+            }
             using (SqlConnection con = _credManager.getConnections(dbname, islive))
             {
-                using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
+                using (var cmd = new SqlCommand(query, con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Mode", "GetDemandCount");
