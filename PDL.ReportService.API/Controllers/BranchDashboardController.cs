@@ -29,11 +29,11 @@ namespace PDL.ReportService.API.Controllers
         }
         #region Api BranchDashboard BY--------------- Satish Maurya-------
         [HttpGet]
-        public IActionResult GetMasterData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate)
+        public IActionResult GetMasterData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string? flag)
         {
             try
             {
-                BranchDashBoardVM res = _branchDashboardService.GetMasterData(CreatorBranchId, FromDate, ToDate, GetIslive());
+                BranchDashBoardVM res = _branchDashboardService.GetMasterData(CreatorBranchId, FromDate, ToDate, flag, GetIslive());
                 if (res != null)
                 {
                     return Ok(new
@@ -95,11 +95,11 @@ namespace PDL.ReportService.API.Controllers
         #endregion
         #region Api BranchDashboard Count BY--------------- Satish Maurya-------
         [HttpGet]
-        public IActionResult GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize)
+        public IActionResult GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, string? flag)
         {
             try
             {
-                List<BranchDashBoardDataModel> res = _branchDashboardService.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate, Type, pageNumber, pageSize, GetIslive());
+                List<BranchDashBoardDataModel> res = _branchDashboardService.GetBranchDashboardData(CreatorBranchId, FromDate, ToDate, Type, pageNumber, pageSize, flag, GetIslive());
                 if (res.Count > 0)
                 {
                     return Ok(new
@@ -133,6 +133,16 @@ namespace PDL.ReportService.API.Controllers
             {
                 string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 List<FiCreatorMaster> result = _branchDashboardService.GetCreators(activeuser, GetIslive());
+                if (result != null && result.Count > 0 && result[0].CreatorID == -1)
+                {
+                    return BadRequest(new
+                    {
+                        statuscode = 400,
+                        message = result[0].CreatorName,
+                        data = ""
+                    });
+                }
+
                 if (result != null)
                 {
                     return Ok(new
@@ -353,11 +363,11 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         [HttpGet]
-        public IActionResult GetCollectionCountList(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize)
+        public IActionResult GetCollectionCountList(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, string? flag)
         {
             try
             {
-                List<GetCollectionCountVM> res = _branchDashboardService.GetCollectionCount(CreatorBranchId, FromDate, ToDate, Type, pageNumber, pageSize, GetIslive());
+                List<GetCollectionCountVM> res = _branchDashboardService.GetCollectionCount(CreatorBranchId, FromDate, ToDate, Type, pageNumber, pageSize, flag, GetIslive());
                 if (res.Count > 0)
                 {
                     return Ok(new
@@ -384,11 +394,11 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         [HttpGet]
-        public IActionResult GetDemandCountList(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate)
+        public IActionResult GetDemandCountList(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string? flag)
         {
             try
             {
-                List<GetDemandCountVM> res = _branchDashboardService.GetDemandCount(CreatorBranchId, FromDate, ToDate, GetIslive());
+                List<GetDemandCountVM> res = _branchDashboardService.GetDemandCount(CreatorBranchId, FromDate, ToDate, flag, GetIslive());
                 if (res.Count > 0)
                 {
                     return Ok(new

@@ -30,6 +30,8 @@ namespace PDL.ReportService.Entites.VM
         public decimal? Income { get; set; }
         public decimal? Expense { get; set; }
         public int? LoanDuration { get; set; }
+        public int? Branch_Code { get; set; }
+        public string Branch_Name { get; set; }
         public DateTime? CreationDate { get; set; }
         public string Approved { get; set; }
         public string SchCode { get; set; }
@@ -73,6 +75,7 @@ namespace PDL.ReportService.Entites.VM
         public string FullName { get; set; }
         public decimal? CR { get; set; }
         public string? VNO { get; set; }
+        public string? Branch_Name { get; set; }
         public DateTime? VDATE { get; set; }
         public decimal? OD { get; set; }
         public decimal? TotalDemand { get; set; }
