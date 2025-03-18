@@ -137,5 +137,12 @@ namespace PDL.ReportService.Repository.Repository
                 return codeCreator;
             }
         }
+        public List<GetNotificationVM> GetNotification(string activeuser, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetNotification(activeuser,islive);
+            }
+        }
     }
 }

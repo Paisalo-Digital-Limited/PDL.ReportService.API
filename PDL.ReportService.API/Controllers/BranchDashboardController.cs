@@ -425,7 +425,6 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         #endregion
-
         // NOC
         [HttpPost]
         public IActionResult NOCQuery(NOCQueryVM obj)
@@ -460,8 +459,6 @@ namespace PDL.ReportService.API.Controllers
                 return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
             }
         }
-
-
         #region GET AND INSERT RaiseQuery BY ---- AMIT KUMAR ------
         [HttpGet]
         public IActionResult GetRaiseQuery()
@@ -631,6 +628,42 @@ namespace PDL.ReportService.API.Controllers
 
             }
         }
-    }
+        #region DOB Notification Api  BY--------------- Satish Maurya-------
+        [HttpGet]
+        [Authorize]
+        public IActionResult GetNotification()
+        {
+            try
+            {
+                string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+                List<GetNotificationVM> result = _branchDashboardService.GetNotification(activeuser,GetIslive());
+                if (result != null && result.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201,
+                        message = resourceManager.GetString("GETFAIL"),
+                        data = 0
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetDOBNotification_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
+
+            }
+        }
+        #endregion
+    }
 }
