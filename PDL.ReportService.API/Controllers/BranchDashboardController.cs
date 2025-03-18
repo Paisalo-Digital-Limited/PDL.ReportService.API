@@ -698,6 +698,41 @@ namespace PDL.ReportService.API.Controllers
 
             }
         }
+
+        [HttpPost]
+        [Authorize]
+        public IActionResult ViewNotification(ViewNotificationVM obj)
+        {
+            string activeUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            try
+            {
+                int affected = _branchDashboardService.ViewNotification(obj, activeUser, GetIslive());
+
+                if (affected > 0)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = resourceManager.GetString("UPDATESUCCESS"),
+                        data = affected
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201,
+                        message = resourceManager.GetString("UPDATEFAIL"),
+                        data = affected
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "ViewNotification_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
+            }
+        }
         #endregion
     }
 }

@@ -111,6 +111,7 @@ namespace PDL.ReportService.Entites.VM
         public DateTime? NoticePeriodEndDate { get; set; }
         public string? Message { get; set; }
         public bool? IsRead { get; set; }
+       public int? NotificationType { get; set; }
     }
     public class GetHolidayCalendarVM
     {
@@ -120,5 +121,10 @@ namespace PDL.ReportService.Entites.VM
         public string? Type { get; set; }
         public bool? IsPublicHolyday { get; set; }
         public DateTime? HolydayDate { get; set; }
+    }
+    public class ViewNotificationVM
+    {
+        public int NotificationType { get; set; }
+        public int UserId { get; set; }
     }
 }

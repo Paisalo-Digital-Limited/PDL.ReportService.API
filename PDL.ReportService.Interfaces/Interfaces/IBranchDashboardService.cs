@@ -29,6 +29,6 @@ namespace PDL.ReportService.Interfaces.Interfaces
         int ReadyforPushData(long id, string activeuser, bool islive);
         List<GetNotificationVM> GetNotification(string activeuser,bool islive);
         List<GetHolidayCalendarVM> GetHolidayCalendar(bool islive);
-
+        int ViewNotification(ViewNotificationVM obj, string activeuser, bool islive);
     }
 }

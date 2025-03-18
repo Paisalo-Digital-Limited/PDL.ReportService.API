@@ -991,6 +991,7 @@ namespace PDL.ReportService.Logics.BLL
                 using (var cmd = new SqlCommand("Usp_GetNotification", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "GetNotification");
                     cmd.Parameters.AddWithValue("@UserId", activeuser);
 
                     var res = new List<GetNotificationVM>();
@@ -1014,8 +1015,8 @@ namespace PDL.ReportService.Logics.BLL
                                 IsRead = reader["IsRead"] == DBNull.Value ? false : Convert.ToBoolean(reader["IsRead"]),
                                 DOB = reader["DOB"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["DOB"]) : null,
                                 InternShipEndDate = reader["InternShipEndDate"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["InternShipEndDate"]) : null,
-                                NoticePeriodEndDate = reader["NoticePeriodEndDate"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["NoticePeriodEndDate"]) : null
-
+                                NoticePeriodEndDate = reader["NoticePeriodEndDate"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["NoticePeriodEndDate"]) : null,
+                                NotificationType = reader["NotificationType"] == DBNull.Value ? 0 : Convert.ToInt32(reader["NotificationType"]),
                             });
                         }
                     }
@@ -1055,6 +1056,30 @@ namespace PDL.ReportService.Logics.BLL
                     return res;
                 }
             }
+        public int ViewNotification(ViewNotificationVM obj, string activeuser, bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            int affectedRows = 0;
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                string storedProcedure = "Usp_GetNotification";
+
+                using (SqlCommand cmd = new SqlCommand(storedProcedure, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@Mode", "UpdateNotification");
+                    cmd.Parameters.Add("@NotificationType", SqlDbType.Int).Value = obj.NotificationType;
+                    cmd.Parameters.Add("@UserId", SqlDbType.VarChar).Value = activeuser;
+
+                    if (con.State == ConnectionState.Closed)
+                        con.Open();
+
+                    affectedRows = cmd.ExecuteNonQuery();
+                }
+            }
+            return affectedRows;
         }
         #endregion
     }
