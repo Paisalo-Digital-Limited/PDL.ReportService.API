@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
@@ -981,5 +982,47 @@ namespace PDL.ReportService.Logics.BLL
 
             return affected;
         }
+        #region  Notification Api  BY--------------- Satish Maurya-------
+        public List<GetNotificationVM> GetNotification(string activeuser,bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_GetNotification", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserId", activeuser);
+
+                    var res = new List<GetNotificationVM>();
+                    con.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            res.Add(new GetNotificationVM
+                            {
+                                Id = reader["Id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Id"]),
+                                Name = reader["Name"] == DBNull.Value ? null : reader["Name"]?.ToString(),
+                                DepartmentName = reader["DepartmentName"] == DBNull.Value ? null : reader["DepartmentName"]?.ToString(),
+                                DesignationName = reader["DesignationName"] == DBNull.Value ? null : reader["DesignationName"]?.ToString(),
+                                NotificationTypeName = reader["NotificationTypeName"] == DBNull.Value ? null : reader["NotificationTypeName"]?.ToString(),
+                                BirthDaySatus = reader["BirthDaySatus"] == DBNull.Value ? null : reader["BirthDaySatus"]?.ToString(),
+                                InternShipStatus = reader["InternShipStatus"] == DBNull.Value ? null : reader["InternShipStatus"]?.ToString(),
+                                NoticePeriodStatus = reader["NoticePeriodStatus"] == DBNull.Value ? null : reader["NoticePeriodStatus"]?.ToString(),
+                                Message = reader["Message"] == DBNull.Value ? null : reader["Message"]?.ToString(),
+                                IsRead = reader["IsRead"] == DBNull.Value ? false : Convert.ToBoolean(reader["IsRead"]),
+                                DOB = reader["DOB"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["DOB"]) : null,
+                                InternShipEndDate = reader["InternShipEndDate"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["InternShipEndDate"]) : null,
+                                NoticePeriodEndDate = reader["NoticePeriodEndDate"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["NoticePeriodEndDate"]) : null
+
+                            });
+                        }
+                    }
+                    return res;
+                }
+            }
+        }
+        #endregion
     }
 }

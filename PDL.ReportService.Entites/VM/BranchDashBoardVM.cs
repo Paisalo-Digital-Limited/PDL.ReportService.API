@@ -96,4 +96,21 @@ namespace PDL.ReportService.Entites.VM
         public decimal? AMT { get; set; }
         public string? PVN_RCP_DT { get; set; }
     }
+    public class GetNotificationVM
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string? DepartmentName { get; set; }
+        public string? DesignationName { get; set; }
+        public string? NotificationTypeName { get; set; }
+        public string? BirthDaySatus { get; set; }
+        public DateTime? DOB { get; set; }
+        public string? InternShipStatus { get; set; }
+        public DateTime? InternShipEndDate { get; set; }
+        public string? NoticePeriodStatus { get; set; }
+        public DateTime? NoticePeriodEndDate { get; set; }
+        public string? Message { get; set; }
+        public bool? IsRead { get; set; }
+       
+    }
 }

@@ -27,5 +27,7 @@ namespace PDL.ReportService.Interfaces.Interfaces
         int NOCQuery(NOCQueryVM obj, string activeuser, bool islive);
         List<ReadyForPuchVM> GetReadyforPushData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, int pageNumber, int pageSize, bool islive);
         int ReadyforPushData(long id, string activeuser, bool islive);
+        List<GetNotificationVM> GetNotification(string activeuser,bool islive);
+
     }
 }
