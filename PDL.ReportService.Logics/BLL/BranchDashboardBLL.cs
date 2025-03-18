@@ -1023,6 +1023,39 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
+        #endregion    
+        #region HolidayCalendar Api  BY--------------- Satish Maurya-------
+        public List<GetHolidayCalendarVM> GetHolidayCalendar(bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "GetHolidayCalendar");
+                    var res = new List<GetHolidayCalendarVM>();
+                    con.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            res.Add(new GetHolidayCalendarVM
+                            {
+                                HolydayID = reader["HolydayID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["HolydayID"]),
+                                HolydayName = reader["HolydayName"] == DBNull.Value ? null : reader["HolydayName"]?.ToString(),
+                                Description = reader["Description"] == DBNull.Value ? null : reader["Description"]?.ToString(),
+                                Type = reader["Type"] == DBNull.Value ? null : reader["Type"]?.ToString(),
+                                IsPublicHolyday = reader["IsPublicHolyday"] == DBNull.Value ? false : Convert.ToBoolean(reader["IsPublicHolyday"]),
+                                HolydayDate = reader["HolydayDate"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["HolydayDate"]) : null,
+                            });
+                        }
+                    }
+                    return res;
+                }
+            }
+        }
         #endregion
     }
 }

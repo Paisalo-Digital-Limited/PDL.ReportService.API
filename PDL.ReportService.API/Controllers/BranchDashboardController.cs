@@ -628,7 +628,7 @@ namespace PDL.ReportService.API.Controllers
 
             }
         }
-        #region DOB Notification Api  BY--------------- Satish Maurya-------
+        #region  Notification Api  BY--------------- Satish Maurya-------
         [HttpGet]
         [Authorize]
         public IActionResult GetNotification()
@@ -659,7 +659,41 @@ namespace PDL.ReportService.API.Controllers
             }
             catch (Exception ex)
             {
-                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetDOBNotification_BranchDashboard");
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetNotification_BranchDashboard");
+                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
+
+            }
+        }
+        #endregion
+        #region HolidayCalendar Api  BY--------------- Satish Maurya-------
+        [HttpGet]
+        public IActionResult GetHolidayCalendar()
+        {
+            try
+            {
+                List<GetHolidayCalendarVM> result = _branchDashboardService.GetHolidayCalendar(GetIslive());
+                if (result != null && result.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        statuscode = 200,
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        statuscode = 201,
+                        message = resourceManager.GetString("GETFAIL"),
+                        data = 0
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetHolidayCalendar_BranchDashboard");
                 return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
 
             }

@@ -144,5 +144,12 @@ namespace PDL.ReportService.Repository.Repository
                 return branchDashboard.GetNotification(activeuser,islive);
             }
         }
+        public List<GetHolidayCalendarVM> GetHolidayCalendar(bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetHolidayCalendar(islive);
+            }
+        }
     }
 }
