@@ -124,7 +124,7 @@ namespace PDL.ReportService.Entites.VM
     }
     public class ViewNotificationVM
     {
-        public int NotificationType { get; set; }
-        public int UserId { get; set; }
+        public int? NotificationType { get; set; }
+        public int? UserId { get; set; }
     }
 }
