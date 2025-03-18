@@ -144,5 +144,12 @@ namespace PDL.ReportService.Repository.Repository
                 return branchDashboard.GetNotification(activeuser,islive);
             }
         }
+        public int ViewNotification(ViewNotificationVM obj, string activeuser, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.ViewNotification(obj, activeuser, islive);
+            }
+        }
     }
 }
