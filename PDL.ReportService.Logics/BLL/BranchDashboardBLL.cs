@@ -1056,6 +1056,7 @@ namespace PDL.ReportService.Logics.BLL
                     return res;
                 }
             }
+        }
         public int ViewNotification(ViewNotificationVM obj, string activeuser, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
