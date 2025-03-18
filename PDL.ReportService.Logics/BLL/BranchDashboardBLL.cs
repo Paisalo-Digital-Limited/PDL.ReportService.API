@@ -1009,13 +1009,13 @@ namespace PDL.ReportService.Logics.BLL
                                 DesignationName = reader["DesignationName"] == DBNull.Value ? null : reader["DesignationName"]?.ToString(),
                                 NotificationTypeName = reader["NotificationTypeName"] == DBNull.Value ? null : reader["NotificationTypeName"]?.ToString(),
                                 BirthDaySatus = reader["BirthDaySatus"] == DBNull.Value ? null : reader["BirthDaySatus"]?.ToString(),
-                                InternShipStatus = reader["InternShipStatus"] == DBNull.Value ? null : reader["InternShipStatus"]?.ToString(),
-                                NoticePeriodStatus = reader["NoticePeriodStatus"] == DBNull.Value ? null : reader["NoticePeriodStatus"]?.ToString(),
+                                InternShipStatus = reader["InternShipStatus"] != DBNull.Value ? Convert.ToDateTime(reader["InternShipStatus"]).ToString("yyyy-MM-dd") : null,
+                                NoticePeriodStatus = reader["NoticePeriodStatus"] != DBNull.Value ? Convert.ToDateTime(reader["NoticePeriodStatus"]).ToString("yyyy-MM-dd") : null,
                                 Message = reader["Message"] == DBNull.Value ? null : reader["Message"]?.ToString(),
                                 IsRead = reader["IsRead"] == DBNull.Value ? false : Convert.ToBoolean(reader["IsRead"]),
-                                DOB = reader["DOB"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["DOB"]) : null,
-                                InternShipEndDate = reader["InternShipEndDate"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["InternShipEndDate"]) : null,
-                                NoticePeriodEndDate = reader["NoticePeriodEndDate"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["NoticePeriodEndDate"]) : null,
+                                DOB = reader["DOB"] != DBNull.Value ? Convert.ToDateTime(reader["DOB"]).ToString("yyyy-MM-dd") : null,
+                                InternShipEndDate = reader["InternShipEndDate"] != DBNull.Value ? Convert.ToDateTime(reader["InternShipEndDate"]).ToString("yyyy-MM-dd") : null,
+                                NoticePeriodEndDate = reader["NoticePeriodEndDate"] != DBNull.Value ? Convert.ToDateTime(reader["NoticePeriodEndDate"]).ToString("yyyy-MM-dd") : null,
                                 NotificationType = reader["NotificationType"] == DBNull.Value ? 0 : Convert.ToInt32(reader["NotificationType"]),
                             });
                         }

@@ -104,11 +104,11 @@ namespace PDL.ReportService.Entites.VM
         public string? DesignationName { get; set; }
         public string? NotificationTypeName { get; set; }
         public string? BirthDaySatus { get; set; }
-        public DateTime? DOB { get; set; }
+        public string? DOB { get; set; }
         public string? InternShipStatus { get; set; }
-        public DateTime? InternShipEndDate { get; set; }
+        public string? InternShipEndDate { get; set; }
         public string? NoticePeriodStatus { get; set; }
-        public DateTime? NoticePeriodEndDate { get; set; }
+        public string? NoticePeriodEndDate { get; set; }
         public string? Message { get; set; }
         public bool? IsRead { get; set; }
        public int? NotificationType { get; set; }
