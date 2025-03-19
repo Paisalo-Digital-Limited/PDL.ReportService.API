@@ -1033,6 +1033,7 @@ namespace PDL.ReportService.Logics.BLL
                             NotificationInternShip notificationInternShip = new NotificationInternShip
                             {
                                 Id = Convert.ToInt32(row["Id"]),
+                                Name = row["Name"].ToString(),
                                 DepartmentName = row["DepartmentName"].ToString(),
                                 DesignationName = row["DesignationName"].ToString(),
                                 NotificationTypeName = row["NoticePeriodName"].ToString(),
