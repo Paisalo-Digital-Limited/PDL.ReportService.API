@@ -698,7 +698,7 @@ namespace PDL.ReportService.API.Controllers
 
             }
         }
-
+        #endregion
         [HttpPost]
         [Authorize]
         public IActionResult ViewNotification(ViewNotificationVM obj)
@@ -733,6 +733,6 @@ namespace PDL.ReportService.API.Controllers
                 return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")), data = "" });
             }
         }
-        #endregion
+        
     }
 }
