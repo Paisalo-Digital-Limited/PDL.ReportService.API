@@ -86,7 +86,6 @@ namespace PDL.ReportService.Entites.VM
     }
     public class GetDemandCountVM
     {
-
         public string CreatorName { get; set; }
         public Int64 FICode { get; set; }
         public string Branch_code { get; set; }
@@ -96,23 +95,51 @@ namespace PDL.ReportService.Entites.VM
         public decimal? AMT { get; set; }
         public string? PVN_RCP_DT { get; set; }
     }
-    public class GetNotificationVM
+
+
+    public class NotificationNoticePeriod
     {
         public int Id { get; set; }
         public string Name { get; set; }
         public string? DepartmentName { get; set; }
         public string? DesignationName { get; set; }
         public string? NotificationTypeName { get; set; }
-        public string? BirthDaySatus { get; set; }
-        public string? DOB { get; set; }
-        public string? InternShipStatus { get; set; }
-        public string? InternShipEndDate { get; set; }
-        public string? NoticePeriodStatus { get; set; }
-        public string? NoticePeriodEndDate { get; set; }
         public string? Message { get; set; }
-        public bool? IsRead { get; set; }
-       public int? NotificationType { get; set; }
+        public int? NotificationType { get; set; }
+        public string NoticePeriodEndDate { get; set; }
     }
+
+    public class NotificationDOBVM
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string DepartmentName { get; set; }
+        public string DesignationName { get; set; }
+        public string DOB { get; set; }
+        public int? NotificationType { get; set; }
+        public string BirthDayStatus { get; set; }
+    }
+
+    public class NotificationInternShip
+    {
+        public string Name { get; set; }
+        public string? DepartmentName { get; set; }
+        public string? DesignationName { get; set; }
+        public string? NotificationTypeName { get; set; }
+        public string? Message { get; set; }
+        public int? NotificationType { get; set; }
+        public string? InternShipEndDate { get; set; }
+        public string? NoticePeriodEndDate { get; set; }
+    }
+
+    public class GetNotificationVM
+    {
+        public List<NotificationDOBVM> NotificationDOBS { get; set; } = new List<NotificationDOBVM>();
+        public List<NotificationInternShip> NotificationInternShips { get; set; } = new List<NotificationInternShip>();
+        public List<NotificationNoticePeriod> NotificationNoticePeriods { get; set; } = new List<NotificationNoticePeriod>();
+    }
+
+
     public class GetHolidayCalendarVM
     {
         public int HolydayID { get; set; }

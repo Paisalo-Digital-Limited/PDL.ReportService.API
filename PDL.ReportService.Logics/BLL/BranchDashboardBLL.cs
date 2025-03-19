@@ -984,9 +984,12 @@ namespace PDL.ReportService.Logics.BLL
             return affected;
         }
         #region  Notification Api  BY--------------- Satish Maurya-------
-        public List<GetNotificationVM> GetNotification(string activeuser,bool islive)
+        public List<GetNotificationVM> GetNotification(string activeuser, bool islive)
         {
+            DataSet dataSet = new DataSet();
+            List<GetNotificationVM> getNotifications = new List<GetNotificationVM>();
             string dbname = Helper.Helper.GetDBName(_configuration);
+
             using (SqlConnection con = _credManager.getConnections(dbname, islive))
             {
                 using (var cmd = new SqlCommand("Usp_GetNotification", con))
@@ -995,36 +998,77 @@ namespace PDL.ReportService.Logics.BLL
                     cmd.Parameters.AddWithValue("@Mode", "GetNotification");
                     cmd.Parameters.AddWithValue("@UserId", activeuser);
 
-                    var res = new List<GetNotificationVM>();
-                    con.Open();
+                    if (con.State == ConnectionState.Closed)
+                        con.Open();
 
-                    using (var reader = cmd.ExecuteReader())
+                    using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
                     {
-                        while (reader.Read())
+                        adapter.Fill(dataSet);
+                    }
+
+                    if (dataSet.Tables.Count > 0)
+                    {
+                        DataTable dt1 = dataSet.Tables[0];
+                        foreach (DataRow row in dt1.Rows)
                         {
-                            res.Add(new GetNotificationVM
+                            NotificationDOBVM notificationDOB = new NotificationDOBVM
                             {
-                                Id = reader["Id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Id"]),
-                                Name = reader["Name"] == DBNull.Value ? null : reader["Name"]?.ToString(),
-                                DepartmentName = reader["DepartmentName"] == DBNull.Value ? null : reader["DepartmentName"]?.ToString(),
-                                DesignationName = reader["DesignationName"] == DBNull.Value ? null : reader["DesignationName"]?.ToString(),
-                                NotificationTypeName = reader["NotificationTypeName"] == DBNull.Value ? null : reader["NotificationTypeName"]?.ToString(),
-                                BirthDaySatus = reader["BirthDaySatus"] == DBNull.Value ? null : reader["BirthDaySatus"]?.ToString(),
-                                InternShipStatus = reader["InternShipStatus"] != DBNull.Value ? Convert.ToDateTime(reader["InternShipStatus"]).ToString("yyyy-MM-dd") : null,
-                                NoticePeriodStatus = reader["NoticePeriodStatus"] != DBNull.Value ? Convert.ToDateTime(reader["NoticePeriodStatus"]).ToString("yyyy-MM-dd") : null,
-                                Message = reader["Message"] == DBNull.Value ? null : reader["Message"]?.ToString(),
-                                IsRead = reader["IsRead"] == DBNull.Value ? false : Convert.ToBoolean(reader["IsRead"]),
-                                DOB = reader["DOB"] != DBNull.Value ? Convert.ToDateTime(reader["DOB"]).ToString("yyyy-MM-dd") : null,
-                                InternShipEndDate = reader["InternShipEndDate"] != DBNull.Value ? Convert.ToDateTime(reader["InternShipEndDate"]).ToString("yyyy-MM-dd") : null,
-                                NoticePeriodEndDate = reader["NoticePeriodEndDate"] != DBNull.Value ? Convert.ToDateTime(reader["NoticePeriodEndDate"]).ToString("yyyy-MM-dd") : null,
-                                NotificationType = reader["NotificationType"] == DBNull.Value ? 0 : Convert.ToInt32(reader["NotificationType"]),
-                            });
+                                Id = Convert.ToInt32(row["Id"]),
+                                Name = row["Name"].ToString(),
+                                DepartmentName = row["DepartmentName"].ToString(),
+                                DesignationName = row["DesignationName"].ToString(),
+                                DOB = row["DOB"] != DBNull.Value ? Convert.ToDateTime(row["DOB"]).ToString("yyyy-MM-dd") : null,
+                                NotificationType = row["NotificationType"] != DBNull.Value ? Convert.ToInt32(row["NotificationType"]) : (int?)null,
+                                BirthDayStatus = row["BirthDayStatus"].ToString()
+                            };
+                            getNotifications.Add(new GetNotificationVM { NotificationDOBS = new List<NotificationDOBVM> { notificationDOB } });
                         }
                     }
-                    return res;
+
+                    if (dataSet.Tables.Count > 1)
+                    {
+                        DataTable dt2 = dataSet.Tables[1];
+                        foreach (DataRow row in dt2.Rows)
+                        {
+                            NotificationInternShip notificationInternShip = new NotificationInternShip
+                            {
+                                Name = row["Name"].ToString(),
+                                DepartmentName = row["DepartmentName"].ToString(),
+                                DesignationName = row["DesignationName"].ToString(),
+                                NotificationTypeName = row["NoticePeriodName"].ToString(),
+                                Message = row["Message"].ToString(),
+                                NotificationType = row["NotificationType"] != DBNull.Value ? Convert.ToInt32(row["NotificationType"]) : (int?)null,
+                                InternShipEndDate = row["InternShipEndDate"] != DBNull.Value ? Convert.ToDateTime(row["InternShipEndDate"]).ToString("yyyy-MM-dd") : null,
+                            };
+                            getNotifications.Add(new GetNotificationVM { NotificationInternShips = new List<NotificationInternShip> { notificationInternShip } });
+                        }
+                    }
+
+                    if (dataSet.Tables.Count > 2)
+                    {
+                        DataTable dt3 = dataSet.Tables[2];
+                        foreach (DataRow row in dt3.Rows)
+                        {
+                            NotificationNoticePeriod notificationNoticePeriod = new NotificationNoticePeriod
+                            {
+                                Name = row["Name"].ToString(),
+                                DepartmentName = row["DepartmentName"].ToString(),
+                                DesignationName = row["DesignationName"].ToString(),
+                                NotificationTypeName = row["NoticePeriodName"].ToString(),
+                                Message = row["Message"].ToString(),
+                                NotificationType = Convert.ToInt32(row["NotificationType"]),
+                                NoticePeriodEndDate = row["NoticePeriodEndDate"] != DBNull.Value ? Convert.ToDateTime(row["NoticePeriodEndDate"]).ToString("yyyy-MM-dd") : null,
+                            };
+                            getNotifications.Add(new GetNotificationVM { NotificationNoticePeriods = new List<NotificationNoticePeriod> { notificationNoticePeriod } });
+                        }
+                    }
+
+                    con.Close();
+                    return getNotifications;
                 }
             }
         }
+
         #endregion    
         #region HolidayCalendar Api  BY--------------- Satish Maurya-------
         public List<GetHolidayCalendarVM> GetHolidayCalendar(bool islive)
