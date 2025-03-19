@@ -67,7 +67,7 @@ namespace PDL.ReportService.Entites.VM
     }
     public class GetCollectionCountVM
     {
-
+        public long Fi_Id { get; set; }
         public string CreatorName { get; set; }
         public Int64 FICode { get; set; }
         public string Branch_code { get; set; }
