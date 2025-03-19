@@ -578,6 +578,7 @@ namespace PDL.ReportService.Logics.BLL
                         {
                             var collectionItem = new GetCollectionCountVM
                             {
+                                Fi_Id = reader["Fi_Id"] == DBNull.Value ? 0 : Convert.ToInt64(reader["Fi_Id"]),
                                 FICode = reader["FICode"] == DBNull.Value ? 0 : Convert.ToInt64(reader["FICode"]),
                                 FullName = reader["Name"] == DBNull.Value ? null : reader["Name"].ToString(),
                                 CreatorName = reader["CreatorName"] == DBNull.Value ? null : reader["CreatorName"].ToString(),
