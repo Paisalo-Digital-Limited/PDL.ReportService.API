@@ -1031,7 +1031,7 @@ namespace PDL.ReportService.Logics.BLL
                         {
                             NotificationInternShip notificationInternShip = new NotificationInternShip
                             {
-                                Name = row["Name"].ToString(),
+                                Id = Convert.ToInt32(row["Id"]),
                                 DepartmentName = row["DepartmentName"].ToString(),
                                 DesignationName = row["DesignationName"].ToString(),
                                 NotificationTypeName = row["NoticePeriodName"].ToString(),
@@ -1050,6 +1050,7 @@ namespace PDL.ReportService.Logics.BLL
                         {
                             NotificationNoticePeriod notificationNoticePeriod = new NotificationNoticePeriod
                             {
+                                Id = Convert.ToInt32(row["Id"]),
                                 Name = row["Name"].ToString(),
                                 DepartmentName = row["DepartmentName"].ToString(),
                                 DesignationName = row["DesignationName"].ToString(),
