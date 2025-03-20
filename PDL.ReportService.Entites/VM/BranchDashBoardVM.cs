@@ -119,7 +119,7 @@ namespace PDL.ReportService.Entites.VM
         public string DOB { get; set; }
         public int? NotificationType { get; set; }
         public string BirthDayStatus { get; set; }
-        public bool? IsRead { get; set; }
+       // public bool? IsRead { get; set; }
     }
 
     public class NotificationInternShip
