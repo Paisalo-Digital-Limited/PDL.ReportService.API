@@ -1033,12 +1033,14 @@ namespace PDL.ReportService.Logics.BLL
                             NotificationInternShip notificationInternShip = new NotificationInternShip
                             {
                                 Id = Convert.ToInt32(row["Id"]),
+                                Name = row["Name"].ToString(),
                                 DepartmentName = row["DepartmentName"].ToString(),
                                 DesignationName = row["DesignationName"].ToString(),
                                 NotificationTypeName = row["NoticePeriodName"].ToString(),
                                 Message = row["Message"].ToString(),
                                 NotificationType = row["NotificationType"] != DBNull.Value ? Convert.ToInt32(row["NotificationType"]) : (int?)null,
                                 InternShipEndDate = row["InternShipEndDate"] != DBNull.Value ? Convert.ToDateTime(row["InternShipEndDate"]).ToString("yyyy-MM-dd") : null,
+                                JoiningDate = row["JoiningDate"] != DBNull.Value ? Convert.ToDateTime(row["JoiningDate"]).ToString("yyyy-MM-dd") : null,
                             };
                             getNotifications.Add(new GetNotificationVM { NotificationInternShips = new List<NotificationInternShip> { notificationInternShip } });
                         }
