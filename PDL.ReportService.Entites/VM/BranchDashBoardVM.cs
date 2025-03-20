@@ -107,6 +107,7 @@ namespace PDL.ReportService.Entites.VM
         public string? Message { get; set; }
         public int? NotificationType { get; set; }
         public string NoticePeriodEndDate { get; set; }
+        public bool? IsRead { get; set; }
     }
 
     public class NotificationDOBVM
@@ -118,6 +119,7 @@ namespace PDL.ReportService.Entites.VM
         public string DOB { get; set; }
         public int? NotificationType { get; set; }
         public string BirthDayStatus { get; set; }
+       // public bool? IsRead { get; set; }
     }
 
     public class NotificationInternShip
@@ -131,6 +133,7 @@ namespace PDL.ReportService.Entites.VM
         public int? NotificationType { get; set; }
         public string? InternShipEndDate { get; set; }
         public string? JoiningDate { get; set; }
+        public bool? IsRead { get; set; }
     }
 
     public class GetNotificationVM

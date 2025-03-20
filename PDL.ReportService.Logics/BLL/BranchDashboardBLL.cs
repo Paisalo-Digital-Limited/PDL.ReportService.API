@@ -1019,7 +1019,7 @@ namespace PDL.ReportService.Logics.BLL
                                 DesignationName = row["DesignationName"].ToString(),
                                 DOB = row["DOB"] != DBNull.Value ? Convert.ToDateTime(row["DOB"]).ToString("yyyy-MM-dd") : null,
                                 NotificationType = row["NotificationType"] != DBNull.Value ? Convert.ToInt32(row["NotificationType"]) : (int?)null,
-                                BirthDayStatus = row["BirthDayStatus"].ToString()
+                                BirthDayStatus = row["BirthDayStatus"].ToString(),
                             };
                             getNotifications.Add(new GetNotificationVM { NotificationDOBS = new List<NotificationDOBVM> { notificationDOB } });
                         }
@@ -1041,6 +1041,7 @@ namespace PDL.ReportService.Logics.BLL
                                 NotificationType = row["NotificationType"] != DBNull.Value ? Convert.ToInt32(row["NotificationType"]) : (int?)null,
                                 InternShipEndDate = row["InternShipEndDate"] != DBNull.Value ? Convert.ToDateTime(row["InternShipEndDate"]).ToString("yyyy-MM-dd") : null,
                                 JoiningDate = row["JoiningDate"] != DBNull.Value ? Convert.ToDateTime(row["JoiningDate"]).ToString("yyyy-MM-dd") : null,
+                                IsRead = row["IsRead"] != DBNull.Value ? Convert.ToBoolean(row["IsRead"]) : false,
                             };
                             getNotifications.Add(new GetNotificationVM { NotificationInternShips = new List<NotificationInternShip> { notificationInternShip } });
                         }
@@ -1061,6 +1062,7 @@ namespace PDL.ReportService.Logics.BLL
                                 Message = row["Message"].ToString(),
                                 NotificationType = Convert.ToInt32(row["NotificationType"]),
                                 NoticePeriodEndDate = row["NoticePeriodEndDate"] != DBNull.Value ? Convert.ToDateTime(row["NoticePeriodEndDate"]).ToString("yyyy-MM-dd") : null,
+                                IsRead = row["IsRead"] != DBNull.Value ? Convert.ToBoolean(row["IsRead"]) : false,
                             };
                             getNotifications.Add(new GetNotificationVM { NotificationNoticePeriods = new List<NotificationNoticePeriod> { notificationNoticePeriod } });
                         }
