@@ -1040,6 +1040,7 @@ namespace PDL.ReportService.Logics.BLL
                                 Message = row["Message"].ToString(),
                                 NotificationType = row["NotificationType"] != DBNull.Value ? Convert.ToInt32(row["NotificationType"]) : (int?)null,
                                 InternShipEndDate = row["InternShipEndDate"] != DBNull.Value ? Convert.ToDateTime(row["InternShipEndDate"]).ToString("yyyy-MM-dd") : null,
+                                JoiningDate = row["JoiningDate"] != DBNull.Value ? Convert.ToDateTime(row["JoiningDate"]).ToString("yyyy-MM-dd") : null,
                             };
                             getNotifications.Add(new GetNotificationVM { NotificationInternShips = new List<NotificationInternShip> { notificationInternShip } });
                         }
