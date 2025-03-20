@@ -130,7 +130,6 @@ namespace PDL.ReportService.Entites.VM
         public string? Message { get; set; }
         public int? NotificationType { get; set; }
         public string? InternShipEndDate { get; set; }
-        public string? NoticePeriodEndDate { get; set; }
         public string? JoiningDate { get; set; }
     }
 
