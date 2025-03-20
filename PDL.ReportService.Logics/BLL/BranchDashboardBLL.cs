@@ -1020,7 +1020,6 @@ namespace PDL.ReportService.Logics.BLL
                                 DOB = row["DOB"] != DBNull.Value ? Convert.ToDateTime(row["DOB"]).ToString("yyyy-MM-dd") : null,
                                 NotificationType = row["NotificationType"] != DBNull.Value ? Convert.ToInt32(row["NotificationType"]) : (int?)null,
                                 BirthDayStatus = row["BirthDayStatus"].ToString(),
-                                IsRead = row["IsRead"] != DBNull.Value ? Convert.ToBoolean(row["IsRead"]) : false,
                             };
                             getNotifications.Add(new GetNotificationVM { NotificationDOBS = new List<NotificationDOBVM> { notificationDOB } });
                         }
