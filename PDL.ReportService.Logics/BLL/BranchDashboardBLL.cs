@@ -218,17 +218,18 @@ namespace PDL.ReportService.Logics.BLL
                                     var dashboardModel = new BranchDashBoardDataModel
                                     {
                                         Fi_Id = reader["Fi_Id"] == DBNull.Value ? 0 : Convert.ToInt64(reader["Fi_Id"]),
-                                        FullName = reader["Full_Name"]?.ToString(),
-                                        CreatorName = reader["CreatorName"]?.ToString(),
-                                        FICode = reader["FICode"]?.ToString(),
-                                        SmCode = reader["SmCode"]?.ToString(),
-                                        Current_City = reader["Current_City"]?.ToString(),
+                                        FullName = reader["Full_Name"] != DBNull.Value ? reader["Full_Name"].ToString() : null,
+                                        CreatorName = reader["CreatorName"] != DBNull.Value ? reader["CreatorName"].ToString() : null,
+                                        FICode = reader["FICode"] != DBNull.Value ? reader["FICode"].ToString() : null,
+                                        SmCode = reader["SmCode"] != DBNull.Value ? reader["SmCode"].ToString() : null,
+                                        Current_City = reader["Current_City"] != DBNull.Value ? reader["Current_City"].ToString() : null,
+
                                         Branch_Code = reader["Branch_code"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Branch_code"]),
-                                        Branch_Name = reader["BranchName"]?.ToString(),
-                                        Group_code = reader["Group_code"]?.ToString(),
+                                        Branch_Name = reader["BranchName"] != DBNull.Value ? reader["BranchName"].ToString() : null,
+                                        Group_code = reader["Group_code"] != DBNull.Value ? reader["Group_code"].ToString() : null,
                                         LoanDuration = reader["Loan_Duration"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Loan_Duration"]),
                                         CreationDate = reader["CreatedOn"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["CreatedOn"],
-                                        Approved = reader["Approved"]?.ToString(),
+                                        Approved = reader["Approved"] != DBNull.Value ? reader["Approved"].ToString() : null
                                     };
 
                                     if (Type.ToUpper().Trim() == "SOURCING" || Type.ToUpper().Trim() == "ALL")
@@ -239,10 +240,10 @@ namespace PDL.ReportService.Logics.BLL
                                     }
                                     else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION" || Type.ToUpper().Trim() == "READYFORAUDIT" || Type.ToUpper().Trim() == "READYFORNEFT")
                                     {
-                                        dashboardModel.SchCode = reader["SchCode"]?.ToString();
-                                        dashboardModel.Bank_IFCS = reader["Bank_IFCS"]?.ToString();
-                                        dashboardModel.Bank_Ac = reader["Bank_Ac"]?.ToString();
-                                        dashboardModel.SanctionedAmt = reader["SanctionedAmt"] as decimal?;
+                                        dashboardModel.SchCode = reader["SchCode"] != DBNull.Value ? reader["SchCode"].ToString() : null;
+                                        dashboardModel.Bank_IFCS = reader["Bank_IFCS"] != DBNull.Value ? reader["Bank_IFCS"].ToString() : null;
+                                        dashboardModel.Bank_Ac = reader["Bank_Ac"] != DBNull.Value ? reader["Bank_Ac"].ToString() : null;
+                                        dashboardModel.SanctionedAmt = reader["SanctionedAmt"] != DBNull.Value ? (decimal?)reader["SanctionedAmt"] : null;
                                         dashboardModel.DtFin = reader["Dt_Fin"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["Dt_Fin"];
                                     }
                                     else if (Type.ToUpper().Trim() == "SECONDESIGN" || Type.ToUpper().Trim() == "SECONDESIGNPENDING")
@@ -251,8 +252,8 @@ namespace PDL.ReportService.Logics.BLL
                                     }
                                     else if (Type.ToUpper().Trim() == "DISBURSED")
                                     {
-                                        dashboardModel.InstAmt = Convert.ToDecimal(reader["INST_AMT"]);
-                                        dashboardModel.Invest = Convert.ToDecimal(reader["INVEST"]);
+                                        dashboardModel.InstAmt = reader["INST_AMT"] != DBNull.Value ? Convert.ToDecimal(reader["INST_AMT"]) : 0;
+                                        dashboardModel.Invest = reader["INVEST"] != DBNull.Value ? Convert.ToDecimal(reader["INVEST"]) : 0;
                                         dashboardModel.DtFin = reader["Dt_Fin"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["Dt_Fin"];
                                         dashboardModel.DtPos = reader["DT_POS"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["DT_POS"];
 
