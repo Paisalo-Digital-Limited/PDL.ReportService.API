@@ -30,6 +30,8 @@ namespace PDL.ReportService.Entites.VM
         public decimal? Income { get; set; }
         public decimal? Expense { get; set; }
         public int? LoanDuration { get; set; }
+        public int? Branch_Code { get; set; }
+        public string Branch_Name { get; set; }
         public DateTime? CreationDate { get; set; }
         public string Approved { get; set; }
         public string SchCode { get; set; }
@@ -65,7 +67,7 @@ namespace PDL.ReportService.Entites.VM
     }
     public class GetCollectionCountVM
     {
-
+        public long Fi_Id { get; set; }
         public string CreatorName { get; set; }
         public Int64 FICode { get; set; }
         public string Branch_code { get; set; }
@@ -73,6 +75,7 @@ namespace PDL.ReportService.Entites.VM
         public string FullName { get; set; }
         public decimal? CR { get; set; }
         public string? VNO { get; set; }
+        public string? Branch_Name { get; set; }
         public DateTime? VDATE { get; set; }
         public decimal? OD { get; set; }
         public decimal? TotalDemand { get; set; }
@@ -83,7 +86,6 @@ namespace PDL.ReportService.Entites.VM
     }
     public class GetDemandCountVM
     {
-
         public string CreatorName { get; set; }
         public Int64 FICode { get; set; }
         public string Branch_code { get; set; }
@@ -92,5 +94,68 @@ namespace PDL.ReportService.Entites.VM
         public decimal? INSTALL { get; set; }
         public decimal? AMT { get; set; }
         public string? PVN_RCP_DT { get; set; }
+    }
+
+
+    public class NotificationNoticePeriod
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string? DepartmentName { get; set; }
+        public string? DesignationName { get; set; }
+        public string? NotificationTypeName { get; set; }
+        public string? Message { get; set; }
+        public int? NotificationType { get; set; }
+        public string NoticePeriodEndDate { get; set; }
+        public bool? IsRead { get; set; }
+    }
+
+    public class NotificationDOBVM
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string DepartmentName { get; set; }
+        public string DesignationName { get; set; }
+        public string DOB { get; set; }
+        public int? NotificationType { get; set; }
+        public string BirthDayStatus { get; set; }
+       // public bool? IsRead { get; set; }
+    }
+
+    public class NotificationInternShip
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string? DepartmentName { get; set; }
+        public string? DesignationName { get; set; }
+        public string? NotificationTypeName { get; set; }
+        public string? Message { get; set; }
+        public int? NotificationType { get; set; }
+        public string? InternShipEndDate { get; set; }
+        public string? JoiningDate { get; set; }
+        public bool? IsRead { get; set; }
+    }
+
+    public class GetNotificationVM
+    {
+        public List<NotificationDOBVM> NotificationDOBS { get; set; } = new List<NotificationDOBVM>();
+        public List<NotificationInternShip> NotificationInternShips { get; set; } = new List<NotificationInternShip>();
+        public List<NotificationNoticePeriod> NotificationNoticePeriods { get; set; } = new List<NotificationNoticePeriod>();
+    }
+
+
+    public class GetHolidayCalendarVM
+    {
+        public int HolydayID { get; set; }
+        public string HolydayName { get; set; }
+        public string? Description { get; set; }
+        public string? Type { get; set; }
+        public bool? IsPublicHolyday { get; set; }
+        public DateTime? HolydayDate { get; set; }
+    }
+    public class ViewNotificationVM
+    {
+        public int? NotificationType { get; set; }
+        public int? UserId { get; set; }
     }
 }

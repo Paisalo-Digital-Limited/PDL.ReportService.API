@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
@@ -30,15 +31,25 @@ namespace PDL.ReportService.Logics.BLL
             _credManager = new CredManager(configuration);
         }
         #region Api BranchDashboard BY--------------- Satish Maurya-------
-        public BranchDashBoardVM GetMasterData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
+        public BranchDashBoardVM GetMasterData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string? flag, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
+            string query = null;
             BranchDashBoardVM branchDash = new BranchDashBoardVM();
             try
             {
                 using (SqlConnection con = _credManager.getConnections(dbname, islive))
                 {
-                    string query = "Usp_BranchDashBoard";
+                    //string query = "Usp_BranchDashBoard";
+
+                    if (flag == "All")
+                    {
+                        query = "Usp_BranchDashBoardAllCreator";
+                    }
+                    else
+                    {
+                        query = "Usp_BranchDashBoard";
+                    }
                     using (SqlCommand cmd = new SqlCommand(query, con))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
@@ -167,7 +178,7 @@ namespace PDL.ReportService.Logics.BLL
         }
         #endregion
         #region Api BranchDashboard Count BY--------------- Satish Maurya-------
-        public List<BranchDashBoardDataModel> GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, bool islive)
+        public List<BranchDashBoardDataModel> GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, string? flag, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             List<BranchDashBoardDataModel> dashboardList = new List<BranchDashBoardDataModel>();
@@ -175,7 +186,15 @@ namespace PDL.ReportService.Logics.BLL
             {
                 using (SqlConnection con = _credManager.getConnections(dbname, islive))
                 {
-                    string query = "Usp_BranchDashBoard";
+                    string query = null;
+                    if (flag == "All")
+                    {
+                        query = "Usp_BranchDashBoardAllCreator";
+                    }
+                    else
+                    {
+                        query = "Usp_BranchDashBoard";
+                    }
                     using (SqlCommand cmd = new SqlCommand(query, con))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
@@ -199,15 +218,18 @@ namespace PDL.ReportService.Logics.BLL
                                     var dashboardModel = new BranchDashBoardDataModel
                                     {
                                         Fi_Id = reader["Fi_Id"] == DBNull.Value ? 0 : Convert.ToInt64(reader["Fi_Id"]),
-                                        FullName = reader["Full_Name"]?.ToString(),
-                                        CreatorName = reader["CreatorName"]?.ToString(),
-                                        FICode = reader["FICode"]?.ToString(),
-                                        SmCode = reader["SmCode"]?.ToString(),
-                                        Current_City = reader["Current_City"]?.ToString(),
-                                        Group_code = reader["Group_code"]?.ToString(),
+                                        FullName = reader["Full_Name"] != DBNull.Value ? reader["Full_Name"].ToString() : null,
+                                        CreatorName = reader["CreatorName"] != DBNull.Value ? reader["CreatorName"].ToString() : null,
+                                        FICode = reader["FICode"] != DBNull.Value ? reader["FICode"].ToString() : null,
+                                        SmCode = reader["SmCode"] != DBNull.Value ? reader["SmCode"].ToString() : null,
+                                        Current_City = reader["Current_City"] != DBNull.Value ? reader["Current_City"].ToString() : null,
+
+                                        Branch_Code = reader["Branch_code"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Branch_code"]),
+                                        Branch_Name = reader["BranchName"] != DBNull.Value ? reader["BranchName"].ToString() : null,
+                                        Group_code = reader["Group_code"] != DBNull.Value ? reader["Group_code"].ToString() : null,
                                         LoanDuration = reader["Loan_Duration"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Loan_Duration"]),
                                         CreationDate = reader["CreatedOn"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["CreatedOn"],
-                                        Approved = reader["Approved"]?.ToString(),
+                                        Approved = reader["Approved"] != DBNull.Value ? reader["Approved"].ToString() : null
                                     };
 
                                     if (Type.ToUpper().Trim() == "SOURCING" || Type.ToUpper().Trim() == "ALL")
@@ -218,10 +240,10 @@ namespace PDL.ReportService.Logics.BLL
                                     }
                                     else if (Type.ToUpper().Trim() == "SANCTION" || Type.ToUpper().Trim() == "SANCTIONPENDING" || Type.ToUpper().Trim() == "POSTSANCTION" || Type.ToUpper().Trim() == "READYFORAUDIT" || Type.ToUpper().Trim() == "READYFORNEFT")
                                     {
-                                        dashboardModel.SchCode = reader["SchCode"]?.ToString();
-                                        dashboardModel.Bank_IFCS = reader["Bank_IFCS"]?.ToString();
-                                        dashboardModel.Bank_Ac = reader["Bank_Ac"]?.ToString();
-                                        dashboardModel.SanctionedAmt = reader["SanctionedAmt"] as decimal?;
+                                        dashboardModel.SchCode = reader["SchCode"] != DBNull.Value ? reader["SchCode"].ToString() : null;
+                                        dashboardModel.Bank_IFCS = reader["Bank_IFCS"] != DBNull.Value ? reader["Bank_IFCS"].ToString() : null;
+                                        dashboardModel.Bank_Ac = reader["Bank_Ac"] != DBNull.Value ? reader["Bank_Ac"].ToString() : null;
+                                        dashboardModel.SanctionedAmt = reader["SanctionedAmt"] != DBNull.Value ? (decimal?)reader["SanctionedAmt"] : null;
                                         dashboardModel.DtFin = reader["Dt_Fin"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["Dt_Fin"];
                                     }
                                     else if (Type.ToUpper().Trim() == "SECONDESIGN" || Type.ToUpper().Trim() == "SECONDESIGNPENDING")
@@ -230,8 +252,8 @@ namespace PDL.ReportService.Logics.BLL
                                     }
                                     else if (Type.ToUpper().Trim() == "DISBURSED")
                                     {
-                                        dashboardModel.InstAmt = Convert.ToDecimal(reader["INST_AMT"]);
-                                        dashboardModel.Invest = Convert.ToDecimal(reader["INVEST"]);
+                                        dashboardModel.InstAmt = reader["INST_AMT"] != DBNull.Value ? Convert.ToDecimal(reader["INST_AMT"]) : 0;
+                                        dashboardModel.Invest = reader["INVEST"] != DBNull.Value ? Convert.ToDecimal(reader["INVEST"]) : 0;
                                         dashboardModel.DtFin = reader["Dt_Fin"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["Dt_Fin"];
                                         dashboardModel.DtPos = reader["DT_POS"] == DBNull.Value ? (DateTime?)null : (DateTime?)reader["DT_POS"];
 
@@ -259,6 +281,19 @@ namespace PDL.ReportService.Logics.BLL
         public List<FiCreatorMaster> GetCreators(string activeuser, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
+            // Validate activeuser
+            if (!int.TryParse(activeuser, out int userId) || userId <= 0)
+            {
+                return new List<FiCreatorMaster>
+                {
+                   new FiCreatorMaster
+                   {
+                       CreatorID = -1,
+                       CreatorName = "Invalid user ID."
+                   }
+                };
+            }
+
             using (SqlConnection con = _credManager.getConnections(dbname, islive))
             {
                 using (var cmd = new SqlCommand("Usp_GetCreatorsByUser", con))
@@ -293,7 +328,7 @@ namespace PDL.ReportService.Logics.BLL
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@UserId", int.Parse(activeUser));
-                    cmd.Parameters.AddWithValue("@CreatorIds", string.IsNullOrEmpty(creatorIds) ? "ALL" : creatorIds);
+                    cmd.Parameters.AddWithValue("@CreatorIds", creatorIds);
 
                     var branches = new List<BranchWithCreator>();
                     con.Open();
@@ -500,14 +535,23 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
-        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, bool islive)
+        public List<GetCollectionCountVM> GetCollectionCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, string? flag, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
+            string query = null;
+            if (flag == "All")
+            {
+                query = "Usp_BranchDashBoardAllCreator";
+            }
+            else
+            {
+                query = "Usp_BranchDashBoard";
+            }
             List<GetCollectionCountVM> res = new List<GetCollectionCountVM>();
 
             using (SqlConnection con = _credManager.getConnections(dbname, islive))
             {
-                using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
+                using (var cmd = new SqlCommand(query, con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
 
@@ -535,12 +579,14 @@ namespace PDL.ReportService.Logics.BLL
                         {
                             var collectionItem = new GetCollectionCountVM
                             {
+                                Fi_Id = reader["Fi_Id"] == DBNull.Value ? 0 : Convert.ToInt64(reader["Fi_Id"]),
                                 FICode = reader["FICode"] == DBNull.Value ? 0 : Convert.ToInt64(reader["FICode"]),
                                 FullName = reader["Name"] == DBNull.Value ? null : reader["Name"].ToString(),
                                 CreatorName = reader["CreatorName"] == DBNull.Value ? null : reader["CreatorName"].ToString(),
                                 Branch_code = reader["Branch_code"] == DBNull.Value ? null : reader["Branch_code"].ToString(),
                                 SmCode = reader["SmCode"] == DBNull.Value ? null : reader["SmCode"].ToString(),
                                 VNO = reader["VNO"] == DBNull.Value ? null : reader["VNO"].ToString(),
+                                Branch_Name = reader["BranchName"] == DBNull.Value ? null : reader["BranchName"].ToString(),
                                 Count = reader["TotalCount"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["TotalCount"]),
                                 CR = reader["CR"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["CR"]),
                                 VDATE = reader["VDATE"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["VDATE"]) : null,
@@ -573,12 +619,21 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
         }
-        public List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, bool islive)
+        public List<GetDemandCountVM> GetDemandCount(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string? flag, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
+            string query = null;
+            if (flag == "All")
+            {
+                query = "Usp_BranchDashBoardAllCreator";
+            }
+            else
+            {
+                query = "Usp_BranchDashBoard";
+            }
             using (SqlConnection con = _credManager.getConnections(dbname, islive))
             {
-                using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
+                using (var cmd = new SqlCommand(query, con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Mode", "GetDemandCount");
@@ -929,5 +984,155 @@ namespace PDL.ReportService.Logics.BLL
 
             return affected;
         }
+        #region  Notification Api  BY--------------- Satish Maurya-------
+        public List<GetNotificationVM> GetNotification(string activeuser, bool islive)
+        {
+            DataSet dataSet = new DataSet();
+            List<GetNotificationVM> getNotifications = new List<GetNotificationVM>();
+            string dbname = Helper.Helper.GetDBName(_configuration);
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_GetNotification", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "GetNotification");
+                    cmd.Parameters.AddWithValue("@UserId", activeuser);
+
+                    if (con.State == ConnectionState.Closed)
+                        con.Open();
+
+                    using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
+                    {
+                        adapter.Fill(dataSet);
+                    }
+
+                    if (dataSet.Tables.Count > 0)
+                    {
+                        DataTable dt1 = dataSet.Tables[0];
+                        foreach (DataRow row in dt1.Rows)
+                        {
+                            NotificationDOBVM notificationDOB = new NotificationDOBVM
+                            {
+                                Id = Convert.ToInt32(row["Id"]),
+                                Name = row["Name"].ToString(),
+                                DepartmentName = row["DepartmentName"].ToString(),
+                                DesignationName = row["DesignationName"].ToString(),
+                                DOB = row["DOB"] != DBNull.Value ? Convert.ToDateTime(row["DOB"]).ToString("yyyy-MM-dd") : null,
+                                NotificationType = row["NotificationType"] != DBNull.Value ? Convert.ToInt32(row["NotificationType"]) : (int?)null,
+                                BirthDayStatus = row["BirthDayStatus"].ToString(),
+                            };
+                            getNotifications.Add(new GetNotificationVM { NotificationDOBS = new List<NotificationDOBVM> { notificationDOB } });
+                        }
+                    }
+
+                    if (dataSet.Tables.Count > 1)
+                    {
+                        DataTable dt2 = dataSet.Tables[1];
+                        foreach (DataRow row in dt2.Rows)
+                        {
+                            NotificationInternShip notificationInternShip = new NotificationInternShip
+                            {
+                                Id = Convert.ToInt32(row["Id"]),
+                                Name = row["Name"].ToString(),
+                                DepartmentName = row["DepartmentName"].ToString(),
+                                DesignationName = row["DesignationName"].ToString(),
+                                NotificationTypeName = row["NoticePeriodName"].ToString(),
+                                Message = row["Message"].ToString(),
+                                NotificationType = row["NotificationType"] != DBNull.Value ? Convert.ToInt32(row["NotificationType"]) : (int?)null,
+                                InternShipEndDate = row["InternShipEndDate"] != DBNull.Value ? Convert.ToDateTime(row["InternShipEndDate"]).ToString("yyyy-MM-dd") : null,
+                                JoiningDate = row["JoiningDate"] != DBNull.Value ? Convert.ToDateTime(row["JoiningDate"]).ToString("yyyy-MM-dd") : null,
+                                IsRead = row["IsRead"] != DBNull.Value ? Convert.ToBoolean(row["IsRead"]) : false,
+                            };
+                            getNotifications.Add(new GetNotificationVM { NotificationInternShips = new List<NotificationInternShip> { notificationInternShip } });
+                        }
+                    }
+
+                    if (dataSet.Tables.Count > 2)
+                    {
+                        DataTable dt3 = dataSet.Tables[2];
+                        foreach (DataRow row in dt3.Rows)
+                        {
+                            NotificationNoticePeriod notificationNoticePeriod = new NotificationNoticePeriod
+                            {
+                                Id = Convert.ToInt32(row["Id"]),
+                                Name = row["Name"].ToString(),
+                                DepartmentName = row["DepartmentName"].ToString(),
+                                DesignationName = row["DesignationName"].ToString(),
+                                NotificationTypeName = row["NoticePeriodName"].ToString(),
+                                Message = row["Message"].ToString(),
+                                NotificationType = Convert.ToInt32(row["NotificationType"]),
+                                NoticePeriodEndDate = row["NoticePeriodEndDate"] != DBNull.Value ? Convert.ToDateTime(row["NoticePeriodEndDate"]).ToString("yyyy-MM-dd") : null,
+                                IsRead = row["IsRead"] != DBNull.Value ? Convert.ToBoolean(row["IsRead"]) : false,
+                            };
+                            getNotifications.Add(new GetNotificationVM { NotificationNoticePeriods = new List<NotificationNoticePeriod> { notificationNoticePeriod } });
+                        }
+                    }
+
+                    con.Close();
+                    return getNotifications;
+                }
+            }
+        }
+
+        #endregion    
+        #region HolidayCalendar Api  BY--------------- Satish Maurya-------
+        public List<GetHolidayCalendarVM> GetHolidayCalendar(bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_BranchDashBoard", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "GetHolidayCalendar");
+                    var res = new List<GetHolidayCalendarVM>();
+                    con.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            res.Add(new GetHolidayCalendarVM
+                            {
+                                HolydayID = reader["HolydayID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["HolydayID"]),
+                                HolydayName = reader["HolydayName"] == DBNull.Value ? null : reader["HolydayName"]?.ToString(),
+                                Description = reader["Description"] == DBNull.Value ? null : reader["Description"]?.ToString(),
+                                Type = reader["Type"] == DBNull.Value ? null : reader["Type"]?.ToString(),
+                                IsPublicHolyday = reader["IsPublicHolyday"] == DBNull.Value ? false : Convert.ToBoolean(reader["IsPublicHolyday"]),
+                                HolydayDate = reader["HolydayDate"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["HolydayDate"]) : null,
+                            });
+                        }
+                    }
+                    return res;
+                }
+            }
+        }
+        public int ViewNotification(ViewNotificationVM obj, string activeuser, bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            int affectedRows = 0;
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                string storedProcedure = "Usp_GetNotification";
+
+                using (SqlCommand cmd = new SqlCommand(storedProcedure, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@Mode", "UpdateNotification");
+                    cmd.Parameters.Add("@NotificationType", SqlDbType.Int).Value = obj.NotificationType;
+                    cmd.Parameters.Add("@UserId", SqlDbType.VarChar).Value = activeuser;
+
+                    if (con.State == ConnectionState.Closed)
+                        con.Open();
+
+                    affectedRows = cmd.ExecuteNonQuery();
+                }
+            }
+            return affectedRows;
+        }
+        #endregion
     }
 }
