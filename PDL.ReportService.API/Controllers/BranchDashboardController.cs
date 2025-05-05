@@ -135,11 +135,9 @@ namespace PDL.ReportService.API.Controllers
                 List<FiCreatorMaster> result = _branchDashboardService.GetCreators(activeuser, GetIslive());
                 if (result != null && result.Count > 0 && result[0].CreatorID == -1)
                 {
-                    return BadRequest(new
+                    return NotFound(new
                     {
-                        statuscode = 400,
-                        message = result[0].CreatorName,
-                        data = ""
+                        message = result[0].CreatorName
                     });
                 }
 
@@ -147,26 +145,22 @@ namespace PDL.ReportService.API.Controllers
                 {
                     return Ok(new
                     {
-                        statuscode = 200,
                         message = resourceManager.GetString("GETSUCCESS"),
                         data = result
                     });
                 }
                 else
                 {
-                    return Ok(new
+                    return NotFound(new
                     {
-                        statuscode = 201,
                         message = resourceManager.GetString("GETFAIL"),
-                        data = ""
                     });
                 }
             }
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetCreators_BranchDashboard");
-                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
-
+                return BadRequest(new { message = (resourceManager.GetString("BADREQUEST")) });
             }
         }
         [HttpGet]
@@ -180,26 +174,22 @@ namespace PDL.ReportService.API.Controllers
                 {
                     return Ok(new
                     {
-                        statuscode = 200,
                         message = resourceManager.GetString("GETSUCCESS"),
                         data = result
                     });
                 }
                 else
                 {
-                    return Ok(new
+                    return NotFound(new
                     {
-                        statuscode = 201,
                         message = resourceManager.GetString("GETFAIL"),
-                        data = 0
                     });
                 }
             }
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetBranches_BranchDashboard");
-                return Ok(new { statuscode = 400, message = (resourceManager.GetString("BADREQUEST")) });
-
+                return BadRequest(new { message = (resourceManager.GetString("BADREQUEST")) });
             }
         }
         #endregion
