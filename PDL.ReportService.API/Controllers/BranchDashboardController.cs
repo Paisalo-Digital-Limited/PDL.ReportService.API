@@ -639,7 +639,7 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         message = resourceManager.GetString("GETFAIL"),
-                        data = 0
+                        data = result
                     });
                 }
             }
