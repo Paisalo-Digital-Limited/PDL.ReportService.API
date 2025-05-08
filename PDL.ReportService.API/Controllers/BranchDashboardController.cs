@@ -180,7 +180,7 @@ namespace PDL.ReportService.API.Controllers
                     {
 
                         message = resourceManager.GetString("GETFAIL"),
-                        data = 0
+                        data = result
                     });
                 }
             }
@@ -211,7 +211,7 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         message = resourceManager.GetString("GETFAIL"),
-                        data = 0
+                        data = result
                     });
                 }
             }
@@ -241,7 +241,7 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         message = resourceManager.GetString("GETFAIL"),
-                        data = 0
+                        data = result
                     });
                 }
             }
@@ -329,7 +329,7 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         message = resourceManager.GetString("GETFAIL"),
-                        data = 0
+                        data = res
                     });
                 }
             }
@@ -358,7 +358,7 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         message = resourceManager.GetString("GETFAIL"),
-                        data = 0
+                        data = res
                     });
                 }
             }
@@ -387,7 +387,7 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         message = resourceManager.GetString("GETFAIL"),
-                        data = 0
+                        data = res
                     });
                 }
             }
@@ -451,7 +451,7 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         message = resourceManager.GetString("GETFAIL"),
-                        data = 0
+                        data = result
                     });
                 }
             }
@@ -545,7 +545,7 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         message = resourceManager.GetString("GETFAIL"),
-                        data = 0
+                        data = result
                     });
                 }
             }
@@ -608,7 +608,7 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         message = resourceManager.GetString("GETFAIL"),
-                        data = 0
+                        data = result
                     });
                 }
             }
