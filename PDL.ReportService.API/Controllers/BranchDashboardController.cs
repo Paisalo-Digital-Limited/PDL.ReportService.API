@@ -129,10 +129,14 @@ namespace PDL.ReportService.API.Controllers
                 List<FiCreatorMaster> result = _branchDashboardService.GetCreators(activeuser, GetIslive());
                 if (result != null && result.Count > 0 && result[0].CreatorID == -1)
                 {
-                    return BadRequest(new
+                    return NotFound(new
                     {
+ 
                         message = result[0].CreatorName,
                         data = ""
+ 
+                        message = result[0].CreatorName
+ 
                     });
                 }
 
@@ -149,7 +153,6 @@ namespace PDL.ReportService.API.Controllers
                     return NotFound(new
                     {
                         message = resourceManager.GetString("GETFAIL"),
-                        data = ""
                     });
                 }
             }
@@ -157,7 +160,7 @@ namespace PDL.ReportService.API.Controllers
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetCreators_BranchDashboard");
                 return BadRequest(new { message = (resourceManager.GetString("BADREQUEST")) });
-
+ 
             }
         }
         [HttpGet]
@@ -180,7 +183,6 @@ namespace PDL.ReportService.API.Controllers
                     return NotFound(new
                     {
                         message = resourceManager.GetString("GETFAIL"),
-                        data = 0
                     });
                 }
             }
@@ -188,7 +190,7 @@ namespace PDL.ReportService.API.Controllers
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetBranches_BranchDashboard");
                 return BadRequest(new { message = (resourceManager.GetString("BADREQUEST")) });
-
+ 
             }
         }
         #endregion
