@@ -135,8 +135,6 @@ namespace PDL.ReportService.API.Controllers
                         message = result[0].CreatorName,
                         data = ""
  
-                        message = result[0].CreatorName
- 
                     });
                 }
 
@@ -692,5 +690,69 @@ namespace PDL.ReportService.API.Controllers
             }
         }
 
+        #region GET ICICI QR CALLBACK REPORT
+        [HttpGet]
+        public IActionResult GetICICIQRCallBackReport(DateTime? FromDate, DateTime? ToDate, int pageNumber, int pageSize)
+        {
+            try
+            {
+                List<IciciQrTransactionVM> result = _branchDashboardService.ICICIQRCallBackReport(FromDate, ToDate, pageNumber, pageSize, GetIslive());
+                if (result != null && result.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result
+                    });
+                }
+                else
+                {
+                    return NotFound(new
+                    {
+                        message = resourceManager.GetString("GETFAIL"),
+                        data = 0
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetICICIQRCallBackReport_BranchDashboard");
+                return BadRequest(new { message = (resourceManager.GetString("BADREQUEST")) });
+
+            }
+        }
+        #endregion
+        #region GET SCHEME WISE CASE REPORT
+        [HttpGet]
+        public IActionResult GetSchemeWiseCaseReport(DateTime? FromDate, DateTime? ToDate, string SchCode, int pageNumber, int pageSize)
+        {
+            try
+            {
+                List<SanctionedFiRecordVM> result = _branchDashboardService.SchemeWiseCaseReport(FromDate, ToDate, SchCode, pageNumber, pageSize, GetIslive());
+                if (result != null && result.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result
+                    });
+                }
+                else
+                {
+                    return NotFound(new
+                    {
+                        message = resourceManager.GetString("GETFAIL"),
+                        data = 0
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetSchemeWiseCaseReport_BranchDashboard");
+                return BadRequest(new { message = (resourceManager.GetString("BADREQUEST")) });
+
+            }
+        }
+        #endregion
     }
 }
