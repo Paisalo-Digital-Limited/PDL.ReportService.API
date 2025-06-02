@@ -30,5 +30,9 @@ namespace PDL.ReportService.Interfaces.Interfaces
         List<GetNotificationVM> GetNotification(string activeuser,bool islive);
         List<GetHolidayCalendarVM> GetHolidayCalendar(bool islive);
         int ViewNotification(ViewNotificationVM obj, string activeuser, bool islive);
+
+        //----------------------MD--------------------------//
+        List<IciciQrTransactionVM> ICICIQRCallBackReport(DateTime? FromDate, DateTime? ToDate, int pageNumber, int pageSize, bool islive);
+        List<SanctionedFiRecordVM> SchemeWiseCaseReport(DateTime? FromDate, DateTime? ToDate,string SchCode, int pageNumber, int pageSize, bool islive);
     }
 }

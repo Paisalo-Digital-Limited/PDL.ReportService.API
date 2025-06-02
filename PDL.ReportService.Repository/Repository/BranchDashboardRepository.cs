@@ -158,5 +158,21 @@ namespace PDL.ReportService.Repository.Repository
                 return branchDashboard.ViewNotification(obj, activeuser, islive);
             }
         }
+
+        public List<IciciQrTransactionVM> ICICIQRCallBackReport(DateTime? FromDate, DateTime? ToDate, int pageNumber, int pageSize, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.ICICIQRCallBackReport(FromDate, ToDate, pageNumber, pageSize, islive);
+            }
+        }
+
+        public List<SanctionedFiRecordVM> SchemeWiseCaseReport(DateTime? FromDate, DateTime? ToDate, string SchCode, int pageNumber, int pageSize, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.SchemeWiseCaseReport(FromDate, ToDate,SchCode, pageNumber, pageSize, islive);
+            }
+        }
     }
 }
