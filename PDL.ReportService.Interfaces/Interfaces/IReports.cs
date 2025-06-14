@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Entites.VM.ReportVM;
 using System;
 using System.Collections.Generic;
@@ -11,5 +12,7 @@ namespace PDL.ReportService.Interfaces.Interfaces
     public interface IReports
     {
         List<CaseHistoryVM> GetCaseHistoryBySmCodes(List<string> smCodes, string dbName, bool isLive);
+        List<CsoCollectionReportModelVM> GetCsoCollectionReport(DateTime fromDate, DateTime toDate, string csoCode, string dbtype, string dbName, bool isLive);
+
     }
 }
