@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PDL.ReportService.Logics.Helper;
 using System.Resources;
 
 namespace PDL.ReportService.API.Controllers
@@ -20,6 +21,10 @@ namespace PDL.ReportService.API.Controllers
             bool val = false;
             val = _configuration.GetValue<bool>("isliveDb");
             return val;
+        }
+        protected string GetDBName()
+        {
+            return Helper.GetDBName(_configuration);
         }
     }
 }

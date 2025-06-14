@@ -1,0 +1,15 @@
+﻿using Microsoft.AspNetCore.Http;
+using PDL.ReportService.Entites.VM.ReportVM;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace PDL.ReportService.Interfaces.Interfaces
+{
+    public interface IReports
+    {
+        List<CaseHistoryVM> GetCaseHistoryBySmCodes(List<string> smCodes, string dbName, bool isLive);
+    }
+}
