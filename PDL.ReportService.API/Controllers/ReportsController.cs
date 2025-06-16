@@ -19,7 +19,7 @@ namespace PDL.ReportService.API.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetCaseHistoryBySmCodes([FromBody] List<string> smCodes)
+        public IActionResult GetCaseHistoryBySmCodes([FromBody] List<string> smCodes, [FromQuery] int PageNumber, [FromQuery] int PageSize)
         {
             try
             {
@@ -31,7 +31,7 @@ namespace PDL.ReportService.API.Controllers
                     return BadRequest(new { message = resourceManager.GetString("NULLDBNAME") });
                 }
 
-                var result = _reports.GetCaseHistoryBySmCodes(smCodes, dbName, isLive);
+                var result = _reports.GetCaseHistoryBySmCodes(smCodes, dbName, isLive, PageNumber, PageSize);
 
                 if (result != null && result.Any())
                 {
@@ -59,8 +59,6 @@ namespace PDL.ReportService.API.Controllers
                 string dbName = GetDBName();
                 bool isLive = GetIslive();
                 List<CsoCollectionReportModelVM> result = _reports.GetCsoCollectionReport(fromDate, toDate, csoCode, dbtype, dbName, isLive, PageNumber, PageSize);
-
-
                 if (result != null && result.Any())
                 {
                     return Ok(new
@@ -86,7 +84,6 @@ namespace PDL.ReportService.API.Controllers
                 string dbName = GetDBName();
                 bool isLive = GetIslive();
                 List<CsoCollectionReportModelVM> result = _reports.GetCsoCollectionReportAllCases(fromDate, toDate, dbtype, dbName, isLive, PageNumber, PageSize);
-
 
                 if (result != null && result.Any())
                 {
