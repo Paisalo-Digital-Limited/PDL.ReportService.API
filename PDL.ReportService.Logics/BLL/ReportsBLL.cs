@@ -27,7 +27,7 @@ namespace PDL.ReportService.Logics.BLL
             _credManager = new CredManager(configuration);
         }
 
-        public List<CaseHistoryVM> GetCaseHistoryBySmCodes(List<string> smCodes, string dbName, bool isLive)
+        public List<CaseHistoryVM> GetCaseHistoryBySmCodes(List<string> smCodes, string dbName, bool isLive, int PageNumber, int PageSize)
         {
             List<CaseHistoryVM> result = new List<CaseHistoryVM>();
 
@@ -41,6 +41,8 @@ namespace PDL.ReportService.Logics.BLL
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@SmCode", smCode);
+                        cmd.Parameters.AddWithValue("@PageNumber", PageNumber);
+                        cmd.Parameters.AddWithValue("@PageSize", PageSize);
 
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
