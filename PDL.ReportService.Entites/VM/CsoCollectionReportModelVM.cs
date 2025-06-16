@@ -21,5 +21,16 @@ namespace PDL.ReportService.Entites.VM
         public string BranchCode { get; set; }
         public string CollType { get; set; } // Always blank as per requirement
     }
-
+    public class BBPSPaymentReportVM
+    {
+        public string SmCode { get; set; }
+        public string TxnReferenceId { get; set; }
+        public string BillNumber { get; set; }
+        public string Ahead { get; set; }
+        public string Vno { get; set; }
+        public DateTime? Vdate { get; set; }
+        public string Creator { get; set; }
+        public decimal CreditAmt { get; set; }
+        public decimal DebitAmt { get; set; }
+    }
 }

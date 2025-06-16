@@ -50,7 +50,7 @@ namespace PDL.ReportService.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        #region   
+        #region   ----- Cso Collection Report and BBPS Report   ------  Satish Maurya
         [HttpPost]
         public IActionResult GetCsoCollectionReport(DateTime fromDate, DateTime toDate, string csoCode,string dbtype)
         {
@@ -75,6 +75,59 @@ namespace PDL.ReportService.API.Controllers
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetCsoCollectionReport_Reports");
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpPost]
+        public IActionResult GetCsoCollectionReportAllCases(DateTime fromDate, DateTime toDate, string dbtype)
+        {
+            try
+            {
+                string dbName = GetDBName();
+                bool isLive = GetIslive();
+                List<CsoCollectionReportModelVM> result = _reports.GetCsoCollectionReportAllCases(fromDate, toDate, dbtype, dbName, isLive);
+
+
+                if (result != null && result.Any())
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result
+                    });
+                }
+
+                return NotFound(new { message = resourceManager.GetString("GETFAIL") });
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetCsoCollectionReportAllCases_Reports");
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpPost]
+        public IActionResult GetBBPSPaymentReport(DateTime fromDate, DateTime toDate, string? smCode)
+        {
+            try
+            {
+                string dbName = GetDBName();
+                bool isLive = GetIslive();
+                List<BBPSPaymentReportVM> result = _reports.GetBBPSPaymentReport(fromDate, toDate, smCode, dbName, isLive);
+
+                if (result != null && result.Any())
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result
+                    });
+                }
+
+                return NotFound(new { message = resourceManager.GetString("GETFAIL") });
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetBBPSPaymentReport_Reports");
                 return BadRequest(ex.Message);
             }
         }

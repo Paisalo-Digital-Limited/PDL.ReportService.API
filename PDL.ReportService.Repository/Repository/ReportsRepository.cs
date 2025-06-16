@@ -6,6 +6,7 @@ using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.BLL;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
@@ -19,7 +20,7 @@ namespace PDL.ReportService.Repository.Repository
 
         public ReportsRepository(IConfiguration configuration)
         {
-           _configuration = configuration;
+            _configuration = configuration;
         }
 
         public List<CaseHistoryVM> GetCaseHistoryBySmCodes(List<string> smCodes, string dbName, bool isLive)
@@ -34,6 +35,20 @@ namespace PDL.ReportService.Repository.Repository
             using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
             {
                 return reportsBLL.GetCsoCollectionReport(fromDate, toDate, csoCode, dbtype, dbName, isLive);
+            }
+        }
+        public List<CsoCollectionReportModelVM> GetCsoCollectionReportAllCases(DateTime fromDate, DateTime toDate, string dbtype, string dbName, bool isLive)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.GetCsoCollectionReportAllCases(fromDate, toDate, dbtype, dbName, isLive);
+            }
+        }
+        public List<BBPSPaymentReportVM> GetBBPSPaymentReport(DateTime fromDate, DateTime toDate, string? smCode, string dbName, bool isLive)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.GetBBPSPaymentReport(fromDate, toDate, smCode, dbName, isLive);
             }
         }
     }
