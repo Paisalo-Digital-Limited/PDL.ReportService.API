@@ -71,7 +71,7 @@ namespace PDL.ReportService.Logics.BLL
 
             return result;
         }
-        public List<CsoCollectionReportModelVM> GetCsoCollectionReport(DateTime fromDate, DateTime toDate, string csoCode, string dbtype, string dbName, bool isLive)
+        public List<CsoCollectionReportModelVM> GetCsoCollectionReport(DateTime fromDate, DateTime toDate, string csoCode, string dbtype, string dbName, bool isLive, int PageNumber, int PageSize)
         {
             List<CsoCollectionReportModelVM> reportList = new List<CsoCollectionReportModelVM>();
 
@@ -94,7 +94,8 @@ namespace PDL.ReportService.Logics.BLL
                     cmd.Parameters.AddWithValue("@FromDate", fromDate);
                     cmd.Parameters.AddWithValue("@ToDate", toDate);
                     cmd.Parameters.AddWithValue("@CSOCode", csoCode);
-
+                    cmd.Parameters.AddWithValue("@PageNumber", PageNumber);
+                    cmd.Parameters.AddWithValue("@PageSize", PageSize);
                     con.Open();
 
                     using (SqlDataReader rdr = cmd.ExecuteReader())
@@ -134,7 +135,7 @@ namespace PDL.ReportService.Logics.BLL
 
             return reportList;
         }
-        public List<CsoCollectionReportModelVM> GetCsoCollectionReportAllCases(DateTime fromDate, DateTime toDate, string dbtype, string dbName, bool isLive)
+        public List<CsoCollectionReportModelVM> GetCsoCollectionReportAllCases(DateTime fromDate, DateTime toDate, string dbtype, string dbName, bool isLive, int PageNumber, int PageSize)
         {
             List<CsoCollectionReportModelVM> reportList = new List<CsoCollectionReportModelVM>();
 
@@ -156,7 +157,8 @@ namespace PDL.ReportService.Logics.BLL
                     cmd.Parameters.AddWithValue("@Mode", "GetCsoCollectionReportAllCases");
                     cmd.Parameters.AddWithValue("@FromDate", fromDate);
                     cmd.Parameters.AddWithValue("@ToDate", toDate);
-
+                    cmd.Parameters.AddWithValue("@PageNumber", PageNumber);
+                    cmd.Parameters.AddWithValue("@PageSize", PageSize);
                     con.Open();
 
                     using (SqlDataReader rdr = cmd.ExecuteReader())
@@ -195,7 +197,7 @@ namespace PDL.ReportService.Logics.BLL
 
             return reportList;
         }
-        public List<BBPSPaymentReportVM> GetBBPSPaymentReport(DateTime fromDate, DateTime toDate, string? smCode, string dbName, bool isLive)
+        public List<BBPSPaymentReportVM> GetBBPSPaymentReport(DateTime fromDate, DateTime toDate, string? smCode, string dbName, bool isLive, int PageNumber, int PageSize)
         {
             List<BBPSPaymentReportVM> reportData = new List<BBPSPaymentReportVM>();
 
@@ -208,7 +210,8 @@ namespace PDL.ReportService.Logics.BLL
                     cmd.Parameters.AddWithValue("@FromDate", fromDate);
                     cmd.Parameters.AddWithValue("@ToDate", toDate);
                     cmd.Parameters.AddWithValue("@SmCode", string.IsNullOrEmpty(smCode) ? DBNull.Value : (object)smCode);
-
+                    cmd.Parameters.AddWithValue("@PageNumber", PageNumber);
+                    cmd.Parameters.AddWithValue("@PageSize", PageSize);
                     con.Open();
                     using (SqlDataReader dr = cmd.ExecuteReader())
                     {

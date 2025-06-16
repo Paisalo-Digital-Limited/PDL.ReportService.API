@@ -52,13 +52,13 @@ namespace PDL.ReportService.API.Controllers
         }
         #region   ----- Cso Collection Report and BBPS Report   ------  Satish Maurya
         [HttpPost]
-        public IActionResult GetCsoCollectionReport(DateTime fromDate, DateTime toDate, string csoCode,string dbtype)
+        public IActionResult GetCsoCollectionReport(DateTime fromDate, DateTime toDate, string csoCode,string dbtype, int PageNumber, int PageSize)
         {
             try
             {
                 string dbName = GetDBName();
                 bool isLive = GetIslive();
-                List<CsoCollectionReportModelVM> result = _reports.GetCsoCollectionReport(fromDate, toDate, csoCode, dbtype, dbName, isLive);
+                List<CsoCollectionReportModelVM> result = _reports.GetCsoCollectionReport(fromDate, toDate, csoCode, dbtype, dbName, isLive, PageNumber, PageSize);
 
 
                 if (result != null && result.Any())
@@ -79,13 +79,13 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         [HttpPost]
-        public IActionResult GetCsoCollectionReportAllCases(DateTime fromDate, DateTime toDate, string dbtype)
+        public IActionResult GetCsoCollectionReportAllCases(DateTime fromDate, DateTime toDate, string dbtype, int PageNumber, int PageSize)
         {
             try
             {
                 string dbName = GetDBName();
                 bool isLive = GetIslive();
-                List<CsoCollectionReportModelVM> result = _reports.GetCsoCollectionReportAllCases(fromDate, toDate, dbtype, dbName, isLive);
+                List<CsoCollectionReportModelVM> result = _reports.GetCsoCollectionReportAllCases(fromDate, toDate, dbtype, dbName, isLive, PageNumber, PageSize);
 
 
                 if (result != null && result.Any())
@@ -106,13 +106,13 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         [HttpPost]
-        public IActionResult GetBBPSPaymentReport(DateTime fromDate, DateTime toDate, string? smCode)
+        public IActionResult GetBBPSPaymentReport(DateTime fromDate, DateTime toDate, string? smCode, int PageNumber, int PageSize)
         {
             try
             {
                 string dbName = GetDBName();
                 bool isLive = GetIslive();
-                List<BBPSPaymentReportVM> result = _reports.GetBBPSPaymentReport(fromDate, toDate, smCode, dbName, isLive);
+                List<BBPSPaymentReportVM> result = _reports.GetBBPSPaymentReport(fromDate, toDate, smCode, dbName, isLive, PageNumber, PageSize);
 
                 if (result != null && result.Any())
                 {

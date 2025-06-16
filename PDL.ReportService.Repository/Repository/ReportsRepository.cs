@@ -30,25 +30,25 @@ namespace PDL.ReportService.Repository.Repository
                 return reportsBLL.GetCaseHistoryBySmCodes(smCodes, dbName, isLive);
             }
         }
-        public List<CsoCollectionReportModelVM> GetCsoCollectionReport(DateTime fromDate, DateTime toDate, string csoCode, string dbtype, string dbName, bool isLive)
+        public List<CsoCollectionReportModelVM> GetCsoCollectionReport(DateTime fromDate, DateTime toDate, string csoCode, string dbtype, string dbName, bool isLive, int PageNumber, int PageSize)
         {
             using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
             {
-                return reportsBLL.GetCsoCollectionReport(fromDate, toDate, csoCode, dbtype, dbName, isLive);
+                return reportsBLL.GetCsoCollectionReport(fromDate, toDate, csoCode, dbtype, dbName, isLive, PageNumber, PageSize);
             }
         }
-        public List<CsoCollectionReportModelVM> GetCsoCollectionReportAllCases(DateTime fromDate, DateTime toDate, string dbtype, string dbName, bool isLive)
+        public List<CsoCollectionReportModelVM> GetCsoCollectionReportAllCases(DateTime fromDate, DateTime toDate, string dbtype, string dbName, bool isLive, int PageNumber, int PageSize)
         {
             using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
             {
-                return reportsBLL.GetCsoCollectionReportAllCases(fromDate, toDate, dbtype, dbName, isLive);
+                return reportsBLL.GetCsoCollectionReportAllCases(fromDate, toDate, dbtype, dbName, isLive, PageNumber, PageSize);
             }
         }
-        public List<BBPSPaymentReportVM> GetBBPSPaymentReport(DateTime fromDate, DateTime toDate, string? smCode, string dbName, bool isLive)
+        public List<BBPSPaymentReportVM> GetBBPSPaymentReport(DateTime fromDate, DateTime toDate, string? smCode, string dbName, bool isLive, int PageNumber, int PageSize)
         {
             using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
             {
-                return reportsBLL.GetBBPSPaymentReport(fromDate, toDate, smCode, dbName, isLive);
+                return reportsBLL.GetBBPSPaymentReport(fromDate, toDate, smCode, dbName, isLive, PageNumber, PageSize);
             }
         }
     }
