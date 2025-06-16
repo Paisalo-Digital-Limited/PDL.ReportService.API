@@ -10,6 +10,6 @@ namespace PDL.ReportService.Interfaces.Interfaces
 {
     public interface IReports
     {
-        List<CaseHistoryVM> GetCaseHistoryBySmCodes(List<string> smCodes, string dbName, bool isLive);
+        List<CaseHistoryVM> GetCaseHistoryBySmCodes(List<string> smCodes, string dbName, bool isLive, int PageNumber, int PageSize);
     }
 }
