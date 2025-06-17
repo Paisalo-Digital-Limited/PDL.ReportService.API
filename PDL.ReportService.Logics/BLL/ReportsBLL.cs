@@ -108,17 +108,17 @@ namespace PDL.ReportService.Logics.BLL
                         {
                             CsoCollectionReportModelVM item = new CsoCollectionReportModelVM
                             {
-                                Creator = rdr["Creator"].ToString(),
-                                VNO = rdr["VNO"].ToString(),
-                                VDATE = Convert.ToDateTime(rdr["VDATE"]),
-                                DrCode = rdr["DrCode"].ToString(),
-                                CRCode = rdr["CRCode"].ToString(),
-                                Party_CD = rdr["Party_CD"].ToString(),
-                                DrAmount = Convert.ToDecimal(rdr["DrAmount"]),
-                                CrAmount = Convert.ToDecimal(rdr["CrAmount"]),
-                                VDesc = rdr["VDesc"].ToString(),
-                                GroupCode = rdr["GroupCode"].ToString(),
-                                BranchCode = rdr["BranchCode"].ToString(),
+                                Creator = rdr["Creator"] != DBNull.Value ? rdr["Creator"].ToString() : "",
+                                VNO = rdr["VNO"] != DBNull.Value ? rdr["VNO"].ToString() : "",
+                                VDATE = rdr["VDATE"] != DBNull.Value ? Convert.ToDateTime(rdr["VDATE"]) : (DateTime?)null,
+                                DrCode = rdr["DrCode"] != DBNull.Value ? rdr["DrCode"].ToString() : "",
+                                CRCode = rdr["CRCode"] != DBNull.Value ? rdr["CRCode"].ToString() : "",
+                                Party_CD = rdr["Party_CD"] != DBNull.Value ? rdr["Party_CD"].ToString() : "",
+                                DrAmount = rdr["DrAmount"] != DBNull.Value ? Convert.ToDecimal(rdr["DrAmount"]) : 0,
+                                CrAmount = rdr["CrAmount"] != DBNull.Value ? Convert.ToDecimal(rdr["CrAmount"]) : 0,
+                                VDesc = rdr["VDesc"] != DBNull.Value ? rdr["VDesc"].ToString() : "",
+                                GroupCode = rdr["GroupCode"] != DBNull.Value ? rdr["GroupCode"].ToString() : "",
+                                BranchCode = rdr["BranchCode"] != DBNull.Value ? rdr["BranchCode"].ToString() : "",
                                 CollType = "" // Always blank as per requirement
                             };
                             reportList.Add(item);
@@ -171,18 +171,19 @@ namespace PDL.ReportService.Logics.BLL
                         {
                             CsoCollectionReportModelVM item = new CsoCollectionReportModelVM
                             {
-                                Creator = rdr["Creator"].ToString(),
-                                VNO = rdr["VNO"].ToString(),
-                                VDATE = Convert.ToDateTime(rdr["VDATE"]),
-                                DrCode = rdr["DrCode"].ToString(),
-                                CRCode = rdr["CRCode"].ToString(),
-                                Party_CD = rdr["Party_CD"].ToString(),
-                                DrAmount = Convert.ToDecimal(rdr["DrAmount"]),
-                                CrAmount = Convert.ToDecimal(rdr["CrAmount"]),
-                                VDesc = rdr["VDesc"].ToString(),
-                                GroupCode = rdr["GroupCode"].ToString(),
-                                BranchCode = rdr["BranchCode"].ToString(),
+                                Creator = rdr["Creator"] != DBNull.Value ? rdr["Creator"].ToString() : "",
+                                VNO = rdr["VNO"] != DBNull.Value ? rdr["VNO"].ToString() : "",
+                                VDATE = rdr["VDATE"] != DBNull.Value ? Convert.ToDateTime(rdr["VDATE"]) : DateTime.MinValue, // or (DateTime?)null
+                                DrCode = rdr["DrCode"] != DBNull.Value ? rdr["DrCode"].ToString() : "",
+                                CRCode = rdr["CRCode"] != DBNull.Value ? rdr["CRCode"].ToString() : "",
+                                Party_CD = rdr["Party_CD"] != DBNull.Value ? rdr["Party_CD"].ToString() : "",
+                                DrAmount = rdr["DrAmount"] != DBNull.Value ? Convert.ToDecimal(rdr["DrAmount"]) : 0,
+                                CrAmount = rdr["CrAmount"] != DBNull.Value ? Convert.ToDecimal(rdr["CrAmount"]) : 0,
+                                VDesc = rdr["VDesc"] != DBNull.Value ? rdr["VDesc"].ToString() : "",
+                                GroupCode = rdr["GroupCode"] != DBNull.Value ? rdr["GroupCode"].ToString() : "",
+                                BranchCode = rdr["BranchCode"] != DBNull.Value ? rdr["BranchCode"].ToString() : "",
                                 CollType = "" // Always blank
+
                             };
                             reportList.Add(item);
                         }
@@ -224,15 +225,16 @@ namespace PDL.ReportService.Logics.BLL
                         {
                             reportData.Add(new BBPSPaymentReportVM
                             {
-                                SmCode = dr["SmCode"].ToString(),
-                                TxnReferenceId = dr["TxnReferenceId"].ToString(),
-                                BillNumber = dr["BillNumber"].ToString(),
-                                Ahead = dr["Ahead"].ToString(),
-                                Vno = dr["Vno"].ToString(),
-                                Vdate = dr["Vdate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(dr["Vdate"]),
-                                Creator = dr["Creator"].ToString(),
-                                CreditAmt = dr["CreditAmt"] == DBNull.Value ? 0 : Convert.ToDecimal(dr["CreditAmt"]),
-                                DebitAmt = dr["DebitAmt"] == DBNull.Value ? 0 : Convert.ToDecimal(dr["DebitAmt"])
+                                SmCode = dr["SmCode"] != DBNull.Value ? dr["SmCode"].ToString() : "",
+                                TxnReferenceId = dr["TxnReferenceId"] != DBNull.Value ? dr["TxnReferenceId"].ToString() : "",
+                                BillNumber = dr["BillNumber"] != DBNull.Value ? dr["BillNumber"].ToString() : "",
+                                Ahead = dr["Ahead"] != DBNull.Value ? dr["Ahead"].ToString() : "",
+                                Vno = dr["Vno"] != DBNull.Value ? dr["Vno"].ToString() : "",
+                                Vdate = dr["Vdate"] != DBNull.Value ? Convert.ToDateTime(dr["Vdate"]) : (DateTime?)null,
+                                Creator = dr["Creator"] != DBNull.Value ? dr["Creator"].ToString() : "",
+                                CreditAmt = dr["CreditAmt"] != DBNull.Value ? Convert.ToDecimal(dr["CreditAmt"]) : 0,
+                                DebitAmt = dr["DebitAmt"] != DBNull.Value ? Convert.ToDecimal(dr["DebitAmt"]) : 0
+
                             });
                         }
                     }

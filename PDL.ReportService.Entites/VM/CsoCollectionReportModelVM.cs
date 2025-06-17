@@ -10,7 +10,7 @@ namespace PDL.ReportService.Entites.VM
     {
         public string Creator { get; set; }
         public string VNO { get; set; }
-        public DateTime VDATE { get; set; }
+        public DateTime? VDATE { get; set; }
         public string DrCode { get; set; }
         public string CRCode { get; set; }
         public string Party_CD { get; set; }
