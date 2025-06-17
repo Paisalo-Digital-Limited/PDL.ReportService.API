@@ -140,11 +140,9 @@ namespace PDL.ReportService.API.Controllers
                 bool isLive = GetIslive();
 
                 if (file == null || file.Length == 0)
-                {
-                    
+                {                    
                     //return BadRequest("File not selected or empty");
                     return BadRequest(new { message = resourceManager.GetString("FILENOTEXIST") });
-
                 }
 
                 List<string> smcodes =Helper.ReadExcelFileToSMCodeList(file);
@@ -153,7 +151,6 @@ namespace PDL.ReportService.API.Controllers
                 {
                     //return BadRequest("No Smcodes found in the Excel file");
                     return BadRequest(new { message = resourceManager.GetString("SMCODENOTEXIST") });
-
                 }
                 List<EMIInformationVM> eMIs = new List<EMIInformationVM>();
                 foreach (var smcode in smcodes)
