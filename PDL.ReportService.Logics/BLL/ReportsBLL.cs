@@ -279,7 +279,7 @@ namespace PDL.ReportService.Logics.BLL
             }
 
             return result;
-
+        }
         public List<EMIInformationVM> GetEMIInformation(string smCode, string dbtype, string dbName, bool isLive, int PageNumber, int PageSize)
         {
             SqlConnection con = null;
