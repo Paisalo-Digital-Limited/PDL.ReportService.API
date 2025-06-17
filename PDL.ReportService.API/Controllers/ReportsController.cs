@@ -3,6 +3,8 @@ using Microsoft.Extensions.Configuration;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.Helper;
+using Renci.SshNet.Messages;
+using System.Data;
 using System.Xml.Linq;
 
 namespace PDL.ReportService.API.Controllers
@@ -132,6 +134,9 @@ namespace PDL.ReportService.API.Controllers
 
         [HttpGet]
         public IActionResult GetLoansWithoutInstallments(string dDbName, int PageNumber, int PageSize)
+
+        [HttpPost]
+        public IActionResult GetEMIInformation(IFormFile file, string dbtype, int PageNumber, int PageSize)
         {
             try
             {
@@ -146,6 +151,28 @@ namespace PDL.ReportService.API.Controllers
                 var result = _reports.GetLoansWithoutInstallments(dDbName, dbName, isLive, PageNumber, PageSize);
 
                 if (result != null && result.Any())
+
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest("File not selected or empty");
+                }
+
+                List<string> smcodes =Helper.ReadExcelFileToSMCodeList(file);
+
+                if (smcodes.Count == 0)
+                {
+                    return BadRequest("No Smcodes found in the Excel file");
+                }
+                List<EMIInformationVM> eMIs = new List<EMIInformationVM>();
+                foreach (var smcode in smcodes)
+                {
+                    List<EMIInformationVM> emiList = _reports.GetEMIInformation(smcode,dbtype, dbName, isLive, PageNumber, PageSize);
+                    if (emiList != null && emiList.Any())
+                    {
+                        eMIs.AddRange(emiList);
+                    }
+                }
+                if (eMIs.Count > 0)
                 {
                     return Ok(new
                     {
@@ -162,5 +189,19 @@ namespace PDL.ReportService.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+                        data = eMIs
+                    });
+                }
+                else
+                {
+                    return NotFound(new { message = resourceManager.GetString("GETFAIL") });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "UploadExcelFile_Reports");
+                return BadRequest(ex.Message);
+            }
+        }       
     }
 }

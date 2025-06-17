@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
+using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -239,6 +240,7 @@ namespace PDL.ReportService.Logics.BLL
             }
             return reportData;
         }
+
         public List<SmWithoutChqVM> GetLoansWithoutInstallments(string dDbName, string dbName, bool isLive, int PageNumber, int PageSize)
         {
             List<SmWithoutChqVM> result = new List<SmWithoutChqVM>();
@@ -275,6 +277,69 @@ namespace PDL.ReportService.Logics.BLL
             }
 
             return result;
+
+        public List<EMIInformationVM> GetEMIInformation(string smCode, string dbtype, string dbName, bool isLive, int PageNumber, int PageSize)
+        {
+            SqlConnection con = null;
+            List<EMIInformationVM> result = new List<EMIInformationVM>();
+            try
+            {
+                // DB connection type select karna
+                if (dbtype == "SBIPDLCOL")
+                    con = _credManager.getConnectionString(dbName, isLive);
+                else if (dbtype == "PDLERP")
+                    con = _credManager.getConnections(dbName, isLive);
+                else
+                    throw new Exception("Invalid dbtype provided");
+                using (SqlCommand cmd = new SqlCommand("GetEMIInformation", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@CODE", string.IsNullOrEmpty(smCode) ? DBNull.Value : (object)smCode);
+                    cmd.Parameters.AddWithValue("@dbname", string.IsNullOrEmpty(dbtype) ? DBNull.Value : (object)dbtype);
+
+                    con.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            EMIInformationVM eMIs = new EMIInformationVM();
+
+                            eMIs.Name = reader["full_name"] == DBNull.Value ? string.Empty : reader["full_name"].ToString();
+                            eMIs.Code = reader["Code"] == DBNull.Value ? string.Empty : reader["Code"].ToString();
+
+                            eMIs.TotalNoOfEMIDue = reader["Total No. of EMI Due"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Total No. of EMI Due"]);
+                            eMIs.TotalAmountDue = reader["Total Amount Due"] == DBNull.Value ? 0 : Convert.ToInt64(reader["Total Amount Due"]);
+                            eMIs.TotalNoofEMIReceive = reader["Total No. of EMI Received"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Total No. of EMI Received"]);
+                            eMIs.TotalAmountReceived = reader["Total Amount Received"] == DBNull.Value ? 0 : Convert.ToInt64(reader["Total Amount Received"]);
+                            eMIs.OverdueAmount = reader["Overdue Amount"] == DBNull.Value ? 0 : Convert.ToInt64(reader["Overdue Amount"]);
+                            eMIs.CurrentBalance = reader["Current Amount"] == DBNull.Value ? 0 : Convert.ToInt64(reader["Current Amount"]);
+                            eMIs.LastPaymentRcvdDate = reader["Last Payment Rcvd Date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["Last Payment Rcvd Date"]);
+                            eMIs.LastRcvdAmt = reader["Last Rcvd Amt"] == DBNull.Value ? 0 : Convert.ToInt64(reader["Last Rcvd Amt"]);
+                            eMIs.SMClosedOrNot = reader["sm_closed_or_not"] == DBNull.Value ? string.Empty : reader["sm_closed_or_not"].ToString();
+                            eMIs.DOB = reader["dob"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["dob"]);
+                           
+                            eMIs.PanCard = reader["PAN"] != DBNull.Value ? Helper.Helper.Decrypt(reader["PAN"].ToString(), _configuration["encryptSalts:pan"]) : null;
+                            eMIs.VoterCard = reader["VID"] != DBNull.Value ? Helper.Helper.Decrypt(reader["VID"].ToString(), _configuration["encryptSalts:voterid"]) : null;
+                              
+                            //eMIs.TotalTenureofCase = reader["TotalTenureofCase"] == DBNull.Value ? string.Empty : reader["TotalTenureofCase"].ToString();
+                            eMIs.Address = reader["address"] == DBNull.Value ? string.Empty : reader["address"].ToString();
+
+                            result.Add(eMIs);
+                        }
+                        return result;
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                if (con != null && con.State == ConnectionState.Open)
+                    con.Close();
+            }
         }
     }
 }
