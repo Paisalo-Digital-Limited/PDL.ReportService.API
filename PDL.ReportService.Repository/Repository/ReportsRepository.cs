@@ -69,5 +69,13 @@ namespace PDL.ReportService.Repository.Repository
 
             }
         }
+
+        public List<LoanWithoutDisbVoucherVM> GetLoansWithoutDisbursements(string dDbName, string dbName, bool isLive, int PageNumber, int PageSize, out int TotalCount)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.GetLoansWithoutDisbursements(dDbName, dbName, isLive, PageNumber, PageSize, out TotalCount);
+            }
+        }
     }
 }
