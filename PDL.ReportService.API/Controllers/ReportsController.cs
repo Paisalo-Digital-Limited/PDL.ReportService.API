@@ -141,14 +141,19 @@ namespace PDL.ReportService.API.Controllers
 
                 if (file == null || file.Length == 0)
                 {
-                    return BadRequest("File not selected or empty");
+                    
+                    //return BadRequest("File not selected or empty");
+                    return BadRequest(new { message = resourceManager.GetString("FILENOTEXIST") });
+
                 }
 
                 List<string> smcodes =Helper.ReadExcelFileToSMCodeList(file);
 
                 if (smcodes.Count == 0)
                 {
-                    return BadRequest("No Smcodes found in the Excel file");
+                    //return BadRequest("No Smcodes found in the Excel file");
+                    return BadRequest(new { message = resourceManager.GetString("SMCODENOTEXIST") });
+
                 }
                 List<EMIInformationVM> eMIs = new List<EMIInformationVM>();
                 foreach (var smcode in smcodes)
