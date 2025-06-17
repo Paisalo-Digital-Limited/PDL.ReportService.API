@@ -242,6 +242,44 @@ namespace PDL.ReportService.Logics.BLL
             }
             return reportData;
         }
+
+        public List<SmWithoutChqVM> GetLoansWithoutInstallments(string dDbName, string dbName, bool isLive, int PageNumber, int PageSize)
+        {
+            List<SmWithoutChqVM> result = new List<SmWithoutChqVM>();
+
+            using (SqlConnection con = _credManager.getConnections(dbName, isLive))
+            {
+                con.Open();
+
+                using (SqlCommand cmd = new SqlCommand("usp_GetLoansPendingInstallments", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@PageNumber", PageNumber);
+                    cmd.Parameters.AddWithValue("@PageSize", PageSize);
+                    cmd.Parameters.AddWithValue("@DbName", dDbName); // Pass 'PDLERP' or 'PDLSHARECOL'
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            result.Add(new SmWithoutChqVM
+                            {
+                                Code = reader["code"]?.ToString(),
+                                Subs_Name = reader["subs_name"]?.ToString(),
+                                Invest = reader["invest"] as decimal?,
+                                Dt_Fin = reader["dt_fin"] as DateTime?,
+                                Loan_Type = reader["loan_type"]?.ToString(),
+                                CreatedOn = reader["CreatedOn"] as DateTime?
+                            });
+                        }
+                    }
+                }
+
+                con.Close();
+            }
+
+            return result;
+
         public List<EMIInformationVM> GetEMIInformation(string smCode, string dbtype, string dbName, bool isLive, int PageNumber, int PageSize)
         {
             SqlConnection con = null;

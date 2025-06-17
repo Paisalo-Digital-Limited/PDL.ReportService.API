@@ -131,6 +131,10 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         #endregion
+
+        [HttpGet]
+        public IActionResult GetLoansWithoutInstallments(string dDbName, int PageNumber, int PageSize)
+
         [HttpPost]
         public IActionResult GetEMIInformation(IFormFile file, string dbtype, int PageNumber, int PageSize)
         {
@@ -138,6 +142,15 @@ namespace PDL.ReportService.API.Controllers
             {
                 string dbName = GetDBName();
                 bool isLive = GetIslive();
+
+                if (string.IsNullOrEmpty(dbName))
+                {
+                    return BadRequest(new { message = resourceManager.GetString("NULLDBNAME") });
+                }
+
+                var result = _reports.GetLoansWithoutInstallments(dDbName, dbName, isLive, PageNumber, PageSize);
+
+                if (result != null && result.Any())
 
                 if (file == null || file.Length == 0)
                 {                    
@@ -166,6 +179,18 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         message = resourceManager.GetString("GETSUCCESS"),
+                        data = result
+                    });
+                }
+
+                return NotFound(new { message = resourceManager.GetString("GETFAIL") });
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetLoansWithoutInstallments_Reports");
+                return BadRequest(ex.Message);
+            }
+        }
                         data = eMIs
                     });
                 }
@@ -179,7 +204,6 @@ namespace PDL.ReportService.API.Controllers
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "UploadExcelFile_Reports");
                 return BadRequest(ex.Message);
             }
-        }
-        
+        }       
     }
 }
