@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using NPOI.SS.UserModel;
 using PDL.ReportService.Entites.VM;
+using PDL.ReportService.Entites.VM.ReportVM;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.Helper;
 using Renci.SshNet.Messages;
@@ -272,5 +274,34 @@ namespace PDL.ReportService.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        #region Get CSO Report based on Creator and BranchCode
+        [HttpGet]
+        public IActionResult GetCSOReport(int creatorId, string branchCode)
+        {
+            try
+            {
+                string dbName = GetDBName();
+                bool isLive = GetIslive();
+                List<CSOReportVM> result = _reports.GetCSOReport(creatorId,branchCode,dbName,isLive);
+
+                if (result.Count>0)
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result
+                    });
+                }
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetCSOReport_Reports");
+                return BadRequest(ex.Message);
+            }
+        }
+        #endregion
     }
 }

@@ -84,5 +84,12 @@ namespace PDL.ReportService.Repository.Repository
                 return reportsBLL.GetDuplicateDIBVouchers(dbtype, dbName, isLive, PageNumber, PageSize);
             }
         }
+        public List<CSOReportVM> GetCSOReport(int creatorId,string branchCode,string dbName,bool isLive)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.GetCSOReport(creatorId,branchCode,dbName,isLive);
+            }
+        }
     }
 }

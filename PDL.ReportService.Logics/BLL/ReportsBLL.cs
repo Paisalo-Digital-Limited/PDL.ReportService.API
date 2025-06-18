@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using NPOI.SS.UserModel;
 using OfficeOpenXml;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Entites.VM.ReportVM;
@@ -443,5 +444,52 @@ namespace PDL.ReportService.Logics.BLL
 
             return reportList;
         }
+
+        #region Get CSO Report based on Creator and BranchCode
+        public List<CSOReportVM> GetCSOReport(int creatorId, string branchCode, string dbName,bool isLive)
+        {
+            List<CSOReportVM> reportList = new List<CSOReportVM>();
+
+            try
+            {
+                using (SqlConnection conn = _credManager.getConnections(dbName,isLive))
+                {
+                    using (SqlCommand cmd = new SqlCommand("Usp_GetCSOReport", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.Add("@CreatorId", SqlDbType.Int).Value=creatorId;
+                        cmd.Parameters.Add("@BranchCode", SqlDbType.VarChar,5).Value=branchCode;
+
+                        conn.Open();
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                CSOReportVM report = new CSOReportVM
+                                {
+                                    Creator = reader["CreatorName"].ToString(),
+                                    BranchName = reader["BranchName"].ToString(),
+                                    BranchCode = reader["BranchCode"].ToString(),
+                                    CSOName = reader["CSOName"].ToString(),
+                                    UserName = reader["UserName"].ToString(),
+                                };
+
+                                reportList.Add(report);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("An error occurred while fetching CSO report data.", ex);
+            }
+
+            return reportList;
+        }
+
+        #endregion
     }
 }
