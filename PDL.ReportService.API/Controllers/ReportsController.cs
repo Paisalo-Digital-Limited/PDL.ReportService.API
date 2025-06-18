@@ -212,5 +212,39 @@ namespace PDL.ReportService.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet]
+        public IActionResult GetLoansWithoutDisbursements(string dDbName, int PageNumber, int PageSize)
+        {
+            try
+            {
+                string dbName = GetDBName();
+                bool isLive = GetIslive();
+
+                if (string.IsNullOrEmpty(dbName))
+                {
+                    return BadRequest(new { message = resourceManager.GetString("NULLDBNAME") });
+                }
+                int totalCount;
+                var result = _reports.GetLoansWithoutDisbursements(dDbName, dbName, isLive, PageNumber, PageSize, out totalCount);
+
+                if (result != null && result.Any())
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result,
+                        totalRecords = totalCount
+                    });
+                }
+
+                return NotFound(new { message = resourceManager.GetString("GETFAIL"), totalRecords = 0 });
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetLoansWithoutDisbursements_Reports");
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

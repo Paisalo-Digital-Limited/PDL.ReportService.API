@@ -343,5 +343,53 @@ namespace PDL.ReportService.Logics.BLL
                     con.Close();
             }
         }
+        public List<LoanWithoutDisbVoucherVM> GetLoansWithoutDisbursements(string dDbName, string dbName, bool isLive, int PageNumber, int PageSize, out int totalCount)
+        {
+            totalCount = 0;
+            List<LoanWithoutDisbVoucherVM> result = new List<LoanWithoutDisbVoucherVM>();
+
+            using (SqlConnection con = _credManager.getConnections(dbName, isLive))
+            {
+                con.Open();
+
+                using (SqlCommand cmd = new SqlCommand("usp_GetLoansWithoutDisbVoucher", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@PageNumber", PageNumber);
+                    cmd.Parameters.AddWithValue("@PageSize", PageSize);
+                    cmd.Parameters.AddWithValue("@DbName", dDbName);
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            totalCount = reader["TotalCount"] != DBNull.Value
+                                ? Convert.ToInt32(reader["TotalCount"])
+                                : 0;
+                        }
+
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                result.Add(new LoanWithoutDisbVoucherVM
+                                {
+                                    Code = reader["code"]?.ToString(),
+                                    SubsName = reader["subs_name"]?.ToString(),
+                                    Invest = reader["invest"] as decimal?,
+                                    DtFin = reader["dt_fin"] as DateTime?,
+                                    LoanType = reader["loan_type"]?.ToString(),
+                                    CreationDate = reader["CreatedOn"] as DateTime?
+                                });
+                            }
+                        }
+                    }
+                }
+
+                con.Close();
+            }
+
+            return result;
+        }
     }
 }
