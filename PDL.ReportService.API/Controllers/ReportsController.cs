@@ -246,5 +246,31 @@ namespace PDL.ReportService.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [HttpPost]
+        public IActionResult GetDuplicateDIBVouchers(string dbtype, int PageNumber, int PageSize)
+        {
+            try
+            {
+                string dbName = GetDBName();
+                bool isLive = GetIslive();
+                List<DuplicateDIBVoucherVM> result = _reports.GetDuplicateDIBVouchers(dbtype, dbName, isLive, PageNumber, PageSize);
+
+                if (result != null && result.Any())
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result
+                    });
+                }
+
+                return NotFound(new { message = resourceManager.GetString("GETFAIL") });
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetDuplicateDIBVouchers_Reports");
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

@@ -391,5 +391,57 @@ namespace PDL.ReportService.Logics.BLL
 
             return result;
         }
+        public List<DuplicateDIBVoucherVM> GetDuplicateDIBVouchers(string dbtype, string dbName, bool isLive, int PageNumber, int PageSize)
+        {
+            List<DuplicateDIBVoucherVM> reportList = new List<DuplicateDIBVoucherVM>();
+            SqlConnection con = null;
+
+            try
+            {
+                // DB Connection
+                if (dbtype == "SBIPDLCOL")
+                    con = _credManager.getConnectionString(dbName, isLive);
+                else if (dbtype == "PDLERP")
+                    con = _credManager.getConnections(dbName, isLive);
+                else
+                    throw new Exception("Invalid dbtype provided");
+
+                using (SqlCommand cmd = new SqlCommand("Usp_GetDuplicateDIBVouchers", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@PageNumber", PageNumber);
+                    cmd.Parameters.AddWithValue("@PageSize", PageSize);
+                    con.Open();
+
+                    using (SqlDataReader rdr = cmd.ExecuteReader())
+                    {
+                        while (rdr.Read())
+                        {
+                            reportList.Add(new DuplicateDIBVoucherVM
+                            {
+                                Code = rdr["Code"] != DBNull.Value ? rdr["Code"].ToString() : string.Empty,
+                                RCNo = rdr["RCNo"] != DBNull.Value ? rdr["RCNo"].ToString() : string.Empty,
+                                VDate = rdr["VDate"] != DBNull.Value ? Convert.ToDateTime(rdr["VDate"]) : (DateTime?)null,
+                                DR = rdr["DR"] != DBNull.Value ? Convert.ToDecimal(rdr["DR"]) : 0,
+                                AHEAD = rdr["AHEAD"] != DBNull.Value ? rdr["AHEAD"].ToString() : string.Empty,
+                                Creator = rdr["Creator"] != DBNull.Value ? rdr["Creator"].ToString() : string.Empty,
+                                Flag = "Duplicate DIB Entry"
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                if (con != null && con.State == ConnectionState.Open)
+                    con.Close();
+            }
+
+            return reportList;
+        }
     }
 }
