@@ -84,5 +84,12 @@ namespace PDL.ReportService.Repository.Repository
                 return reportsBLL.GetDuplicateDIBVouchers(dbtype, dbName, isLive, PageNumber, PageSize);
             }
         }
+        public List<RcTransactionVM> GetRcDisbursementTransactionReport(string dDbName, string dbName, bool isLive, int PageNumber, int PageSize, out int TotalCount, DateTime fromDate, DateTime toDate, string creator)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.GetRcDisbursementTransactionReport(dDbName, dbName, isLive, PageNumber, PageSize, out TotalCount, fromDate, toDate, creator);
+            }
+        }
     }
 }

@@ -443,5 +443,56 @@ namespace PDL.ReportService.Logics.BLL
 
             return reportList;
         }
+
+        public List<RcTransactionVM> GetRcDisbursementTransactionReport(string dDbName, string dbName, bool isLive, int PageNumber, int PageSize, out int totalCount, DateTime fromDate, DateTime toDate, string creator)
+        {
+            totalCount = 0;
+            List<RcTransactionVM> result = new List<RcTransactionVM>();
+
+            using (SqlConnection con = _credManager.getConnections(dbName, isLive))
+            {
+                con.Open();
+
+                using (SqlCommand cmd = new SqlCommand("usp_GetRcTransactions", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@creator", creator);
+                    cmd.Parameters.AddWithValue("@dt1", fromDate);
+                    cmd.Parameters.AddWithValue("@dt2", toDate);
+                    cmd.Parameters.AddWithValue("@DbName", dDbName);
+                    cmd.Parameters.AddWithValue("@PageNumber", PageNumber);
+                    cmd.Parameters.AddWithValue("@PageSize", PageSize);
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            totalCount = reader["TotalCount"] != DBNull.Value
+                                ? Convert.ToInt32(reader["TotalCount"])
+                                : 0;
+                        }
+
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                result.Add(new RcTransactionVM
+                                {
+                                    VDate = reader["VDate"] as DateTime?,
+                                    Code = reader["Code"]?.ToString(),
+                                    Ahead = reader["ahead"]?.ToString(),
+                                    Dr = reader["dr"] != DBNull.Value ? Convert.ToDecimal(reader["dr"]) : (decimal?)null,
+                                    Cr = reader["cr"] != DBNull.Value ? Convert.ToDecimal(reader["cr"]) : (decimal?)null
+                                });
+                            }
+                        }
+                    }
+                }
+
+                con.Close();
+            }
+
+            return result;
+        }
     }
 }

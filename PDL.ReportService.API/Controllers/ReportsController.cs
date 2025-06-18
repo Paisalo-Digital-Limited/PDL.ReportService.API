@@ -272,5 +272,39 @@ namespace PDL.ReportService.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet]
+        public IActionResult GetRcDisbursementTransactionReport(string dDbName, int PageNumber, int PageSize, DateTime fromDate, DateTime toDate, string creator)
+        {
+            try
+            {
+                string dbName = GetDBName();
+                bool isLive = GetIslive();
+
+                if (string.IsNullOrEmpty(dbName))
+                {
+                    return BadRequest(new { message = resourceManager.GetString("NULLDBNAME") });
+                }
+                int totalCount;
+                var result = _reports.GetRcDisbursementTransactionReport(dDbName, dbName, isLive, PageNumber, PageSize, out totalCount, fromDate, toDate, creator);
+
+                if (result != null && result.Any())
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result,
+                        totalRecords = totalCount
+                    });
+                }
+
+                return NotFound(new { message = resourceManager.GetString("GETFAIL"), totalRecords = 0 });
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetRcDisbursementTransactionReport_Reports");
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
