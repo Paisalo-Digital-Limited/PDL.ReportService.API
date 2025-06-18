@@ -77,5 +77,12 @@ namespace PDL.ReportService.Repository.Repository
                 return reportsBLL.GetLoansWithoutDisbursements(dDbName, dbName, isLive, PageNumber, PageSize, out TotalCount);
             }
         }
+        public List<DuplicateDIBVoucherVM> GetDuplicateDIBVouchers(string dbtype, string dbName, bool isLive, int PageNumber, int PageSize)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.GetDuplicateDIBVouchers(dbtype, dbName, isLive, PageNumber, PageSize);
+            }
+        }
     }
 }
