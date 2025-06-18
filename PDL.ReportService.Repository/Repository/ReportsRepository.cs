@@ -55,7 +55,14 @@ namespace PDL.ReportService.Repository.Repository
         {
             using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
             {
-                return reportsBLL.GetEMIInformation(smCode,dbtype, dbName, isLive, PageNumber, PageSize);
+                return reportsBLL.GetEMIInformation(smCode, dbtype, dbName, isLive, PageNumber, PageSize);
+            }
+        }
+        public List<DuplicateDIBVoucherVM> GetDuplicateDIBVouchers(string dbtype, string dbName, bool isLive, int PageNumber, int PageSize)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.GetDuplicateDIBVouchers(dbtype, dbName, isLive, PageNumber, PageSize);
             }
         }
     }

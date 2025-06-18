@@ -33,4 +33,15 @@ namespace PDL.ReportService.Entites.VM
         public decimal CreditAmt { get; set; }
         public decimal DebitAmt { get; set; }
     }
+    public class DuplicateDIBVoucherVM
+    {
+        public string Code { get; set; }
+        public string RCNo { get; set; }
+        public DateTime? VDate { get; set; }
+        public decimal DR { get; set; }
+        public string AHEAD { get; set; }
+        public string Creator { get; set; }
+        public string Flag { get; set; } // "Duplicate DIB Entry"
+    }
+
 }
