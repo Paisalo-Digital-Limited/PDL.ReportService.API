@@ -446,7 +446,7 @@ namespace PDL.ReportService.Logics.BLL
         }
 
         #region Get CSO Report based on Creator and BranchCode
-        public List<CSOReportVM> GetCSOReport(int creatorId, string branchCode, string dbName,bool isLive)
+        public List<CSOReportVM> GetCSOReport(int creatorId, string branchCode, string dbName, bool isLive, int pageNumber, int pageSize)
         {
             List<CSOReportVM> reportList = new List<CSOReportVM>();
 
@@ -460,6 +460,9 @@ namespace PDL.ReportService.Logics.BLL
 
                         cmd.Parameters.Add("@CreatorId", SqlDbType.Int).Value=creatorId;
                         cmd.Parameters.Add("@BranchCode", SqlDbType.VarChar,5).Value=branchCode;
+                        cmd.Parameters.Add("@PageNumber", SqlDbType.Int).Value=pageNumber;
+                        cmd.Parameters.Add("@PageSize", SqlDbType.Int).Value=pageSize;
+
 
                         conn.Open();
 
@@ -473,7 +476,7 @@ namespace PDL.ReportService.Logics.BLL
                                     BranchName = reader["BranchName"].ToString(),
                                     BranchCode = reader["BranchCode"].ToString(),
                                     CSOName = reader["CSOName"].ToString(),
-                                    UserName = reader["UserName"].ToString(),
+                                    UserName = reader["UserName"].ToString()
                                 };
 
                                 reportList.Add(report);

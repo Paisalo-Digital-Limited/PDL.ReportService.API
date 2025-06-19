@@ -277,13 +277,13 @@ namespace PDL.ReportService.API.Controllers
 
         #region Get CSO Report based on Creator and BranchCode
         [HttpGet]
-        public IActionResult GetCSOReport(int creatorId, string branchCode)
+        public IActionResult GetCSOReport(int creatorId, string branchCode, int pageNumber, int pageSize)
         {
             try
             {
                 string dbName = GetDBName();
                 bool isLive = GetIslive();
-                List<CSOReportVM> result = _reports.GetCSOReport(creatorId,branchCode,dbName,isLive);
+                List<CSOReportVM> result = _reports.GetCSOReport(creatorId,branchCode,dbName,isLive,pageNumber,pageSize);
 
                 if (result.Count>0)
                 {
