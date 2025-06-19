@@ -23,11 +23,11 @@ namespace PDL.ReportService.Repository.Repository
             _configuration = configuration;
         }
 
-        public List<CaseHistoryVM> GetCaseHistoryBySmCodes(List<string> smCodes, string dbName, bool isLive, int PageNumber, int PageSize)
+        public List<CaseHistoryVM> GetCaseHistoryBySmCodes(List<string> smCodes, string dbName, bool isLive, int PageNumber, int PageSize, out int totalCount)
         {
             using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
             {
-                return reportsBLL.GetCaseHistoryBySmCodes(smCodes, dbName, isLive, PageNumber, PageSize);
+                return reportsBLL.GetCaseHistoryBySmCodes(smCodes, dbName, isLive, PageNumber, PageSize, out totalCount);
             }
         }
         public List<CsoCollectionReportModelVM> GetCsoCollectionReport(DateTime fromDate, DateTime toDate, string csoCode, string dbtype, string dbName, bool isLive, int PageNumber, int PageSize)

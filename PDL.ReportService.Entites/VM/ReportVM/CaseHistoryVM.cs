@@ -20,5 +20,7 @@ namespace PDL.ReportService.Entites.VM.ReportVM
         public string Address { get; set; }          
         public string Creator { get; set; }          
         public decimal? IncomePA { get; set; }
+        public int? ActiveAccount { get; set; }
+        public decimal? ActiveAmount { get; set; }
     }
 }
