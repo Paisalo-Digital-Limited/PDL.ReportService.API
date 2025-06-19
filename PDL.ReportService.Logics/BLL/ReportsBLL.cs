@@ -28,8 +28,9 @@ namespace PDL.ReportService.Logics.BLL
             _credManager = new CredManager(configuration);
         }
 
-        public List<CaseHistoryVM> GetCaseHistoryBySmCodes(List<string> smCodes, string dbName, bool isLive, int PageNumber, int PageSize)
+        public List<CaseHistoryVM> GetCaseHistoryBySmCodes(List<string> smCodes, string dbName, bool isLive, int PageNumber, int PageSize, out int totalCount)
         {
+            totalCount = 0;
             List<CaseHistoryVM> result = new List<CaseHistoryVM>();
 
             using (SqlConnection con = _credManager.getConnections(dbName, isLive))
@@ -47,23 +48,56 @@ namespace PDL.ReportService.Logics.BLL
 
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
-                            while (reader.Read())
+                            if (reader.Read())
                             {
-                                result.Add(new CaseHistoryVM
+                                totalCount = reader["TotalCount"] != DBNull.Value
+                                    ? Convert.ToInt32(reader["TotalCount"])
+                                    : 0;
+                            }
+
+                            if (reader.NextResult())
+                            {
+                                while (reader.Read())
                                 {
-                                    Code = reader["Code"]?.ToString(),
-                                    Custname = reader["Custname"]?.ToString(),
-                                    Religion = reader["Religion"]?.ToString(),
-                                    PhoneNo = reader["PhoneNo"]?.ToString(),
-                                    Income = reader["Income"] as decimal?,
-                                    CrifScore = reader["CrifScore"] as int?,
-                                    OverdueAmt = reader["OverdueAmt"] as decimal?,
-                                    TotalCurrentAmt = reader["TotalCurrentAmt"] as decimal?,
-                                    Pincode = reader["Pincode"]?.ToString(),
-                                    Address = reader["Address"]?.ToString(),
-                                    Creator = reader["Creator"]?.ToString(),
-                                    IncomePA = reader["IncomePA"] as decimal?
-                                });
+                                    result.Add(new CaseHistoryVM
+                                    {
+                                        Code = reader["Code"]?.ToString(),
+                                        Custname = reader["Custname"]?.ToString(),
+                                        Religion = reader["Religion"]?.ToString(),
+                                        PhoneNo = reader["PhoneNo"]?.ToString(),
+                                        Pincode = reader["Pincode"]?.ToString(),
+                                        Address = reader["Address"]?.ToString(),
+                                        Creator = reader["Creator"]?.ToString(),
+
+                                        Income = reader.IsDBNull(reader.GetOrdinal("Income"))
+                                            ? (decimal?)null
+                                            : Convert.ToDecimal(reader["Income"]),
+
+                                        CrifScore = reader.IsDBNull(reader.GetOrdinal("CrifScore"))
+                                            ? (int?)null
+                                            : Convert.ToInt32(reader["CrifScore"]),
+
+                                        OverdueAmt = reader.IsDBNull(reader.GetOrdinal("OverdueAmt"))
+                                            ? (decimal?)null
+                                            : Convert.ToDecimal(reader["OverdueAmt"]),
+
+                                        TotalCurrentAmt = reader.IsDBNull(reader.GetOrdinal("TotalCurrentAmt"))
+                                            ? (decimal?)null
+                                            : Convert.ToDecimal(reader["TotalCurrentAmt"]),
+
+                                        IncomePA = reader.IsDBNull(reader.GetOrdinal("IncomePA"))
+                                            ? (decimal?)null
+                                            : Convert.ToDecimal(reader["IncomePA"]),
+
+                                        ActiveAccount = reader.IsDBNull(reader.GetOrdinal("CountofActiveAccount"))
+                                            ? (int?)null
+                                            : Convert.ToInt32(reader["CountofActiveAccount"]),
+
+                                        ActiveAmount = reader.IsDBNull(reader.GetOrdinal("AmountofActiveAccount"))
+                                            ? (decimal?)null
+                                            : Convert.ToDecimal(reader["AmountofActiveAccount"])
+                                    });
+                                }
                             }
                         }
                     }
@@ -74,6 +108,7 @@ namespace PDL.ReportService.Logics.BLL
 
             return result;
         }
+
         public List<CsoCollectionReportModelVM> GetCsoCollectionReport(DateTime fromDate, DateTime toDate, string csoCode, string dbtype, string dbName, bool isLive, int PageNumber, int PageSize)
         {
             List<CsoCollectionReportModelVM> reportList = new List<CsoCollectionReportModelVM>();
@@ -319,10 +354,10 @@ namespace PDL.ReportService.Logics.BLL
                             eMIs.LastRcvdAmt = reader["Last Rcvd Amt"] == DBNull.Value ? 0 : Convert.ToInt64(reader["Last Rcvd Amt"]);
                             eMIs.SMClosedOrNot = reader["sm_closed_or_not"] == DBNull.Value ? string.Empty : reader["sm_closed_or_not"].ToString();
                             eMIs.DOB = reader["dob"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["dob"]);
-                           
+
                             eMIs.PanCard = reader["PAN"] != DBNull.Value ? Helper.Helper.Decrypt(reader["PAN"].ToString(), _configuration["encryptSalts:pan"]) : null;
                             eMIs.VoterCard = reader["VID"] != DBNull.Value ? Helper.Helper.Decrypt(reader["VID"].ToString(), _configuration["encryptSalts:voterid"]) : null;
-                              
+
                             //eMIs.TotalTenureofCase = reader["TotalTenureofCase"] == DBNull.Value ? string.Empty : reader["TotalTenureofCase"].ToString();
                             eMIs.Address = reader["address"] == DBNull.Value ? string.Empty : reader["address"].ToString();
 
