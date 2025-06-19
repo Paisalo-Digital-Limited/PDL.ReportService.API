@@ -52,12 +52,11 @@ namespace PDL.ReportService.Repository.Repository
             }
         }
 
-        public List<SmWithoutChqVM> GetLoansWithoutInstallments(string dDbName, string dbName, bool isLive, int PageNumber, int PageSize)
+        public List<SmWithoutChqVM> GetLoansWithoutInstallments(string dDbName, string dbName, bool isLive, int PageNumber, int PageSize, out int totalCount)
         {
             using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
             {
-                return reportsBLL.GetLoansWithoutInstallments(dDbName, dbName, isLive, PageNumber, PageSize);
-
+                return reportsBLL.GetLoansWithoutInstallments(dDbName, dbName, isLive, PageNumber, PageSize, out totalCount);
             }
         }
 

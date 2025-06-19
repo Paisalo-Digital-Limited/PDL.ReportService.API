@@ -192,15 +192,16 @@ namespace PDL.ReportService.API.Controllers
                 {
                     return BadRequest(new { message = resourceManager.GetString("NULLDBNAME") });
                 }
-
-                var result = _reports.GetLoansWithoutInstallments(dDbName, dbName, isLive, PageNumber, PageSize);
+                int totalCount;
+                var result = _reports.GetLoansWithoutInstallments(dDbName, dbName, isLive, PageNumber, PageSize, out totalCount);
 
                 if (result != null && result.Any())
                 {
                     return Ok(new
                     {
                         message = resourceManager.GetString("GETSUCCESS"),
-                        data = result
+                        data = result,
+                        totalRecords = totalCount
                     });
                 }
 
