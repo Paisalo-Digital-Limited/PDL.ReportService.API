@@ -494,5 +494,54 @@ namespace PDL.ReportService.Logics.BLL
 
             return result;
         }
+        #region Get CSO Report based on Creator and BranchCode
+        public List<CSOReportVM> GetCSOReport(int creatorId, string branchCode, string dbName, bool isLive, int pageNumber, int pageSize)
+        {
+            List<CSOReportVM> reportList = new List<CSOReportVM>();
+
+            try
+            {
+                using (SqlConnection conn = _credManager.getConnections(dbName, isLive))
+                {
+                    using (SqlCommand cmd = new SqlCommand("Usp_GetCSOReport", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.Add("@CreatorId", SqlDbType.Int).Value = creatorId;
+                        cmd.Parameters.Add("@BranchCode", SqlDbType.VarChar, 5).Value = branchCode;
+                        cmd.Parameters.Add("@PageNumber", SqlDbType.Int).Value = pageNumber;
+                        cmd.Parameters.Add("@PageSize", SqlDbType.Int).Value = pageSize;
+
+
+                        conn.Open();
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                CSOReportVM report = new CSOReportVM
+                                {
+                                    Creator = reader["CreatorName"].ToString(),
+                                    BranchName = reader["BranchName"].ToString(),
+                                    BranchCode = reader["BranchCode"].ToString(),
+                                    CSOName = reader["CSOName"].ToString(),
+                                    UserName = reader["UserName"].ToString()
+                                };
+
+                                reportList.Add(report);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("An error occurred while fetching CSO report data.", ex);
+            }
+
+            return reportList;
+        }
+
+        #endregion
     }
 }
