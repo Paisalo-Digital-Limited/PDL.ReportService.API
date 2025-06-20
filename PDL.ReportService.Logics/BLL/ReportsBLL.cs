@@ -278,8 +278,9 @@ namespace PDL.ReportService.Logics.BLL
             return reportData;
         }
 
-        public List<SmWithoutChqVM> GetLoansWithoutInstallments(string dDbName, string dbName, bool isLive, int PageNumber, int PageSize)
+        public List<SmWithoutChqVM> GetLoansWithoutInstallments(string dDbName, string dbName, bool isLive, int PageNumber, int PageSize, out int totalCount)
         {
+            totalCount = 0;
             List<SmWithoutChqVM> result = new List<SmWithoutChqVM>();
 
             using (SqlConnection con = _credManager.getConnections(dbName, isLive))
@@ -295,17 +296,27 @@ namespace PDL.ReportService.Logics.BLL
 
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        while (reader.Read())
+                        if (reader.Read())
                         {
-                            result.Add(new SmWithoutChqVM
+                            totalCount = reader["TotalCount"] != DBNull.Value
+                                ? Convert.ToInt32(reader["TotalCount"])
+                                : 0;
+                        }
+
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
                             {
-                                Code = reader["code"]?.ToString(),
-                                Subs_Name = reader["subs_name"]?.ToString(),
-                                Invest = reader["invest"] as decimal?,
-                                Dt_Fin = reader["dt_fin"] as DateTime?,
-                                Loan_Type = reader["loan_type"]?.ToString(),
-                                CreatedOn = reader["CreatedOn"] as DateTime?
-                            });
+                                result.Add(new SmWithoutChqVM
+                                {
+                                    Code = reader["code"]?.ToString(),
+                                    Subs_Name = reader["subs_name"]?.ToString(),
+                                    Invest = reader["invest"] as decimal?,
+                                    Dt_Fin = reader["dt_fin"] as DateTime?,
+                                    Loan_Type = reader["loan_type"]?.ToString(),
+                                    CreatedOn = reader["CreatedOn"] as DateTime?
+                                });
+                            }
                         }
                     }
                 }
