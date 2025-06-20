@@ -97,5 +97,12 @@ namespace PDL.ReportService.Repository.Repository
                 return reportsBLL.GetCSOReport(creatorId, branchCode, dbName, isLive, pageNumber, pageSize);
             }
         }
+        public List<LedgerReportVM> GetLedgerReport(string smCode,string dbName, bool isLive, int pageNumber, int pageSize)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.GetLedgerReport(smCode,dbName, isLive, pageNumber, pageSize);
+            }
+        }
     }
 }
