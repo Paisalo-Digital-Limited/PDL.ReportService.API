@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
+using System.Resources;
 using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using System.Threading.Tasks;
@@ -534,9 +535,9 @@ namespace PDL.ReportService.Logics.BLL
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new ApplicationException("An error occurred while fetching CSO report data.", ex);
+                return null;
             }
 
             return reportList;

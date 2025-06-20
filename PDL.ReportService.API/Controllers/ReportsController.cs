@@ -318,6 +318,12 @@ namespace PDL.ReportService.API.Controllers
                 bool isLive = GetIslive();
                 List<CSOReportVM> result = _reports.GetCSOReport(creatorId, branchCode, dbName, isLive, pageNumber, pageSize);
 
+                if (result == null)
+                {
+                    // BLL returned null = error occurred
+                    return BadRequest(new { message = resourceManager.GetString("GETFAIL") });
+                }
+
                 if (result.Count > 0)
                 {
                     return Ok(new
@@ -332,7 +338,7 @@ namespace PDL.ReportService.API.Controllers
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetCSOReport_Reports");
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = resourceManager.GetString("BADREQUEST") });
             }
         }
         #endregion
