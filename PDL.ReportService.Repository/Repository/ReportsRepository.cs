@@ -90,5 +90,12 @@ namespace PDL.ReportService.Repository.Repository
                 return reportsBLL.GetRcDisbursementTransactionReport(dDbName, dbName, isLive, PageNumber, PageSize, out TotalCount, fromDate, toDate, creator);
             }
         }
+        public List<CSOReportVM> GetCSOReport(int creatorId, string branchCode, string dbName, bool isLive, int pageNumber, int pageSize)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.GetCSOReport(creatorId, branchCode, dbName, isLive, pageNumber, pageSize);
+            }
+        }
     }
 }
