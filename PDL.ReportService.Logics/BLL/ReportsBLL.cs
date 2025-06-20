@@ -537,7 +537,7 @@ namespace PDL.ReportService.Logics.BLL
             }
             catch (Exception)
             {
-                return null;
+               throw ;
             }
 
             return reportList;
