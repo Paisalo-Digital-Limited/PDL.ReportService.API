@@ -316,6 +316,7 @@ namespace PDL.ReportService.API.Controllers
             {
                 string dbName = GetDBName();
                 bool isLive = GetIslive();
+
                 List<CSOReportVM> result = _reports.GetCSOReport(creatorId, branchCode, dbName, isLive, pageNumber, pageSize);
 
                 if (result.Count > 0)

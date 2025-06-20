@@ -539,7 +539,6 @@ namespace PDL.ReportService.Logics.BLL
             {
                throw ;
             }
-
             return reportList;
         }
 
