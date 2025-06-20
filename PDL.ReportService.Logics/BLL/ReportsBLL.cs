@@ -312,7 +312,7 @@ namespace PDL.ReportService.Logics.BLL
                                 {
                                     Code = reader["code"]?.ToString(),
                                     Subs_Name = reader["subs_name"]?.ToString(),
-                                    Invest = reader["invest"] as decimal?,
+                                    Invest = reader["invest"] != DBNull.Value ? Convert.ToDecimal(reader["invest"]) : (decimal?)null,
                                     Dt_Fin = reader["dt_fin"] as DateTime?,
                                     Loan_Type = reader["loan_type"]?.ToString(),
                                     CreatedOn = reader["CreatedOn"] as DateTime?
@@ -423,7 +423,7 @@ namespace PDL.ReportService.Logics.BLL
                                 {
                                     Code = reader["code"]?.ToString(),
                                     SubsName = reader["subs_name"]?.ToString(),
-                                    Invest = reader["invest"] as decimal?,
+                                    Invest = reader["invest"] != DBNull.Value ? Convert.ToDecimal(reader["invest"]) : (decimal?)null,
                                     DtFin = reader["dt_fin"] as DateTime?,
                                     LoanType = reader["loan_type"]?.ToString(),
                                     CreationDate = reader["CreatedOn"] as DateTime?
