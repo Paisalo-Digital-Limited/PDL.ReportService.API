@@ -590,5 +590,56 @@ namespace PDL.ReportService.Logics.BLL
         }
 
         #endregion
+
+        #region  Get EMI Details based on SMCode
+        public List<LedgerReportVM> GetLedgerReport(string smCode,string dbName, bool isLive, int pageNumber, int pageSize)
+        {
+            List<LedgerReportVM> reportList = new List<LedgerReportVM>();
+
+            try
+            {
+                using (SqlConnection conn = _credManager.getConnections(dbName, isLive))
+                {
+                    using (SqlCommand cmd = new SqlCommand("Usp_GetEMIDetailsBasedSmCode", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                      
+                        cmd.Parameters.Add("@SMCode", SqlDbType.VarChar,16).Value = smCode;
+                        cmd.Parameters.Add("@PageNumber", SqlDbType.Int).Value = pageNumber;
+                        cmd.Parameters.Add("@PageSize", SqlDbType.Int).Value = pageSize;
+
+
+                        conn.Open();
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                LedgerReportVM report = new LedgerReportVM
+                                {
+                                    SMCode = reader["SmCode"].ToString(),
+                                    VoucherNo = reader["VNO"].ToString(),
+                                    VoucherDate = Convert.ToDateTime(reader["VDATE"]),
+                                    Narration = reader["Narration"].ToString(),
+                                    DebitAmount = Convert.ToDouble(reader["DR"]),
+                                    CreditAmount = Convert.ToDouble(reader["CR"]),
+                                    AHEAD = reader["AHEAD"].ToString(),
+                                    OverdueDays = Convert.ToDateTime(reader["INS_DUE_DT"])
+                                };
+
+                                reportList.Add(report);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+
+            return reportList;
+        }
+        #endregion
     }
 }

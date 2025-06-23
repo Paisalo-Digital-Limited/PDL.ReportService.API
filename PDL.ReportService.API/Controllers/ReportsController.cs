@@ -339,5 +339,34 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         #endregion
+
+        #region Get EMI Details based on SMCode
+        [HttpGet]
+        public IActionResult GetLedgerReport(string smCode,int pageNumber, int pageSize)
+        {
+            try
+            {
+                string dbName = GetDBName();
+                bool isLive = GetIslive();
+                List<LedgerReportVM> result = _reports.GetLedgerReport(smCode,dbName, isLive, pageNumber, pageSize);
+
+                if (result.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result
+                    });
+                }
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetLedgerReport_Reports");
+                return BadRequest(new { message = resourceManager.GetString("BADREQUEST") });
+            }
+        }
+        #endregion
     }
 }
