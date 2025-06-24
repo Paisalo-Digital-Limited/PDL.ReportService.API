@@ -32,73 +32,81 @@ namespace PDL.ReportService.Logics.BLL
         public List<CaseHistoryVM> GetCaseHistoryBySmCodes(List<string> smCodes, string dbName, bool isLive, int PageNumber, int PageSize, out int totalCount)
         {
             totalCount = 0;
-            List<CaseHistoryVM> result = new List<CaseHistoryVM>();
+            List<CaseHistoryVM> result = new();
 
             using (SqlConnection con = _credManager.getConnections(dbName, isLive))
             {
                 con.Open();
 
-                foreach (var smCode in smCodes)
+                using (SqlCommand cmd = new SqlCommand("usp_GetCaseHistoryBySmCode", con))
                 {
-                    using (SqlCommand cmd = new SqlCommand("usp_GetCaseHistoryBySmCode", con))
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    // Convert SM codes list to DataTable
+                    var table = new DataTable();
+                    table.Columns.Add("SmCode", typeof(string));
+                    foreach (var code in smCodes)
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.AddWithValue("@SmCode", smCode);
-                        cmd.Parameters.AddWithValue("@PageNumber", PageNumber);
-                        cmd.Parameters.AddWithValue("@PageSize", PageSize);
+                        table.Rows.Add(code);
+                    }
 
-                        using (SqlDataReader reader = cmd.ExecuteReader())
+                    cmd.Parameters.AddWithValue("@SmCodes", table).SqlDbType = SqlDbType.Structured;
+                    cmd.Parameters.AddWithValue("@PageNumber", PageNumber);
+                    cmd.Parameters.AddWithValue("@PageSize", PageSize);
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        // First result: total count
+                        if (reader.Read())
                         {
-                            if (reader.Read())
-                            {
-                                totalCount = reader["TotalCount"] != DBNull.Value
-                                    ? Convert.ToInt32(reader["TotalCount"])
-                                    : 0;
-                            }
+                            totalCount = reader["TotalCount"] != DBNull.Value
+                                ? Convert.ToInt32(reader["TotalCount"])
+                                : 0;
+                        }
 
-                            if (reader.NextResult())
+                        // Second result: paginated data
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
                             {
-                                while (reader.Read())
+                                result.Add(new CaseHistoryVM
                                 {
-                                    result.Add(new CaseHistoryVM
-                                    {
-                                        Code = reader["Code"]?.ToString(),
-                                        Custname = reader["Custname"]?.ToString(),
-                                        Religion = reader["Religion"]?.ToString(),
-                                        PhoneNo = reader["PhoneNo"]?.ToString(),
-                                        Pincode = reader["Pincode"]?.ToString(),
-                                        Address = reader["Address"]?.ToString(),
-                                        Creator = reader["Creator"]?.ToString(),
+                                    Code = reader["Code"]?.ToString(),
+                                    Custname = reader["Custname"]?.ToString(),
+                                    Religion = reader["Religion"]?.ToString(),
+                                    PhoneNo = reader["PhoneNo"]?.ToString(),
+                                    Pincode = reader["Pincode"]?.ToString(),
+                                    Address = reader["Address"]?.ToString(),
+                                    Creator = reader["Creator"]?.ToString(),
 
-                                        Income = reader.IsDBNull(reader.GetOrdinal("Income"))
-                                            ? (decimal?)null
-                                            : Convert.ToDecimal(reader["Income"]),
+                                    Income = reader.IsDBNull(reader.GetOrdinal("Income"))
+                                        ? (decimal?)null
+                                        : Convert.ToDecimal(reader["Income"]),
 
-                                        CrifScore = reader.IsDBNull(reader.GetOrdinal("CrifScore"))
-                                            ? (int?)null
-                                            : Convert.ToInt32(reader["CrifScore"]),
+                                    CrifScore = reader.IsDBNull(reader.GetOrdinal("CrifScore"))
+                                        ? (int?)null
+                                        : Convert.ToInt32(reader["CrifScore"]),
 
-                                        OverdueAmt = reader.IsDBNull(reader.GetOrdinal("OverdueAmt"))
-                                            ? (decimal?)null
-                                            : Convert.ToDecimal(reader["OverdueAmt"]),
+                                    OverdueAmt = reader.IsDBNull(reader.GetOrdinal("OverdueAmt"))
+                                        ? (decimal?)null
+                                        : Convert.ToDecimal(reader["OverdueAmt"]),
 
-                                        TotalCurrentAmt = reader.IsDBNull(reader.GetOrdinal("TotalCurrentAmt"))
-                                            ? (decimal?)null
-                                            : Convert.ToDecimal(reader["TotalCurrentAmt"]),
+                                    TotalCurrentAmt = reader.IsDBNull(reader.GetOrdinal("TotalCurrentAmt"))
+                                        ? (decimal?)null
+                                        : Convert.ToDecimal(reader["TotalCurrentAmt"]),
 
-                                        IncomePA = reader.IsDBNull(reader.GetOrdinal("IncomePA"))
-                                            ? (decimal?)null
-                                            : Convert.ToDecimal(reader["IncomePA"]),
+                                    IncomePA = reader.IsDBNull(reader.GetOrdinal("IncomePA"))
+                                        ? (decimal?)null
+                                        : Convert.ToDecimal(reader["IncomePA"]),
 
-                                        ActiveAccount = reader.IsDBNull(reader.GetOrdinal("CountofActiveAccount"))
-                                            ? (int?)null
-                                            : Convert.ToInt32(reader["CountofActiveAccount"]),
+                                    ActiveAccount = reader.IsDBNull(reader.GetOrdinal("CountofActiveAccount"))
+                                        ? (int?)null
+                                        : Convert.ToInt32(reader["CountofActiveAccount"]),
 
-                                        ActiveAmount = reader.IsDBNull(reader.GetOrdinal("AmountofActiveAccount"))
-                                            ? (decimal?)null
-                                            : Convert.ToDecimal(reader["AmountofActiveAccount"])
-                                    });
-                                }
+                                    ActiveAmount = reader.IsDBNull(reader.GetOrdinal("AmountofActiveAccount"))
+                                        ? (decimal?)null
+                                        : Convert.ToDecimal(reader["AmountofActiveAccount"])
+                                });
                             }
                         }
                     }
