@@ -649,5 +649,96 @@ namespace PDL.ReportService.Logics.BLL
             return reportList;
         }
         #endregion
+
+        public async Task<AccountAggregatorReportVM> GetAccountAggregatorReportAsync(long? fiCode, string? creator, string? smCode, string activeUser, bool islive, string dbName)
+        {
+            var result = new AccountAggregatorReportVM();
+
+            try
+            {
+                using (SqlConnection conn = _credManager.getConnections(dbName, islive))
+                using (SqlCommand cmd = new SqlCommand("usp_GetAccountAggregatorReport", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandTimeout = 60;
+
+                    cmd.Parameters.AddWithValue("@FICode", (object?)fiCode ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Creator", (object?)creator ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@SMCode", (object?)smCode ?? DBNull.Value);
+
+                    await conn.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        // Result Set 1: Borrower Info
+                        result.BorrowerInfo = new List<BorrowerInfoVM>();
+                        while (await reader.ReadAsync())
+                        {
+                            result.BorrowerInfo.Add(new BorrowerInfoVM
+                            {
+                                FICode = reader["FICode"]?.ToString(),
+                                SMCode = reader["SMCode"]?.ToString(),
+                                Name = reader["Name"]?.ToString(),
+                                DOB = reader["DOB"] as DateTime?,
+                                Phone = reader["P_Phone"]?.ToString(),
+                                Address = reader["Current_Address1"]?.ToString(),
+                                Email = reader["Email_Id"]?.ToString(),
+                                PAN = reader["Pan_no"]?.ToString(),
+                                BranchCode = reader["Branch_code"]?.ToString(),
+                                IFSC = reader["Bank_IFCS"]?.ToString(),
+                                Status = reader["status"]?.ToString()
+                            });
+                        }
+
+                        // Result Set 2: Transactions
+                        if (await reader.NextResultAsync())
+                        {
+                            result.Transactions = new List<TransactionsVM>();
+                            while (await reader.ReadAsync())
+                            {
+                                result.Transactions.Add(new TransactionsVM
+                                {
+                                    TxnID = reader["Txn ID"]?.ToString(),
+                                    Amount = reader["Amount"]?.ToString(),
+                                    Narration = reader["Narration"]?.ToString(),
+                                    Type = reader["Type"]?.ToString(),
+                                    Mode = reader["Mode"]?.ToString(),
+                                    CurrentBalance = reader["Current Balance"]?.ToString(),
+                                    BookingDate = reader["Transaction Time Stamp"]?.ToString(),
+                                    ValueDate = reader["ValueDate"]?.ToString(),
+                                    Reference = reader["Reference"]?.ToString()
+                                });
+                            }
+                        }
+
+                        // Result Set 3: Analytics
+                        if (await reader.NextResultAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                result.Analytics = new AnalyticsVM
+                                {
+                                    SubjectId = reader["SubjectId"]?.ToString(),
+                                    Verification = reader["Verification"]?.ToString(),
+                                    SoleTrader = reader["SoleTrader"]?.ToString(),
+                                    TransactionScore = reader["TransactionScore"]?.ToString(),
+                                    ScoreArea = reader["ScoreArea"]?.ToString(),
+                                    ScoreTranche = reader["ScoreTranche"]?.ToString(),
+                                    MonthlyAnalysisJson = reader["MonthlyAnalysis"]?.ToString(),
+                                    PeriodAnalysisJson = reader["PeriodAnalysis"]?.ToString(),
+                                    InsightsJson = reader["Insights"]?.ToString()
+                                };
+                            }
+                        }
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to fetch account aggregator report: " + ex.Message, ex);
+            }
+        }
     }
 }
