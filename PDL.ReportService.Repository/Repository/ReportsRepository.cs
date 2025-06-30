@@ -104,5 +104,12 @@ namespace PDL.ReportService.Repository.Repository
                 return reportsBLL.GetLedgerReport(smCode,dbName, isLive, pageNumber, pageSize);
             }
         }
+        public async Task<AccountAggregatorReportVM> GetAccountAggregatorReportAsync(long? fiCode, string? creator, string? smCode, string activeUser, bool isLive, string dbName)
+        {
+            using (var reportsBLL = new ReportsBLL(_configuration))
+            {
+                return await reportsBLL.GetAccountAggregatorReportAsync(fiCode, creator, smCode, activeUser, isLive, dbName);
+            }
+        }
     }
 }

@@ -6,6 +6,7 @@ using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.Helper;
 using Renci.SshNet.Messages;
 using System.Data;
+using System.Security.Claims;
 using System.Xml.Linq;
 
 namespace PDL.ReportService.API.Controllers
@@ -368,5 +369,45 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         #endregion
+
+        [HttpGet]
+        public async Task<IActionResult> GetAccountAggregatorReport([FromQuery] long? fiCode, [FromQuery] string? creator, [FromQuery] string? smCode)
+        {
+            string dbName = GetDBName();
+            bool isLive = GetIslive();
+
+            try
+            {
+                if ((fiCode == null || string.IsNullOrWhiteSpace(creator)) && string.IsNullOrWhiteSpace(smCode))
+                {
+                    return BadRequest(new { message = "Either (FiCode and Creator) or SMCode is required." });
+                }
+
+                string activeUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                var result = await _reports.GetAccountAggregatorReportAsync(fiCode, creator, smCode, activeUser, isLive, dbName);
+
+                if (result != null)
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETFAIL")
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetAccountAggregatorReport_AccountAggregatorController");
+                return BadRequest(new { message = resourceManager.GetString("BADREQUEST") });
+            }
+        }
     }
 }
