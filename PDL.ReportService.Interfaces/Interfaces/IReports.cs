@@ -22,6 +22,6 @@ namespace PDL.ReportService.Interfaces.Interfaces
         List<RcTransactionVM> GetRcDisbursementTransactionReport(string dDbName, string dbName, bool isLive, int PageNumber, int PageSize, out int TotalCount, DateTime fromDate, DateTime toDate, string creator);
         List<CSOReportVM> GetCSOReport(int creatorId, string branchCode, string dbName, bool isLive, int pageNumber, int pageSize);
         List<LedgerReportVM> GetLedgerReport(string smCode, string dbName, bool isLive, int pageNumber, int pageSize);
-        Task<AccountAggregatorReportVM> GetAccountAggregatorReportAsync(long? fiCode, string? creator, string? smCode, string activeUser, bool isLive, string dbName);
+        Task<AccountAggregatorReportVM> GetAccountAggregatorReportAsync(long? fiCode, int? creatorId, string? smCode, string activeUser, bool isLive, string dbName);
     }
 }
