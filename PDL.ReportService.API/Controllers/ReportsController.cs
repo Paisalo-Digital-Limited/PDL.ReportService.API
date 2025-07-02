@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Entites.VM.ReportVM;
@@ -371,21 +372,21 @@ namespace PDL.ReportService.API.Controllers
         #endregion
 
         [HttpGet]
-        public async Task<IActionResult> GetAccountAggregatorReport([FromQuery] long? fiCode, [FromQuery] string? creator, [FromQuery] string? smCode)
+        public async Task<IActionResult> GetAccountAggregatorReport([FromQuery] long? fiCode, [FromQuery] int? creatorId, [FromQuery] string? smCode)
         {
             string dbName = GetDBName();
             bool isLive = GetIslive();
 
             try
             {
-                if ((fiCode == null || string.IsNullOrWhiteSpace(creator)) && string.IsNullOrWhiteSpace(smCode))
+                if ((fiCode == null || creatorId == null && string.IsNullOrWhiteSpace(smCode)))
                 {
                     return BadRequest(new { message = "Either (FiCode and Creator) or SMCode is required." });
                 }
 
                 string activeUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                var result = await _reports.GetAccountAggregatorReportAsync(fiCode, creator, smCode, activeUser, isLive, dbName);
+                var result = await _reports.GetAccountAggregatorReportAsync(fiCode, creatorId, smCode, activeUser, isLive, dbName);
 
                 if (result != null)
                 {

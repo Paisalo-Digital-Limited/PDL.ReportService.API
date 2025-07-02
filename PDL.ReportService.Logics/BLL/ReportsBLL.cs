@@ -650,7 +650,7 @@ namespace PDL.ReportService.Logics.BLL
         }
         #endregion
 
-        public async Task<AccountAggregatorReportVM> GetAccountAggregatorReportAsync(long? fiCode, string? creator, string? smCode, string activeUser, bool islive, string dbName)
+        public async Task<AccountAggregatorReportVM> GetAccountAggregatorReportAsync(long? fiCode, int? creatorId, string? smCode, string activeUser, bool islive, string dbName)
         {
             var result = new AccountAggregatorReportVM();
 
@@ -663,7 +663,7 @@ namespace PDL.ReportService.Logics.BLL
                     cmd.CommandTimeout = 60;
 
                     cmd.Parameters.AddWithValue("@FICode", (object?)fiCode ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Creator", (object?)creator ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CreatorID", (object?)creatorId ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@SMCode", (object?)smCode ?? DBNull.Value);
 
                     await conn.OpenAsync();
