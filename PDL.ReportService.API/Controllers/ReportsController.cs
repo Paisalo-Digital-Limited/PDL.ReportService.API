@@ -379,7 +379,7 @@ namespace PDL.ReportService.API.Controllers
 
             try
             {
-                if ((fiCode == null || creatorId == null && string.IsNullOrWhiteSpace(smCode)))
+                if ((fiCode == null || creatorId == null) && string.IsNullOrWhiteSpace(smCode))
                 {
                     return BadRequest(new { message = "Either (FiCode and Creator) or SMCode is required." });
                 }
