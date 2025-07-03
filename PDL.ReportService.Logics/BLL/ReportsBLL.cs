@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using OfficeOpenXml;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Entites.VM.ReportVM;
@@ -716,18 +717,44 @@ namespace PDL.ReportService.Logics.BLL
                         {
                             if (await reader.ReadAsync())
                             {
+                                var monthlyJson = reader["MonthlyAnalysis"]?.ToString();
+                                var periodJson = reader["PeriodAnalysis"]?.ToString();
+                                var insightsJson = reader["Insights"]?.ToString();
+
                                 result.Analytics = new AnalyticsVM
                                 {
-                                    SubjectId = reader["SubjectId"]?.ToString(),
-                                    Verification = reader["Verification"]?.ToString(),
-                                    SoleTrader = reader["SoleTrader"]?.ToString(),
-                                    TransactionScore = reader["TransactionScore"]?.ToString(),
-                                    ScoreArea = reader["ScoreArea"]?.ToString(),
-                                    ScoreTranche = reader["ScoreTranche"]?.ToString(),
-                                    MonthlyAnalysisJson = reader["MonthlyAnalysis"]?.ToString(),
-                                    PeriodAnalysisJson = reader["PeriodAnalysis"]?.ToString(),
-                                    InsightsJson = reader["Insights"]?.ToString()
+                                    Consumer = new ConsumerVM
+                                    {
+                                        Base = new ConsumerBase
+                                        {
+                                            Subject = new SubjectVM
+                                            {
+                                                SubjectId = reader["SubjectId"]?.ToString()
+                                            }
+                                        },
+                                        Identity = new IdentityVM
+                                        {
+                                            Verification = reader["Verification"]?.ToString(),
+                                            SoleTrader = reader["SoleTrader"] != null && reader["SoleTrader"].ToString().ToLower() == "true"
+                                        },
+
+                                        TransactionScore = reader["TransactionScore"]?.ToString(),
+                                        ScoreArea = reader["ScoreArea"]?.ToString(),
+                                        ScoreTranche = reader["ScoreTranche"]?.ToString()
+                                    }
                                 };
+
+                                if (!string.IsNullOrWhiteSpace(monthlyJson) &&
+                                    !string.IsNullOrWhiteSpace(periodJson) &&
+                                    !string.IsNullOrWhiteSpace(insightsJson))
+                                {
+                                    result.Analytics.Consumer.CashFlow = new CashFlowVM
+                                    {
+                                        MonthlyAnalysis = JsonConvert.DeserializeObject<List<MonthlyAnalysisVM>>(monthlyJson),
+                                        PeriodAnalysis = JsonConvert.DeserializeObject<PeriodAnalysisVM>(periodJson),
+                                        Insights = JsonConvert.DeserializeObject<InsightsVM>(insightsJson)
+                                    };
+                                }
                             }
                         }
                     }
