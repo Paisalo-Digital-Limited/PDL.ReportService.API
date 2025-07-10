@@ -592,7 +592,7 @@ namespace PDL.ReportService.Logics.BLL
             }
             catch (Exception)
             {
-               throw ;
+                throw;
             }
 
             return reportList;
@@ -601,7 +601,7 @@ namespace PDL.ReportService.Logics.BLL
         #endregion
 
         #region  Get EMI Details based on SMCode
-        public List<LedgerReportVM> GetLedgerReport(string smCode,string dbName, bool isLive, int pageNumber, int pageSize)
+        public List<LedgerReportVM> GetLedgerReport(string smCode, string dbName, bool isLive, int pageNumber, int pageSize)
         {
             List<LedgerReportVM> reportList = new List<LedgerReportVM>();
 
@@ -612,8 +612,8 @@ namespace PDL.ReportService.Logics.BLL
                     using (SqlCommand cmd = new SqlCommand("Usp_GetEMIDetailsBasedSmCode", conn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
-                      
-                        cmd.Parameters.Add("@SMCode", SqlDbType.VarChar,16).Value = smCode;
+
+                        cmd.Parameters.Add("@SMCode", SqlDbType.VarChar, 16).Value = smCode;
                         cmd.Parameters.Add("@PageNumber", SqlDbType.Int).Value = pageNumber;
                         cmd.Parameters.Add("@PageSize", SqlDbType.Int).Value = pageSize;
 
@@ -651,9 +651,9 @@ namespace PDL.ReportService.Logics.BLL
         }
         #endregion
 
-        public async Task<AccountAggregatorReportVM> GetAccountAggregatorReportAsync(long? fiCode, int? creatorId, string? smCode, string activeUser, bool islive, string dbName)
+        public async Task<data> GetAccountAggregatorReportAsync(long? fiCode, int? creatorId, string? smCode, string activeUser, bool islive, string dbName)
         {
-            var result = new AccountAggregatorReportVM();
+            var result = new data();
 
             try
             {
@@ -671,96 +671,23 @@ namespace PDL.ReportService.Logics.BLL
 
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
-                        // Result Set 1: Borrower Info
-                        result.BorrowerInfo = new List<BorrowerInfoVM>();
-                        while (await reader.ReadAsync())
+                        if (await reader.ReadAsync())
                         {
-                            result.BorrowerInfo.Add(new BorrowerInfoVM
-                            {
-                                FICode = reader["FICode"]?.ToString(),
-                                SMCode = reader["SMCode"]?.ToString(),
-                                Name = reader["Name"]?.ToString(),
-                                DOB = reader["DOB"] as DateTime?,
-                                Phone = reader["P_Phone"]?.ToString(),
-                                Address = reader["Current_Address1"]?.ToString(),
-                                Email = reader["Email_Id"]?.ToString(),
-                                PAN = reader["Pan_no"]?.ToString(),
-                                BranchCode = reader["Branch_code"]?.ToString(),
-                                IFSC = reader["Bank_IFCS"]?.ToString(),
-                                Status = reader["status"]?.ToString()
-                            });
-                        }
+                            // Read JSON strings from result set
+                            string jsonDataRaw = reader["JsonData"]?.ToString();
+                            string analyticsDataRaw = reader["Data"]?.ToString();
 
-                        // Result Set 2: Transactions
-                        if (await reader.NextResultAsync())
-                        {
-                            result.Transactions = new List<TransactionsVM>();
-                            while (await reader.ReadAsync())
-                            {
-                                result.Transactions.Add(new TransactionsVM
-                                {
-                                    TxnID = reader["Txn ID"]?.ToString(),
-                                    Amount = reader["Amount"]?.ToString(),
-                                    Narration = reader["Narration"]?.ToString(),
-                                    Type = reader["Type"]?.ToString(),
-                                    Mode = reader["Mode"]?.ToString(),
-                                    CurrentBalance = reader["Current Balance"]?.ToString(),
-                                    BookingDate = reader["Transaction Time Stamp"]?.ToString(),
-                                    ValueDate = reader["ValueDate"]?.ToString(),
-                                    Reference = reader["Reference"]?.ToString()
-                                });
-                            }
-                        }
+                            // Deserialize into structured models
+                            if (!string.IsNullOrWhiteSpace(jsonDataRaw))
+                                result.JsonData = JsonConvert.DeserializeObject<List<JsonData>>(jsonDataRaw);
 
-                        // Result Set 3: Analytics
-                        if (await reader.NextResultAsync())
-                        {
-                            if (await reader.ReadAsync())
-                            {
-                                var monthlyJson = reader["MonthlyAnalysis"]?.ToString();
-                                var periodJson = reader["PeriodAnalysis"]?.ToString();
-                                var insightsJson = reader["Insights"]?.ToString();
-
-                                result.Analytics = new AnalyticsVM
-                                {
-                                    Consumer = new ConsumerVM
-                                    {
-                                        Base = new ConsumerBase
-                                        {
-                                            Subject = new SubjectVM
-                                            {
-                                                SubjectId = reader["SubjectId"]?.ToString()
-                                            }
-                                        },
-                                        Identity = new IdentityVM
-                                        {
-                                            Verification = reader["Verification"]?.ToString(),
-                                            SoleTrader = reader["SoleTrader"] != null && reader["SoleTrader"].ToString().ToLower() == "true"
-                                        },
-
-                                        TransactionScore = reader["TransactionScore"]?.ToString(),
-                                        ScoreArea = reader["ScoreArea"]?.ToString(),
-                                        ScoreTranche = reader["ScoreTranche"]?.ToString()
-                                    }
-                                };
-
-                                if (!string.IsNullOrWhiteSpace(monthlyJson) &&
-                                    !string.IsNullOrWhiteSpace(periodJson) &&
-                                    !string.IsNullOrWhiteSpace(insightsJson))
-                                {
-                                    result.Analytics.Consumer.CashFlow = new CashFlowVM
-                                    {
-                                        MonthlyAnalysis = JsonConvert.DeserializeObject<List<MonthlyAnalysisVM>>(monthlyJson),
-                                        PeriodAnalysis = JsonConvert.DeserializeObject<PeriodAnalysisVM>(periodJson),
-                                        Insights = JsonConvert.DeserializeObject<InsightsVM>(insightsJson)
-                                    };
-                                }
-                            }
+                            if (!string.IsNullOrWhiteSpace(analyticsDataRaw))
+                                result.Data = JsonConvert.DeserializeObject<CrifFormattedData>(analyticsDataRaw);
                         }
                     }
-                }
 
-                return result;
+                    return result;
+                }
             }
             catch (Exception ex)
             {

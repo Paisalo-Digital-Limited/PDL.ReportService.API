@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,12 +7,6 @@ using System.Threading.Tasks;
 
 namespace PDL.ReportService.Entites.VM.ReportVM
 {
-    public class AccountAggregatorReportVM
-    {
-        public List<BorrowerInfoVM> BorrowerInfo { get; set; }
-        public List<TransactionsVM> Transactions { get; set; }
-        public AnalyticsVM Analytics { get; set; }
-    }
 
     public class StandardResponse<T>
     {
@@ -20,8 +15,98 @@ namespace PDL.ReportService.Entites.VM.ReportVM
         public T Data { get; set; }
     }
 
-    public class OuterDataWrapper
+    public class Profile
     {
+        public Holders holders { get; set; }
+    }
+
+    public class Holders
+    {
+        public holder holder { get; set; } 
+        public string type { get; set; }
+    }
+
+    public class holder
+    {
+        public string Name { get; set; }
+        public DateTime? DOB { get; set; }
+        public string mobile { get; set; }
+        public string nominee { get; set; }
+        public string landline { get; set; }
+        public string Address { get; set; }
+        public string Email { get; set; }
+        public string PAN { get; set; }
+        public string ckycComplienceTrue { get; set; }
+    }
+
+    public class JsonData
+    {
+        public string accountId { get; set; }
+        public JsonDataInner data { get; set; }
+        public string status { get; set; }  // Example: "READY"
+    }
+
+    public class JsonDataInner
+    {
+        public Profile profile { get; set; }
+        public summary summary { get; set; }
+        public TransactionsContainer transactions { get; set; }
+        public string type { get; set; } 
+        public string maskedAccNumber { get; set; }
+        public string version { get; set; }
+        public string linkedAccRef { get; set; }
+    }
+
+
+    public class summary
+    {
+        public string branch { get; set; }
+        public string facility { get; set; }
+        public string ifscCode { get; set; }
+        public string micrCode { get; set; }
+        public string openingDate { get; set; }
+        public string currentODLimit { get; set; }
+        public string drawingLimit { get; set; }
+        public string status { get; set; }
+        public pending pending { get; set; }
+        public string currentBalance { get; set; }
+        public string currency { get; set; }
+        public string exchangeRate { get; set; }
+        public string balanceDateTime { get; set; }
+        public string type { get; set; }
+    }
+
+    public class pending
+    {
+        public string transactionType { get; set; }
+        public string amount { get; set; }
+    }
+    public class TransactionsContainer
+    {
+        public List<TransactionsVM> transaction { get; set; }
+        public string startDate { get; set; }
+        public string endDate { get; set; }
+    }
+
+    public class TransactionsVM : Transaction
+    {
+    }
+
+    public class Transaction
+    {
+        public string TxnID { get; set; }
+        public string Amount { get; set; }
+        public string Narration { get; set; }
+        public string Type { get; set; }
+        public string Mode { get; set; }
+        public string CurrentBalance { get; set; }
+        public string transactionTimestamp { get; set; }
+        public string ValueDate { get; set; }
+        public string Reference { get; set; }
+    }
+    public class data
+    {
+        public List<JsonData> JsonData { get; set; }
         public CrifFormattedData Data { get; set; }
     }
 
@@ -29,15 +114,20 @@ namespace PDL.ReportService.Entites.VM.ReportVM
     {
         public string Status { get; set; }
         public DateTime Timestamp { get; set; }
-        public AnalyticsWrapper Data { get; set; }
+
+        [JsonProperty("data")]
+        public CrifFormattedDataInner InnerData { get; set; }
         public string ReferenceId { get; set; }
         public string TrackingId { get; set; }
         public string AnalysisId { get; set; }
     }
-
-    public class AnalyticsWrapper
+    public class CrifFormattedDataInner
     {
-        public AnalyticsRoot Analytics { get; set; }
+        [JsonProperty("analytics")]
+        public AnalyticsRoot analytics { get; set; }
+
+        [JsonProperty("categorizedTransactions")]
+        public List<CategorizedTransactionsContainer> categorizedTransactions { get; set; }
     }
 
     public class AnalyticsRoot
@@ -45,17 +135,44 @@ namespace PDL.ReportService.Entites.VM.ReportVM
         public ConsumerVM Consumer { get; set; }
     }
 
+    public class CategorizedTransactionsContainer
+    {
+        public string accountId { get; set; }
+        public List<CategorizedTransaction> transactions { get; set; }
+    }
+
+    public class CategorizedTransaction
+    {
+        public string transactionId { get; set; }
+        public string status { get; set; }
+        public string bookingDate { get; set; }
+        public string valueDate { get; set; }
+        public string amount { get; set; }
+        public string currency { get; set; }
+        public string description { get; set; }
+        public string category { get; set; }
+        public balance balance { get; set; }
+    }
+    public class balance
+    {
+        public string amount { get; set; }
+        public string currency { get; set; }
+    }
+
     public class ConsumerVM
     {
         public ConsumerBase Base { get; set; }
         public IdentityVM Identity { get; set; }
         public CashFlowVM CashFlow { get; set; }
-
-        public string TransactionScore { get; set; }
-        public string ScoreArea { get; set; }
-        public string ScoreTranche { get; set; }
+        public Score score { get; set; }
     }
 
+    public class Score
+    {
+        public string transactionScore { get; set; }
+        public string area { get; set; }
+        public string tranche { get; set; }
+    }
     public class ConsumerBase
     {
         public SubjectVM Subject { get; set; }
@@ -86,11 +203,21 @@ namespace PDL.ReportService.Entites.VM.ReportVM
 
     public class BalanceVM
     {
-        public double TotalBalanceAmount { get; set; }
-        public double AverageBalanceAmount { get; set; }
-        public double MedianBalanceAmount { get; set; }
-        public double MinBalanceAmount { get; set; }
-        public double MaxBalanceAmount { get; set; }
+        public double totalBalanceAmount { get; set; }
+        public double averageBalanceAmount { get; set; }
+        public double medianBalanceAmount { get; set; }
+        public double minBalanceAmount { get; set; }
+        public double maxBalanceAmount { get; set; }
+    }
+
+    public class Balance
+    {
+        public double openingBalanceAmount { get; set; }
+        public double closingBalanceAmount { get; set; }
+        public double averageBalanceAmount { get; set; }
+        public double medianBalanceAmount { get; set; }
+        public double minimumBalanceAmount { get; set; }
+        public double maximumBalanceAmount { get; set; }
     }
 
     public class TransactionCountVM
@@ -152,7 +279,7 @@ namespace PDL.ReportService.Entites.VM.ReportVM
         public double SavingRatio { get; set; }
         public double IncomeExpensesRatio { get; set; }
         public OverdraftVM Overdraft { get; set; }
-        public BalanceVM Balance { get; set; }
+        public Balance Balance { get; set; }
         public List<CategoryAmountVM> IncomeByCategory { get; set; }
     }
 
