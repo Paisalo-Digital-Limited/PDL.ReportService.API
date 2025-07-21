@@ -22,7 +22,7 @@ namespace PDL.ReportService.Entites.VM.ReportVM
 
     public class Holders
     {
-        public holder holder { get; set; } 
+        public holder holder { get; set; }
         public string type { get; set; }
     }
 
@@ -51,7 +51,7 @@ namespace PDL.ReportService.Entites.VM.ReportVM
         public Profile profile { get; set; }
         public summary summary { get; set; }
         public TransactionsContainer transactions { get; set; }
-        public string type { get; set; } 
+        public string type { get; set; }
         public string maskedAccNumber { get; set; }
         public string version { get; set; }
         public string linkedAccRef { get; set; }
@@ -165,6 +165,28 @@ namespace PDL.ReportService.Entites.VM.ReportVM
         public IdentityVM Identity { get; set; }
         public CashFlowVM CashFlow { get; set; }
         public Score score { get; set; }
+        public Risk risk { get; set; }
+        public Marketing marketing { get; set; }
+        public IncomeEstimation incomeEstimation { get; set; }
+    }
+    public class IncomeEstimation
+    {
+        public string estimation { get; set; }
+        public string projection { get; set; }
+    }
+    public class Marketing
+    {
+        public string house { get; set; }
+        public string loan { get; set; }
+        public string travelling { get; set; }
+        public string digital { get; set; }
+        public string tax { get; set; }
+    }
+
+    public class Risk
+    {
+        public string indebtedness { get; set; }
+        public string gamblingGames { get; set; }
     }
 
     public class Score
@@ -172,6 +194,7 @@ namespace PDL.ReportService.Entites.VM.ReportVM
         public string transactionScore { get; set; }
         public string area { get; set; }
         public string tranche { get; set; }
+        public string factor { get; set; }
     }
     public class ConsumerBase
     {
