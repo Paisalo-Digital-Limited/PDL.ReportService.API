@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using ClosedXML.Excel;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using NPOI.SS.UserModel;
 using OfficeOpenXml;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Entites.VM.ReportVM;
@@ -694,5 +696,145 @@ namespace PDL.ReportService.Logics.BLL
                 throw new Exception("Failed to fetch account aggregator report: " + ex.Message, ex);
             }
         }
+        //public async Task<List<string>> SMCodeValidation(SMCodeValidationVM file, string dbname, bool isLive)
+        //{
+        //    var missingCodes = new List<string>();
+
+        //    // Read Excel Codes
+        //    var smCodes = new List<string>();
+        //    using (var stream = new MemoryStream())
+        //    {
+        //        await file.SmCodeFile.CopyToAsync(stream);
+        //        using (var workbook = new XLWorkbook(stream))
+        //        {
+        //            foreach (var row in workbook.Worksheet(1).RowsUsed().Skip(1))
+        //            {
+        //                var code = row.Cell("A").GetString()?.Trim();
+        //                if (!string.IsNullOrEmpty(code)) smCodes.Add(code);
+        //            }
+        //        }
+        //    }
+
+        //    // Group by DB type
+        //    var dbGroups = smCodes
+        //        .Where(c => c.Length == 10 || c.Length == 16)
+        //        .Distinct()
+        //        .GroupBy(c => c.Length == 16 ? "PDLERP" : "PDLSHARECOL");
+
+        //    // Check each DB
+        //    foreach (var group in dbGroups)
+        //    {
+        //        var table = new DataTable();
+        //        table.Columns.Add("SmCode", typeof(string));
+        //        foreach (var code in group) table.Rows.Add(code);
+
+        //        using var con = group.Key == "PDLERP"
+        //            ? _credManager.getConnections(group.Key, isLive)
+        //            : _credManager.getConnectionPDL(group.Key, isLive);
+
+        //        await con.OpenAsync();
+        //        using var cmd = new SqlCommand("Usp_GetMissingSmCodes", con)
+        //        {
+        //            CommandType = CommandType.StoredProcedure
+        //        };
+        //        var p = cmd.Parameters.AddWithValue("@SmCodes", table);
+        //        p.SqlDbType = SqlDbType.Structured;
+        //        p.TypeName = "dbo.SmCodeList";
+
+        //        using var reader = await cmd.ExecuteReaderAsync();
+        //        while (await reader.ReadAsync())
+        //            missingCodes.Add(reader["SmCode"].ToString());
+        //    }
+
+        //    return missingCodes;
+        //}
+        public async Task<List<string>> SMCodeValidation(SMCodeValidationVM file, string dbname, bool isLive)
+        {
+            var missingCodes = new List<string>();
+            var smCodesFromExcel = new List<string>();
+
+            // Step 1: Read Excel
+            using (var stream = new MemoryStream())
+            {
+                await file.SmCodeFile.CopyToAsync(stream);
+                stream.Position = 0;
+                using (var workbook = new XLWorkbook(stream))
+                {
+                    var worksheet = workbook.Worksheet(1);
+                    foreach (var row in worksheet.RowsUsed().Skip(1))
+                    {
+                        var smCode = row.Cell("A").GetString()?.Trim();
+                        if (!string.IsNullOrEmpty(smCode))
+                            smCodesFromExcel.Add(smCode);
+                    }
+                }
+            }
+
+            // Separate codes based on length
+            var pdlerpCodes = smCodesFromExcel.Where(c => c.Length == 16).Distinct().ToList();
+            var pdlsharecolCodes = smCodesFromExcel.Where(c => c.Length == 10).Distinct().ToList();
+
+            // Step 2: Check PDLERP Codes
+            if (pdlerpCodes.Any())
+            {
+                using (var con = _credManager.getConnections("PDLERP", isLive))
+                {
+                    await con.OpenAsync();
+                    var smCodeTable = new DataTable();
+                    smCodeTable.Columns.Add("SmCode", typeof(string));
+                    foreach (var code in pdlerpCodes) smCodeTable.Rows.Add(code);
+
+                    using (var cmd = new SqlCommand("Usp_GetMissingSmCodes", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        var param = cmd.Parameters.AddWithValue("@SmCodes", smCodeTable);
+                        param.SqlDbType = SqlDbType.Structured;
+                        param.TypeName = "dbo.SmCodeList";
+
+                        using (var reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                missingCodes.Add(reader["SmCode"].ToString());
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Step 3: Check PDLSHARECOL Codes
+            if (pdlsharecolCodes.Any())
+            {
+                using (var con = _credManager.getConnectionPDL("PDLSHARECOL", isLive))
+                {
+                    await con.OpenAsync();
+                    var smCodeTable = new DataTable();
+                    smCodeTable.Columns.Add("SmCode", typeof(string));
+                    foreach (var code in pdlsharecolCodes) smCodeTable.Rows.Add(code);
+
+                    using (var cmd = new SqlCommand("Usp_GetMissingSmCodes", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        var param = cmd.Parameters.AddWithValue("@SmCodes", smCodeTable);
+                        param.SqlDbType = SqlDbType.Structured;
+                        param.TypeName = "dbo.SmCodeList";
+
+                        using (var reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                missingCodes.Add(reader["SmCode"].ToString());
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Step 4: Return Result as JSON
+            return missingCodes;
+        }
+
     }
 }

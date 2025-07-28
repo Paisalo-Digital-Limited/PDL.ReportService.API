@@ -111,5 +111,12 @@ namespace PDL.ReportService.Repository.Repository
                 return await reportsBLL.GetAccountAggregatorReportAsync(fiCode, creatorId, smCode, activeUser, isLive, dbName);
             }
         }
+        public dynamic SMCodeValidation(SMCodeValidationVM file, string dbname, bool isLive)
+        {
+            using (var reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.SMCodeValidation(file, dbname, isLive);
+            }
+        }
     }
 }

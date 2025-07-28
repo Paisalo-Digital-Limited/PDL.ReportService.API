@@ -55,5 +55,26 @@ namespace PDL.ReportService.Logics.Credentials
                 throw;
             }
         }
+        public SqlConnection getConnectionPDL(string db, bool islive)
+        {
+            string conStr = string.Empty;
+            SqlConnection newConn = new SqlConnection();
+
+            try
+            {
+                if (!islive)
+                    conStr = $"Data Source=BETA;Initial Catalog=PDLSHARECOL;User Id=sa;password=Sql@2019;Trusted_Connection=False;MultipleActiveResultSets=True;Encrypt=false;Connect Timeout=0";
+                else
+                    conStr = $"Data Source=BETA;Initial Catalog=PDLSHARECOL;User Id=sa;password=Sql@2019;Trusted_Connection=False;MultipleActiveResultSets=True;Encrypt=false;Connect Timeout=0";
+
+                newConn = new SqlConnection(conStr);
+                return newConn;
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine("SQL error: " + ex.Message);
+                throw;
+            }
+        }
     }
 }
