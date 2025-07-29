@@ -23,5 +23,7 @@ namespace PDL.ReportService.Interfaces.Interfaces
         List<CSOReportVM> GetCSOReport(int creatorId, string branchCode, string dbName, bool isLive, int pageNumber, int pageSize);
         List<LedgerReportVM> GetLedgerReport(string smCode, string dbName, bool isLive, int pageNumber, int pageSize);
         Task<data> GetAccountAggregatorReportAsync(long? fiCode, int? creatorId, string? smCode, string activeUser, bool isLive, string dbName);
+        dynamic SMCodeValidation(SMCodeValidationVM file, string dbname, bool isLive);
+
     }
 }

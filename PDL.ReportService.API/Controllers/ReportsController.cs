@@ -406,8 +406,39 @@ namespace PDL.ReportService.API.Controllers
             }
             catch (Exception ex)
             {
-                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetAccountAggregatorReport_AccountAggregatorController");
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetAccountAggregatorReport_Reports");
                 return BadRequest(new { message = resourceManager.GetString("BADREQUEST") });
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> SMCodeValidation([FromForm] SMCodeValidationVM file)
+        {
+            string dbname = GetDBName();
+            bool isLive = GetIslive();
+
+            try
+            {
+                dynamic result = await _reports.SMCodeValidation(file, dbname, isLive);
+                if (result != null)
+                {
+                    return Ok(new
+                    {
+                        message = (resourceManager.GetString("GETSUCCESS")),
+                        data = result
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("NORECORD"),
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "SMCodeValidation_Reports");
+                return BadRequest(new { message = ex.Message });
             }
         }
     }
