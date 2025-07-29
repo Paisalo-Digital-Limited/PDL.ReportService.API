@@ -696,58 +696,7 @@ namespace PDL.ReportService.Logics.BLL
                 throw new Exception("Failed to fetch account aggregator report: " + ex.Message, ex);
             }
         }
-        //public async Task<List<string>> SMCodeValidation(SMCodeValidationVM file, string dbname, bool isLive)
-        //{
-        //    var missingCodes = new List<string>();
-
-        //    // Read Excel Codes
-        //    var smCodes = new List<string>();
-        //    using (var stream = new MemoryStream())
-        //    {
-        //        await file.SmCodeFile.CopyToAsync(stream);
-        //        using (var workbook = new XLWorkbook(stream))
-        //        {
-        //            foreach (var row in workbook.Worksheet(1).RowsUsed().Skip(1))
-        //            {
-        //                var code = row.Cell("A").GetString()?.Trim();
-        //                if (!string.IsNullOrEmpty(code)) smCodes.Add(code);
-        //            }
-        //        }
-        //    }
-
-        //    // Group by DB type
-        //    var dbGroups = smCodes
-        //        .Where(c => c.Length == 10 || c.Length == 16)
-        //        .Distinct()
-        //        .GroupBy(c => c.Length == 16 ? "PDLERP" : "PDLSHARECOL");
-
-        //    // Check each DB
-        //    foreach (var group in dbGroups)
-        //    {
-        //        var table = new DataTable();
-        //        table.Columns.Add("SmCode", typeof(string));
-        //        foreach (var code in group) table.Rows.Add(code);
-
-        //        using var con = group.Key == "PDLERP"
-        //            ? _credManager.getConnections(group.Key, isLive)
-        //            : _credManager.getConnectionPDL(group.Key, isLive);
-
-        //        await con.OpenAsync();
-        //        using var cmd = new SqlCommand("Usp_GetMissingSmCodes", con)
-        //        {
-        //            CommandType = CommandType.StoredProcedure
-        //        };
-        //        var p = cmd.Parameters.AddWithValue("@SmCodes", table);
-        //        p.SqlDbType = SqlDbType.Structured;
-        //        p.TypeName = "dbo.SmCodeList";
-
-        //        using var reader = await cmd.ExecuteReaderAsync();
-        //        while (await reader.ReadAsync())
-        //            missingCodes.Add(reader["SmCode"].ToString());
-        //    }
-
-        //    return missingCodes;
-        //}
+      
         public async Task<List<string>> SMCodeValidation(SMCodeValidationVM file, string dbname, bool isLive)
         {
             var missingCodes = new List<string>();
