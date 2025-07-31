@@ -9,24 +9,20 @@ pipeline {
         DOTNET_CLI_TELEMETRY_OPTOUT = '1'
         PATH = "${env.HOME}/.dotnet/tools:${env.PATH}"
         WARNING_FLAGS = '/warnasmessage:NU1701;NU1902;NU1903'
+        SONAR_PROJECT_KEY = 'sonar-token'
+        SONAR_HOST_URL = 'https://pdlsonar.paisalo.in:9999'
     }
 
     stages {
         stage('Initialize Variables') {
             steps {
                 script {
-                    // Generate timestamp for tagging
                     TIMESTAMP = sh(script: "date -u +%Y%m%d%H%M%S", returnStdout: true).trim()
-
-                    // Extract repo name from Git URL
                     def gitUrl = sh(script: "git config --get remote.origin.url", returnStdout: true).trim()
                     def repoBase = gitUrl.tokenize('/').last().replaceAll(/\\.git$/, '')
                     REPO_NAME = repoBase.toLowerCase()
-
-                    // Compose GHCR image tag
                     IMAGE_NAME = "ghcr.io/paisalo-digital-limited/${REPO_NAME}:${TIMESTAMP}"
 
-                    // Export to environment
                     env.REPO_NAME = REPO_NAME
                     env.IMAGE_NAME = IMAGE_NAME
                     env.TIMESTAMP = TIMESTAMP
@@ -65,6 +61,48 @@ pipeline {
             }
         }
 
+        stage('SonarQube SAST Scan') {
+            steps {
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    script {
+                        try {
+                            echo "✅ Running SonarQube SAST Scan..."
+                            sh """
+                                dotnet tool install --global dotnet-sonarscanner || true
+                                export PATH="\$PATH:\$HOME/.dotnet/tools"
+
+                                dotnet sonarscanner begin \
+                                    /k:"${SONAR_PROJECT_KEY}" \
+                                    /d:sonar.host.url="${SONAR_HOST_URL}" \
+                                    /d:sonar.login="${SONAR_TOKEN}"
+
+                                dotnet build PDL.ReportService.API/PDL.ReportService.API.csproj
+
+                                dotnet sonarscanner end \
+                                    /d:sonar.login="${SONAR_TOKEN}"
+                            """
+                        } catch (e) {
+                            echo "⚠️ SonarQube SAST Scan failed, continuing..."
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('SonarQube SCA Scan') {
+            steps {
+                echo "✅ SonarQube SCA Scan (placeholder)..."
+                // Add third-party dependency scanner here
+            }
+        }
+
+        stage('SonarQube Final Scan') {
+            steps {
+                echo "✅ SonarQube Final Scan (placeholder)..."
+                // Add any final Sonar validation or gates
+            }
+        }
+
         stage('Run Unit Tests') {
             steps {
                 echo "✅ Running unit tests (if available)..."
@@ -84,13 +122,14 @@ pipeline {
 
         stage('Check Code Coverage') {
             steps {
-                echo "✅ Placeholder for code coverage checks."
+                echo "✅ Placeholder for code coverage checks..."
+                // Add code to enforce threshold here
             }
         }
 
         stage('Lint Check') {
             steps {
-                echo "✅ Placeholder for linting."
+                echo "✅ Placeholder for linting (e.g., dotnet format)..."
             }
         }
 
@@ -132,14 +171,14 @@ pipeline {
 
     post {
         always {
-            echo "✅ Cleaning workspace..."
+            echo "✅ Declarative: Post Actions - Cleaning workspace..."
             deleteDir()
         }
         success {
-            echo "✅ Pipeline completed successfully!"
+            echo "✅ Declarative: Post Actions - Pipeline completed successfully!"
         }
         failure {
-            echo "❌ Pipeline failed."
+            echo "❌ Declarative: Post Actions - Pipeline failed."
         }
     }
 }
