@@ -131,7 +131,7 @@ namespace PDL.ReportService.Logics.BLL
             {
                 // Connection open according to dbtype
                 if (dbtype == "SBIPDLCOL")
-                    con = _credManager.getConnectionString(dbName, isLive);
+                    con =  _credManager.getConnections(dbName, isLive);
                 else if (dbtype == "PDLERP")
                     con = _credManager.getConnections(dbName, isLive);
                 else
@@ -196,7 +196,7 @@ namespace PDL.ReportService.Logics.BLL
             {
                 // DB connection type select karna
                 if (dbtype == "SBIPDLCOL")
-                    con = _credManager.getConnectionString(dbName, isLive);
+                    con = _credManager.getConnections(dbName, isLive);
                 else if (dbtype == "PDLERP")
                     con = _credManager.getConnections(dbName, isLive);
                 else
@@ -346,7 +346,7 @@ namespace PDL.ReportService.Logics.BLL
             {
                 // DB connection type select karna
                 if (dbtype == "SBIPDLCOL")
-                    con = _credManager.getConnectionString(dbName, isLive);
+                    con = _credManager.getConnections(dbName, isLive);
                 else if (dbtype == "PDLERP")
                     con = _credManager.getConnections(dbName, isLive);
                 else
@@ -458,7 +458,7 @@ namespace PDL.ReportService.Logics.BLL
             {
                 // DB Connection
                 if (dbtype == "SBIPDLCOL")
-                    con = _credManager.getConnectionString(dbName, isLive);
+                    con = _credManager.getConnections(dbName, isLive);
                 else if (dbtype == "PDLERP")
                     con = _credManager.getConnections(dbName, isLive);
                 else
