@@ -34,20 +34,19 @@ namespace PDL.ReportService.Logics.Credentials
                 throw;
             }
         }
-        public SqlConnection getConnectionString(string db, bool islive)
+        public string getConnectionString(string db, bool islive)
         {
             string conStr = string.Empty;
-            SqlConnection newConn = new SqlConnection();
 
             try
             {
-                if (!islive)
-                    conStr = $"Data Source=BETA;Initial Catalog=SBIPDLCOL;User Id=sa;password=Sql@2019;Trusted_Connection=False;MultipleActiveResultSets=True;Encrypt=false;Connect Timeout=0";
-                else
-                    conStr = $"Data Source=BETA;Initial Catalog=SBIPDLCOL;User Id=sa;password=Sql@2019;Trusted_Connection=False;MultipleActiveResultSets=True;Encrypt=false;Connect Timeout=0";
 
-                newConn = new SqlConnection(conStr);
-                return newConn;
+                if (!islive)
+                    conStr = $"Data Source=192.168.10.2;Initial Catalog={db};User ID=sa;Password=Sasqlserver2022@10.2;Connection Timeout=120;Trusted_Connection=False;MultipleActiveResultSets=True;Encrypt=false";
+                else
+                    conStr = $"Data Source=192.168.10.2;Initial Catalog={db};User ID=sa;Password=Sasqlserver2022@10.2;Connection Timeout=120;Trusted_Connection=False;MultipleActiveResultSets=True;Encrypt=false";
+
+                return conStr;
             }
             catch (SqlException ex)
             {
