@@ -22,5 +22,6 @@ namespace PDL.ReportService.Entites.VM.ReportVM
         public decimal? IncomePA { get; set; }
         public int? ActiveAccount { get; set; }
         public decimal? ActiveAmount { get; set; }
+        public long? FiCode { get; set; }
     }
 }

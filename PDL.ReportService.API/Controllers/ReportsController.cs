@@ -35,20 +35,25 @@ namespace PDL.ReportService.API.Controllers
                 {
                     return BadRequest(new { message = resourceManager.GetString("NULLDBNAME") });
                 }
-                int totalCount;
-                var result = _reports.GetCaseHistoryBySmCodes(smCodes, dbName, isLive, PageNumber, PageSize, out totalCount);
 
-                if (result != null && result.Any())
+                var result = _reports.GetCaseHistoryBySmCodes(smCodes, dbName, isLive, PageNumber, PageSize);
+
+                if (result != null && result.CaseHistories.Any())
                 {
                     return Ok(new
                     {
                         message = resourceManager.GetString("GETSUCCESS"),
-                        data = result,
-                        totalRecords = totalCount
+                        data = result.CaseHistories,
+                        totalCount = result.TotalCount,
+                        unmatchedCount = result.UnmatchedCount
                     });
                 }
 
-                return NotFound(new { message = resourceManager.GetString("GETFAIL") });
+                return NotFound(new
+                {
+                    message = resourceManager.GetString("GETFAIL"),
+                    unmatchedCount = result.UnmatchedCount
+                });
             }
             catch (Exception ex)
             {
@@ -56,7 +61,7 @@ namespace PDL.ReportService.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        
+
         #region   ----- Cso Collection Report and BBPS Report   ------  Satish Maurya
         [HttpPost]
         public IActionResult GetCsoCollectionReport(DateTime fromDate, DateTime toDate, string csoCode,string dbtype, int PageNumber, int PageSize)

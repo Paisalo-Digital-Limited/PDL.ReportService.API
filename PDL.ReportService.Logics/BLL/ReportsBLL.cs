@@ -32,10 +32,14 @@ namespace PDL.ReportService.Logics.BLL
             _credManager = new CredManager(configuration);
         }
 
-        public List<CaseHistoryVM> GetCaseHistoryBySmCodes(List<string> smCodes, string dbName, bool isLive, int PageNumber, int PageSize, out int totalCount)
+        public CaseHistoryResponse GetCaseHistoryBySmCodes(List<string> smCodes, string dbName, bool isLive, int pageNumber, int pageSize)
         {
-            totalCount = 0;
-            List<CaseHistoryVM> result = new();
+            var response = new CaseHistoryResponse
+            {
+                CaseHistories = new List<CaseHistoryVM>(),
+                TotalCount = 0,
+                UnmatchedCount = 0
+            };
 
             using (SqlConnection con = _credManager.getConnections(dbName, isLive))
             {
@@ -45,24 +49,22 @@ namespace PDL.ReportService.Logics.BLL
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    // Convert SM codes list to DataTable
+                    // SM Code table
                     var table = new DataTable();
                     table.Columns.Add("SmCode", typeof(string));
                     foreach (var code in smCodes)
-                    {
                         table.Rows.Add(code);
-                    }
 
                     cmd.Parameters.AddWithValue("@SmCodes", table).SqlDbType = SqlDbType.Structured;
-                    cmd.Parameters.AddWithValue("@PageNumber", PageNumber);
-                    cmd.Parameters.AddWithValue("@PageSize", PageSize);
+                    cmd.Parameters.AddWithValue("@PageNumber", pageNumber);
+                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
 
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         // First result: total count
                         if (reader.Read())
                         {
-                            totalCount = reader["TotalCount"] != DBNull.Value
+                            response.TotalCount = reader["TotalCount"] != DBNull.Value
                                 ? Convert.ToInt32(reader["TotalCount"])
                                 : 0;
                         }
@@ -72,7 +74,7 @@ namespace PDL.ReportService.Logics.BLL
                         {
                             while (reader.Read())
                             {
-                                result.Add(new CaseHistoryVM
+                                response.CaseHistories.Add(new CaseHistoryVM
                                 {
                                     Code = reader["Code"]?.ToString(),
                                     Custname = reader["Custname"]?.ToString(),
@@ -82,35 +84,24 @@ namespace PDL.ReportService.Logics.BLL
                                     Address = reader["Address"]?.ToString(),
                                     Creator = reader["Creator"]?.ToString(),
 
-                                    Income = reader.IsDBNull(reader.GetOrdinal("Income"))
-                                        ? (decimal?)null
-                                        : Convert.ToDecimal(reader["Income"]),
-
-                                    CrifScore = reader.IsDBNull(reader.GetOrdinal("CrifScore"))
-                                        ? (int?)null
-                                        : Convert.ToInt32(reader["CrifScore"]),
-
-                                    OverdueAmt = reader.IsDBNull(reader.GetOrdinal("OverdueAmt"))
-                                        ? (decimal?)null
-                                        : Convert.ToDecimal(reader["OverdueAmt"]),
-
-                                    TotalCurrentAmt = reader.IsDBNull(reader.GetOrdinal("TotalCurrentAmt"))
-                                        ? (decimal?)null
-                                        : Convert.ToDecimal(reader["TotalCurrentAmt"]),
-
-                                    IncomePA = reader.IsDBNull(reader.GetOrdinal("IncomePA"))
-                                        ? (decimal?)null
-                                        : Convert.ToDecimal(reader["IncomePA"]),
-
-                                    ActiveAccount = reader.IsDBNull(reader.GetOrdinal("CountofActiveAccount"))
-                                        ? (int?)null
-                                        : Convert.ToInt32(reader["CountofActiveAccount"]),
-
-                                    ActiveAmount = reader.IsDBNull(reader.GetOrdinal("AmountofActiveAccount"))
-                                        ? (decimal?)null
-                                        : Convert.ToDecimal(reader["AmountofActiveAccount"])
+                                    Income = reader.IsDBNull(reader.GetOrdinal("Income")) ? null : Convert.ToDecimal(reader["Income"]),
+                                    CrifScore = reader.IsDBNull(reader.GetOrdinal("CrifScore")) ? null : Convert.ToInt32(reader["CrifScore"]),
+                                    OverdueAmt = reader.IsDBNull(reader.GetOrdinal("OverdueAmt")) ? null : Convert.ToDecimal(reader["OverdueAmt"]),
+                                    TotalCurrentAmt = reader.IsDBNull(reader.GetOrdinal("TotalCurrentAmt")) ? null : Convert.ToDecimal(reader["TotalCurrentAmt"]),
+                                    IncomePA = reader.IsDBNull(reader.GetOrdinal("IncomePA")) ? null : Convert.ToDecimal(reader["IncomePA"]),
+                                    ActiveAccount = reader.IsDBNull(reader.GetOrdinal("CountofActiveAccount")) ? null : Convert.ToInt32(reader["CountofActiveAccount"]),
+                                    ActiveAmount = reader.IsDBNull(reader.GetOrdinal("AmountofActiveAccount")) ? null : Convert.ToDecimal(reader["AmountofActiveAccount"]),
+                                    FiCode = reader.IsDBNull(reader.GetOrdinal("FICode")) ? null : Convert.ToInt64(reader["FICode"])
                                 });
                             }
+                        }
+
+                        // Third result: unmatched count
+                        if (reader.NextResult() && reader.Read())
+                        {
+                            response.UnmatchedCount = reader["UnmatchedCount"] != DBNull.Value
+                                ? Convert.ToInt32(reader["UnmatchedCount"])
+                                : 0;
                         }
                     }
                 }
@@ -118,7 +109,7 @@ namespace PDL.ReportService.Logics.BLL
                 con.Close();
             }
 
-            return result;
+            return response;
         }
 
         public List<CsoCollectionReportModelVM> GetCsoCollectionReport(DateTime fromDate, DateTime toDate, string csoCode, string dbtype, string dbName, bool isLive, int PageNumber, int PageSize)
