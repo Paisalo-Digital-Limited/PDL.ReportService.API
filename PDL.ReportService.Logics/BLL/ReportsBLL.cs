@@ -38,7 +38,8 @@ namespace PDL.ReportService.Logics.BLL
             {
                 CaseHistories = new List<CaseHistoryVM>(),
                 TotalCount = 0,
-                UnmatchedCount = 0
+                InvalidSmCodeCount = 0, 
+                NoHistoryCount = 0      
             };
 
             using (SqlConnection con = _credManager.getConnections(dbName, isLive))
@@ -49,7 +50,7 @@ namespace PDL.ReportService.Logics.BLL
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    // SM Code table
+                    // Table-valued parameter setup
                     var table = new DataTable();
                     table.Columns.Add("SmCode", typeof(string));
                     foreach (var code in smCodes)
@@ -61,15 +62,31 @@ namespace PDL.ReportService.Logics.BLL
 
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        // First result: total count
+                        // 1️⃣ First result: Invalid SM Code Count
                         if (reader.Read())
+                        {
+                            response.InvalidSmCodeCount = reader["InvalidSmCodeCount"] != DBNull.Value
+                                ? Convert.ToInt32(reader["InvalidSmCodeCount"])
+                                : 0;
+                        }
+
+                        // 2️⃣ Second result: No History Count
+                        if (reader.NextResult() && reader.Read())
+                        {
+                            response.NoHistoryCount = reader["NoHistoryCount"] != DBNull.Value
+                                ? Convert.ToInt32(reader["NoHistoryCount"])
+                                : 0;
+                        }
+
+                        // 3️⃣ Third result: Total Count
+                        if (reader.NextResult() && reader.Read())
                         {
                             response.TotalCount = reader["TotalCount"] != DBNull.Value
                                 ? Convert.ToInt32(reader["TotalCount"])
                                 : 0;
                         }
 
-                        // Second result: paginated data
+                        // 4️⃣ Fourth result: Paginated Data
                         if (reader.NextResult())
                         {
                             while (reader.Read())
@@ -95,14 +112,6 @@ namespace PDL.ReportService.Logics.BLL
                                 });
                             }
                         }
-
-                        // Third result: unmatched count
-                        if (reader.NextResult() && reader.Read())
-                        {
-                            response.UnmatchedCount = reader["UnmatchedCount"] != DBNull.Value
-                                ? Convert.ToInt32(reader["UnmatchedCount"])
-                                : 0;
-                        }
                     }
                 }
 
@@ -111,6 +120,7 @@ namespace PDL.ReportService.Logics.BLL
 
             return response;
         }
+
 
         public List<CsoCollectionReportModelVM> GetCsoCollectionReport(DateTime fromDate, DateTime toDate, string csoCode, string dbtype, string dbName, bool isLive, int PageNumber, int PageSize)
         {

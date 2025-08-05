@@ -10,6 +10,8 @@ namespace PDL.ReportService.Entites.VM.ReportVM
     {
         public List<CaseHistoryVM> CaseHistories { get; set; }
         public int TotalCount { get; set; }
-        public int UnmatchedCount { get; set; }
+
+        public int InvalidSmCodeCount { get; set; }
+        public int NoHistoryCount { get; set; }
     }
 }

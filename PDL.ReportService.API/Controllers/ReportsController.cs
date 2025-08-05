@@ -38,21 +38,13 @@ namespace PDL.ReportService.API.Controllers
 
                 var result = _reports.GetCaseHistoryBySmCodes(smCodes, dbName, isLive, PageNumber, PageSize);
 
-                if (result != null && result.CaseHistories.Any())
+                return Ok(new
                 {
-                    return Ok(new
-                    {
-                        message = resourceManager.GetString("GETSUCCESS"),
-                        data = result.CaseHistories,
-                        totalCount = result.TotalCount,
-                        unmatchedCount = result.UnmatchedCount
-                    });
-                }
-
-                return NotFound(new
-                {
-                    message = resourceManager.GetString("GETFAIL"),
-                    unmatchedCount = result.UnmatchedCount
+                    message = resourceManager.GetString("GETSUCCESS"),
+                    data = result.CaseHistories,
+                    totalCount = result.TotalCount,
+                    invalidSmCodeCount = result.InvalidSmCodeCount,
+                    noHistoryCount = result.NoHistoryCount
                 });
             }
             catch (Exception ex)
