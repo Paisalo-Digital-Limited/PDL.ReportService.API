@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.Text.Json;
 
 namespace PDL.ReportService.API.Extensions
 {
@@ -13,15 +15,39 @@ namespace PDL.ReportService.API.Extensions
             Services.AddSingleton(bindJwtSettings);
 
 
-            Services.AddAuthentication(options => {
+            Services.AddAuthentication(options =>
+            {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options => {
+            })
+            .AddJwtBearer(options =>
+            {
                 options.SaveToken = true;
-                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnChallenge = context =>
+                    {
+                        context.HandleResponse();
+
+                        context.Response.StatusCode = 401;
+                        context.Response.ContentType = "application/json";
+
+                        var result = JsonSerializer.Serialize(new
+                        {
+                            success = false,
+                            message = "Unauthorized access. Please login again."
+                        });
+
+                        return context.Response.WriteAsync(result);
+                    }
+                };
+
+                options.TokenValidationParameters = new TokenValidationParameters()
                 {
                     ValidateIssuerSigningKey = bindJwtSettings.ValidateIssuerSigningKey,
-                    IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(bindJwtSettings.IssuerSigningKey)),
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(bindJwtSettings.IssuerSigningKey)),
                     ValidateIssuer = bindJwtSettings.ValidateIssuer,
                     ValidIssuer = bindJwtSettings.ValidIssuer,
                     ValidateAudience = bindJwtSettings.ValidateAudience,

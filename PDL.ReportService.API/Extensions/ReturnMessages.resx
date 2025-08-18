@@ -183,4 +183,10 @@
   <data name="NOTPUSHRECORD" xml:space="preserve">
     <value>Failed Records!!</value>
   </data>
+  <data name="FILENOTEXIST" xml:space="preserve">
+    <value>File not selected or empty !!</value>
+  </data>
+  <data name="SMCODENOTEXIST" xml:space="preserve">
+    <value>No Smcodes found in the Excel file !!</value>
+  </data>
 </root>

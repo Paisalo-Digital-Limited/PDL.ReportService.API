@@ -1134,5 +1134,100 @@ namespace PDL.ReportService.Logics.BLL
             return affectedRows;
         }
         #endregion
+
+        #region GET ICICI QR CALLBACK REPORT
+        public List<IciciQrTransactionVM> ICICIQRCallBackReport(DateTime? fromDate, DateTime? toDate, int pageNum, int pageSize, bool islive)
+        {
+            var transactions = new List<IciciQrTransactionVM>();
+
+            string dbname = Helper.Helper.GetDBName(_configuration);
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (SqlCommand cmd = new SqlCommand("Usp_GetICICIQRCallBackReport", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@FromDt", fromDate);
+                    cmd.Parameters.AddWithValue("@ToDt", toDate);
+                    cmd.Parameters.AddWithValue("@PageNum", pageNum);
+                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                    con.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            transactions.Add(new IciciQrTransactionVM
+                            {
+                                TotalCount = Convert.ToInt32(reader["TotalCount"]),
+                                TxnId = reader["txnId"]?.ToString(),
+                                VNo = reader["VNo"]?.ToString(),
+                                CustRef = reader["custRef"]?.ToString(),
+                                Amount = reader["amount"] != DBNull.Value ? Convert.ToDecimal(reader["amount"]) : 0,
+                                TxnStatus = reader["txnStatus"]?.ToString(),
+                                PayerVpa = reader["payerVpa"]?.ToString(),
+                                PayeeVpa = reader["payeeVpa"]?.ToString(),
+                                TxnDateTime = reader["txnDateTime"] != DBNull.Value ? Convert.ToDateTime(reader["txnDateTime"]) : (DateTime?)null,
+                                VirtualVpa = reader["virtualVpa"]?.ToString(),
+                                Fname = reader["Fname"]?.ToString(),
+                                BranchName = reader["BranchName"]?.ToString(),
+                                Creator = reader["Creator"]?.ToString(),
+                                GroupCode = reader["GroupCode"]?.ToString(),
+                                FISMCODE = reader["FISMCODE"]?.ToString(),
+                                QRSMCODE = reader["QRSMCODE"]?.ToString(),
+                                CreationDate = reader["CreationDate"] != DBNull.Value ? Convert.ToDateTime(reader["CreationDate"]) : (DateTime?)null,
+                                AHEAD = reader["AHEAD"]?.ToString(),
+                                SmCodeStatus = reader["SmCodeStatus"]?.ToString(),
+                                QrEntryFlag = reader["QrEntryFlag"]?.ToString(),
+                                PaymentMode = reader["PaymentMode"]?.ToString(),
+                                IsRcposted = reader["IsRcposted"] != DBNull.Value ? Convert.ToBoolean(reader["IsRcposted"]) : (bool?)null
+                            });
+                        }
+                    }
+                }
+            }
+
+            return transactions;
+        }
+        #endregion
+        #region SCHEME WISE CASE REPORT
+        public List<SanctionedFiRecordVM> SchemeWiseCaseReport(DateTime? fromDate, DateTime? toDate, string schCode, int pageNum, int pageSize, bool islive)
+        {
+            var result = new List<SanctionedFiRecordVM>();
+
+            string dbname = Helper.Helper.GetDBName(_configuration);
+
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            using (SqlCommand cmd = new SqlCommand("Usp_GetSchemeWiseCaseReport", con)) // Assume you've created this proc
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SchCode", schCode);
+                cmd.Parameters.AddWithValue("@FromDt", fromDate);
+                cmd.Parameters.AddWithValue("@ToDt", toDate);
+                cmd.Parameters.AddWithValue("@PageNum", pageNum);
+                cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                con.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        result.Add(new SanctionedFiRecordVM
+                        {
+                            TotalCount = Convert.ToInt32(reader["TotalCount"]),
+                            FICode = reader["FICode"]?.ToString(),
+                            Creator = reader["Creator"]?.ToString(),
+                            SanctionedAmt = reader["SanctionedAmt"] != DBNull.Value ? Convert.ToDecimal(reader["SanctionedAmt"]) : 0,
+                            SchemeCode = reader["SchemeCode"]?.ToString(),
+                            CustomerName = reader["CustomerName"]?.ToString()
+                        });
+                    }
+                }
+            }
+
+            return result;
+        }
+        #endregion
     }
 }

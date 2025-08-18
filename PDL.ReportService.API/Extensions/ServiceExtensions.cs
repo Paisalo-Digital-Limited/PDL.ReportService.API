@@ -13,6 +13,7 @@ namespace PDL.ReportService.API.Extensions
             collection.AddHttpClient();
             collection.AddScoped<CredManager>();
             collection.AddScoped<IBranchDashboardService, BranchDashboardRepository>();
+            collection.AddScoped<IReports, ReportsRepository>();
         }
         #endregion
     }

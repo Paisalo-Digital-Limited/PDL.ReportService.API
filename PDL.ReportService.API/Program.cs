@@ -1,11 +1,29 @@
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using PDL.FIService.Api.HealthCheck;
 using PDL.ReportService.API.Extensions;
+using PDL.ReportService.Logics.Credentials;
+using PDL.ReportService.Logics.Helper;
 
 var builder = WebApplication.CreateBuilder(args);
+var config = builder.Configuration;
+var otherPodUrl = config["PodUrl"];
+bool isLive = builder.Configuration.GetValue<bool>("isliveDb");
+string val = builder.Configuration.GetValue<string>("encryptSalts:dbval");
+string salt = builder.Configuration.GetValue<string>("encryptSalts:dbName");
+var conMgr = new CredManager(config);
 
 // Add services to the container.
 builder.Services.AddJWTTokenServices(builder.Configuration);
+// Add HTTP client for pinging other pods
+builder.Services.AddHttpClient();
+// Add health check services
+// Register health checks
+builder.Services.AddHealthChecks()
+    .AddCheck("sql_ado_check", new SqlConnectionHealthCheck(conMgr.getConnectionString(Helper.Decrypt(val, salt), isLive)))
+    .AddCheck("other_pod_check", new HttpEndpointHealthCheck(otherPodUrl, builder.Services.BuildServiceProvider().GetRequiredService<IHttpClientFactory>()));
 
 builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -59,5 +77,28 @@ app.UseCors(builder =>
 app.UseAuthorization();
 
 app.MapControllers();
+#region// Map health check endpoint
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
 
+
+        var result = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            status = report.Status.ToString(),
+            checks = report.Entries.Select(e => new
+            {
+                name = e.Key,
+                status = e.Value.Status.ToString(),
+                description = e.Value.Description
+            }),
+            totalDuration = report.TotalDuration.TotalSeconds
+        });
+
+        await context.Response.WriteAsync(result);
+    }
+});
+#endregion
 app.Run();

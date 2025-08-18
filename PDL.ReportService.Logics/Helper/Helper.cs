@@ -1,5 +1,12 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.VisualBasic;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
+using OfficeOpenXml.Export.HtmlExport.StyleCollectors.StyleContracts;
 using Renci.SshNet;
+using System.Collections.Generic;
+using System.Data;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -86,5 +93,62 @@ namespace PDL.ReportService.Logics.Helper
                 }
             }
         }
+        public static List<string> ReadExcelFileToSMCodeList(IFormFile file)
+        {
+            List<string> smCodes = new List<string>();
+
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    file.CopyTo(stream);
+                    stream.Position = 0;
+
+                    XSSFWorkbook workbook = new XSSFWorkbook(stream);
+                    ISheet sheet = workbook.GetSheetAt(0);
+
+                    if (sheet == null) return smCodes;
+
+                    IRow headerRow = sheet.GetRow(0);
+                    int cellCount = headerRow.LastCellNum;
+
+                    // Find SMCode column index
+                    int smCodeColIndex = -1;
+                    for (int j = 0; j < cellCount; j++)
+                    {
+                        var cellValue = headerRow.GetCell(j)?.ToString().Trim();
+                        if (!string.IsNullOrEmpty(cellValue) && cellValue.Equals("SMCode", StringComparison.OrdinalIgnoreCase))
+                        {
+                            smCodeColIndex = j;
+                            break;
+                        }
+                    }
+
+                    if (smCodeColIndex == -1) return smCodes;  // SMCode column not found
+
+                    // Read SMCode values
+                    for (int i = 1; i <= sheet.LastRowNum; i++)
+                    {
+                        IRow row = sheet.GetRow(i);
+                        if (row == null || row.Cells.All(d => d == null || d.CellType == CellType.Blank)) continue;
+
+                        ICell smCodeCell = row.GetCell(smCodeColIndex);
+                        if (smCodeCell != null)
+                        {
+                            string smCodeValue = smCodeCell.ToString().Trim();
+                            if (!string.IsNullOrEmpty(smCodeValue))
+                                smCodes.Add(smCodeValue);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error reading Excel file: " + ex.Message);
+            }
+
+            return smCodes;
+        }
+
     }
 }
