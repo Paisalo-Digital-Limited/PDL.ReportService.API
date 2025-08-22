@@ -20,7 +20,7 @@ namespace PDL.ReportService.Repository.Repository
         }
 
 
-        public string GetCamGeneration(string ficodes, string creatorId, string dbName, bool isLive)
+        public string GetCamGeneration(string ficodes, int creatorId, string dbName, bool isLive)
 
         {
             using (CamBLL camBLL = new CamBLL(_configuration))

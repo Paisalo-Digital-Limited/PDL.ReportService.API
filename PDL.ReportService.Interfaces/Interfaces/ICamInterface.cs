@@ -11,7 +11,7 @@ namespace PDL.ReportService.Interfaces.Interfaces
 {
     public interface ICamInterface
     {
-        string GetCamGeneration(string ficodes, string creator, string dbName, bool isLive);
+        string GetCamGeneration(string ficodes, int creatorId, string dbName, bool isLive);
         List<string> GetFiCodeByCreator(int CreatorId, string dbName, bool isLive);
     }
 }

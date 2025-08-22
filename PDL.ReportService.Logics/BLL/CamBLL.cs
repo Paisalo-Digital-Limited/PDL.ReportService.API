@@ -29,7 +29,7 @@ namespace PDL.ReportService.Logics.BLL
         }
 
 
-        public string GetCamGeneration(string ficodes, string creator, string dbName, bool isLive)
+        public string GetCamGeneration(string ficodes, int creatorId, string dbName, bool isLive)
         {
             String selcam = string.Empty;
 
@@ -51,7 +51,7 @@ namespace PDL.ReportService.Logics.BLL
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Mode", "GETCAMDATA");
                     cmd.Parameters.Add("@FiCode", SqlDbType.VarChar).Value = formattedFiCodes;
-                    cmd.Parameters.Add("@Creator", SqlDbType.VarChar, 15).Value = creator;
+                    cmd.Parameters.Add("@Creator", SqlDbType.VarChar, 15).Value = creatorId;
                     da.Fill(dsc);
                     con.Close();
                 }
@@ -75,7 +75,7 @@ namespace PDL.ReportService.Logics.BLL
                 int ti = 0;
                 string emibase = "0";
                 string existingemi = "0";
-
+                string creator = dataGrid.Rows[0]["Creator"].ToString();
                 if (dataGrid != null && dataGrid.Rows.Count > 0)
                 {
                     string camhtml = string.Empty;
