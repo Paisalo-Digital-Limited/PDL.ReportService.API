@@ -1399,6 +1399,31 @@ namespace PDL.ReportService.Logics.BLL
             return isWithinLastSixMonths;
         }
 
- 
+        public List<string> GetFiCodeByCreator(int CreatorId, string dbName, bool isLive)
+        {
+            List<string> res = new List<string>();
+            string query = "Usp_GetCamGeneration";
+
+            using (SqlConnection con = _credManager.getConnections(dbName, isLive))
+            {
+                con.Open();
+                using (var cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "GetFiCodeByCreator");
+                    cmd.Parameters.AddWithValue("@CreatorID", CreatorId);
+                   
+                       using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                res.Add(reader["FiCode"].ToString()); // assuming FiCode column exists
+                            }
+                       }
+                   
+                }
+            }
+            return res;
+        }
     }
 }

@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.Helper;
+using System.Security.Claims;
 
 namespace PDL.ReportService.API.Controllers
 {
@@ -43,6 +45,39 @@ namespace PDL.ReportService.API.Controllers
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetCamGeneration_CamController");
                 return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet]
+        public IActionResult GetFiCodeByCreator(int CreatorId)
+        {
+            try
+            {
+                string dbname = GetDBName();
+                string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                List<string> lst = _camInterface.GetFiCodeByCreator(CreatorId, dbname, GetIslive());
+                if (lst.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        message = (resourceManager.GetString("GETSUCCESS")),
+                        data = lst
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = (resourceManager.GetString("NORECORD")),
+                        data = lst
+                    });
+                }
+            }
+
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetFiCodeByCreator_CamController");
+                return BadRequest(new { message = (resourceManager.GetString("BADREQUEST")), data = "" });
             }
         }
 

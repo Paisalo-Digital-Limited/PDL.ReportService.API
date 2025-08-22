@@ -20,13 +20,20 @@ namespace PDL.ReportService.Repository.Repository
         }
 
 
-        public string  GetCamGeneration(string ficodes, string creatorId, string dbName, bool isLive) 
+        public string GetCamGeneration(string ficodes, string creatorId, string dbName, bool isLive)
 
         {
-            using (CamBLL camBLL   = new CamBLL(_configuration))
+            using (CamBLL camBLL = new CamBLL(_configuration))
             {
-                return camBLL.GetCamGeneration( ficodes,  creatorId,  dbName,  isLive);
+                return camBLL.GetCamGeneration(ficodes, creatorId, dbName, isLive);
 
+            }
+        }
+        public List<string> GetFiCodeByCreator(int CreatorId, string dbName, bool isLive)
+        {
+            using (CamBLL camBLL = new CamBLL(_configuration))
+            {
+                return camBLL.GetFiCodeByCreator(CreatorId, dbName, isLive);
             }
         }
     }
