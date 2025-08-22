@@ -8,6 +8,7 @@ namespace PDL.ReportService.API.Controllers
     [Route("api/[controller]/[action]")]
     [ApiController]
    [Authorize]
+
     public class BaseApiController : ControllerBase
     {
         private readonly IConfiguration _configuration;

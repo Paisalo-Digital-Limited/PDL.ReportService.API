@@ -17,20 +17,22 @@ namespace PDL.ReportService.API.Controllers
             _configuration = configuration;
         }
 
+
+
         [HttpPost]
-        public IActionResult GetCamGeneration(string ficodes , string creator)
+        public IActionResult GetCamGeneration(string ficodes , int creatorId)
         {
             try
             {
                 string dbName = GetDBName();
                 bool isLive = GetIslive();
 
-                if (string.IsNullOrEmpty(dbName) || ficodes == null || ficodes.Length<1 || creator.Length<0)
+                if (string.IsNullOrEmpty(dbName) || ficodes == null || ficodes.Length<1 || creatorId<1)
                 {
                     return BadRequest(new { message = resourceManager.GetString("NULLDBNAME") });
                 }
 
-                var result = _camInterface.GetCamGeneration(ficodes, creator, dbName, isLive);
+                var result = _camInterface.GetCamGeneration(ficodes, creatorId, dbName, isLive);
 
                 return Ok(new
                 {
