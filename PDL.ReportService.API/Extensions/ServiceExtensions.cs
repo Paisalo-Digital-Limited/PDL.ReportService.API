@@ -14,6 +14,7 @@ namespace PDL.ReportService.API.Extensions
             collection.AddScoped<CredManager>();
             collection.AddScoped<IBranchDashboardService, BranchDashboardRepository>();
             collection.AddScoped<IReports, ReportsRepository>();
+            collection.AddScoped<ICamInterface, CamRepository>();
         }
         #endregion
     }
