@@ -51,7 +51,7 @@ namespace PDL.ReportService.Logics.BLL
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Mode", "GETCAMDATA");
                     cmd.Parameters.Add("@FiCode", SqlDbType.VarChar).Value = formattedFiCodes;
-                    cmd.Parameters.Add("@Creator", SqlDbType.VarChar, 15).Value = creatorId;
+                    cmd.Parameters.Add("@Creator", SqlDbType.Int).Value = creatorId;
                     da.Fill(dsc);
                     con.Close();
                 }

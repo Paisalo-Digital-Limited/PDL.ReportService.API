@@ -27,7 +27,7 @@ namespace PDL.ReportService.API.Controllers
                 string dbName = GetDBName();
                 bool isLive = GetIslive();
 
-                if (string.IsNullOrEmpty(dbName) || ficodes == null || ficodes.Length<1 || creatorId<0)
+                if (string.IsNullOrEmpty(dbName) || ficodes == null || ficodes.Length<1 || creatorId<1)
                 {
                     return BadRequest(new { message = resourceManager.GetString("NULLDBNAME") });
                 }
