@@ -52,9 +52,12 @@ namespace PDL.ReportService.API.Extensions
                     ValidIssuer = bindJwtSettings.ValidIssuer,
                     ValidateAudience = bindJwtSettings.ValidateAudience,
                     ValidAudience = bindJwtSettings.ValidAudience,
-                    RequireExpirationTime = bindJwtSettings.RequireExpirationTime,
-                    ValidateLifetime = bindJwtSettings.RequireExpirationTime,
-                    ClockSkew = TimeSpan.FromDays(1),
+                    //RequireExpirationTime = bindJwtSettings.RequireExpirationTime,
+                    //ValidateLifetime = bindJwtSettings.RequireExpirationTime,
+                    //ClockSkew = TimeSpan.FromDays(1),
+                    RequireExpirationTime = true, // ensures 'exp' claim must be present
+                    ValidateLifetime = true,      // actually checks token expiration
+                    ClockSkew = TimeSpan.Zero     // or keep minimal (default is 5 mins)
                 };
             });
         }
