@@ -13,7 +13,7 @@ namespace PDL.ReportService.Interfaces.Interfaces
         BranchDashBoardVM GetMasterData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string? flag, bool islive);
         CollectionStatusVM CollectionStatus(string SmCode, bool islive);
         List<BranchDashBoardDataModel> GetBranchDashboardData(string CreatorBranchId, DateTime? FromDate, DateTime? ToDate, string Type, int pageNumber, int pageSize, string? flag, bool islive);
-        List<FiCreatorMaster> GetCreators(string activeuser, bool islive);
+        List<FiCreatorMaster> GetCreators(bool? isABF,string activeuser, bool islive);
         List<BranchWithCreator> GetBranches(string CreatorId, string activeuser, bool islive);
         List<GetFirstEsign> GetFirstEsign(int CreatorId, long FiCode, bool islive);
         List<GetSecoundEsign> GetSecoundEsign(int CreatorId, long FiCode, bool islive);

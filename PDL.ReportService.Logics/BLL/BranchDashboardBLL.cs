@@ -278,7 +278,7 @@ namespace PDL.ReportService.Logics.BLL
         }
         #endregion
         #region API GetCreators BY--------------- Kartik -------
-        public List<FiCreatorMaster> GetCreators(string activeuser, bool islive)
+        public List<FiCreatorMaster> GetCreators(bool? isABF, string activeuser, bool islive)
         {
             string dbname = Helper.Helper.GetDBName(_configuration);
             // Validate activeuser
@@ -300,6 +300,7 @@ namespace PDL.ReportService.Logics.BLL
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@UserId", activeuser);
+                    cmd.Parameters.AddWithValue("@IsABF", isABF);
 
                     var creators = new List<FiCreatorMaster>();
 

@@ -121,12 +121,12 @@ namespace PDL.ReportService.API.Controllers
         #endregion
         #region API GetBranchesByCreators BY--------------- Kartik -------
         [HttpGet]
-        public IActionResult GetCreators()
+        public IActionResult GetCreators(bool? isABF)
         {
             try
             {
                 string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                List<FiCreatorMaster> result = _branchDashboardService.GetCreators(activeuser, GetIslive());
+                List<FiCreatorMaster> result = _branchDashboardService.GetCreators(isABF,activeuser, GetIslive());
                 if (result != null && result.Count > 0 && result[0].CreatorID == -1)
                 {
                     return NotFound(new
