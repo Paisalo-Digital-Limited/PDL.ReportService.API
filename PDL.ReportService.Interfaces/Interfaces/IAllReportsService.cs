@@ -1,0 +1,18 @@
+﻿using PDL.ReportService.Entites.VM;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml.Linq;
+
+namespace PDL.ReportService.Interfaces.Interfaces
+{
+    public interface IAllReportsService
+    {
+       DataTable AllReportsList(AllReportParameterVM obj,string dbname,bool isLive);
+       DataTable RcPostReportsList(string? VDate, string? VNO, string? FromDate, string? ToDate, int? PageSize, int? PageNumber,string dbname,bool isLive);
+    }
+}
