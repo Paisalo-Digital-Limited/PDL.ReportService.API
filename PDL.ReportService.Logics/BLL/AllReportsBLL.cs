@@ -75,7 +75,7 @@ namespace PDL.ReportService.Logics.BLL
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Mode", "RcPostReportsList");
-                    cmd.Parameters.AddWithValue("@CreatorID,", CreatorID);
+                    cmd.Parameters.AddWithValue("@CreatorID", CreatorID);
                     cmd.Parameters.AddWithValue("@VDate", VDate);
                     cmd.Parameters.AddWithValue("@VNO", VNO);
                     cmd.Parameters.AddWithValue("@FromDate", FromDate);
