@@ -13,6 +13,6 @@ namespace PDL.ReportService.Interfaces.Interfaces
     public interface IAllReportsService
     {
        DataTable AllReportsList(AllReportParameterVM obj,string dbname,bool isLive);
-       DataTable RcPostReportsList(string? VDate, string? VNO, string? FromDate, string? ToDate, int? PageSize, int? PageNumber,string dbname,bool isLive);
+       DataTable RcPostReportsList(int CreatorID, string? VDate, string? VNO, string? FromDate, string? ToDate, int? PageSize, int? PageNumber,string dbname,bool isLive);
     }
 }

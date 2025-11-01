@@ -66,7 +66,7 @@ namespace PDL.ReportService.Logics.BLL
             }
             return dt;
         }
-        public DataTable RcPostReportsList(string? VDate, string? VNO, string? FromDate, string? ToDate, int? PageSize, int? PageNumber, string dbname, bool isLive)
+        public DataTable RcPostReportsList(int CreatorID, string? VDate, string? VNO, string? FromDate, string? ToDate, int? PageSize, int? PageNumber, string dbname, bool isLive)
         {
             DataTable dt = new DataTable();
             using (SqlConnection con= _credManager.getConnections(dbname, isLive))
@@ -75,6 +75,7 @@ namespace PDL.ReportService.Logics.BLL
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Mode", "RcPostReportsList");
+                    cmd.Parameters.AddWithValue("@CreatorID,", CreatorID);
                     cmd.Parameters.AddWithValue("@VDate", VDate);
                     cmd.Parameters.AddWithValue("@VNO", VNO);
                     cmd.Parameters.AddWithValue("@FromDate", FromDate);

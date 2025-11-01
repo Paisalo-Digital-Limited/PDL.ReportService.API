@@ -27,11 +27,11 @@ namespace PDL.ReportService.Repository.Repository
                 return bll.AllReportsList(obj, dbname, isLive);
             }
         }
-        public DataTable RcPostReportsList(string? VDate, string? VNO, string? FromDate, string? ToDate, int? PageSize, int? PageNumber, string dbname, bool isLive)
+        public DataTable RcPostReportsList(int CreatorID, string? VDate, string? VNO, string? FromDate, string? ToDate, int? PageSize, int? PageNumber, string dbname, bool isLive)
         {
             using (AllReportsBLL bll=new AllReportsBLL(_configuration))
             {
-                return bll.RcPostReportsList(VDate, VNO, FromDate, ToDate, PageSize, PageNumber, dbname, isLive);
+                return bll.RcPostReportsList(CreatorID, VDate, VNO, FromDate, ToDate, PageSize, PageNumber, dbname, isLive);
             }
         }
     }

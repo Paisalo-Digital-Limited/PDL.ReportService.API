@@ -52,14 +52,14 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         [HttpGet]
-        public IActionResult RcPostReportsList(string? VDate, string? VNO,  string? FromDate, string? ToDate, int? PageSize, int? PageNumber)
+        public IActionResult RcPostReportsList(int CreatorID,string? VDate, string? VNO,  string? FromDate, string? ToDate, int? PageSize, int? PageNumber)
         {
             string dbname = GetDBName();
             bool isLive = GetIslive();
 
             try
             {
-                DataTable result = _allReportsService.RcPostReportsList(VDate, VNO, FromDate, ToDate, PageSize, PageNumber, dbname, isLive);
+                DataTable result = _allReportsService.RcPostReportsList(CreatorID, VDate, VNO, FromDate, ToDate, PageSize, PageNumber, dbname, isLive);
                 if (result.Rows.Count > 0)
                 {
                     return Ok(new
