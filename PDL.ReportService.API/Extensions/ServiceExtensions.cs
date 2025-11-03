@@ -15,6 +15,7 @@ namespace PDL.ReportService.API.Extensions
             collection.AddScoped<IBranchDashboardService, BranchDashboardRepository>();
             collection.AddScoped<IReports, ReportsRepository>();
             collection.AddScoped<ICamInterface, CamRepository>();
+            collection.AddScoped<IAllReportsService, AllReportsRepository>();
             collection.AddScoped<UserRepository>();
         }
         #endregion
