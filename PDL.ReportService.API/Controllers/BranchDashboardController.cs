@@ -191,6 +191,43 @@ namespace PDL.ReportService.API.Controllers
  
             }
         }
+
+        //added by ramesh
+        [HttpGet]
+        public IActionResult GetGroupMasterByBranchCode(string BranchCode,int CreatorId)
+        {
+            try
+            {
+                string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                List<GroupMaster> result = _branchDashboardService.GetGroupMaster(BranchCode, CreatorId, activeuser, GetIslive());
+                if (result != null && result.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = result
+                    });
+                }
+                else
+                {
+                    return NotFound(new
+                    {
+                        message = resourceManager.GetString("GETFAIL"),
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetGroupMasterByBranchCode_BranchDashboard");
+                return BadRequest(new { message = (resourceManager.GetString("BADREQUEST")) });
+
+            }
+        }
+
+
+
+
+
         #endregion
         #region BranchDashboard ChatBot query Api  BY--------------- Satish Maurya-------
         [HttpGet]

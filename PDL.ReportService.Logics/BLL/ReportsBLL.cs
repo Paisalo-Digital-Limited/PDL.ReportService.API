@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NPOI.SS.UserModel;
 using OfficeOpenXml;
 using PDL.ReportService.Entites.VM;
@@ -785,6 +786,126 @@ namespace PDL.ReportService.Logics.BLL
             // Step 4: Return Result as JSON
             return missingCodes;
         }
+        public async Task<PaginationResponse<OverduePenalties>> GetOverdueRecordsAsync(PaginationRequest<OverduePenalties> request,string dbname,bool isLive)
+        {
+            var result = new PaginationResponse<OverduePenalties>();
+            var data = new List<OverduePenalties>();
+            var filters = JObject.FromObject(request.Filters);
+            //var filters = request.Filters as dynamic;
+            string creatorId = (string)(filters["CreatorID"] ?? filters["CreatorId"]);
+            string branchCode = (string)(filters["BranchCode"] ?? filters["branchCode"]);
+            string groupCode = (string)(filters["GroupCode"] ?? filters["groupCode"]);
+            DateTime startDate = (DateTime)(filters["StartDate"] ?? filters["startDate"]);
+            DateTime endDate = (DateTime)(filters["EndDate"] ?? filters["endDate"]);
+            using (SqlConnection conn = _credManager.getConnections(dbname, isLive))
+            using (SqlCommand cmd = new SqlCommand("Usp_GetOverduePenalties", conn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
 
+                cmd.Parameters.AddWithValue("@CreatorID", creatorId);
+                cmd.Parameters.AddWithValue("@BranchCode", branchCode);
+                cmd.Parameters.AddWithValue("@GroupCode", groupCode);
+                cmd.Parameters.AddWithValue("@StartDate", startDate.ToString("yyyy-MM-dd"));
+                cmd.Parameters.AddWithValue("@EndDate", endDate.ToString("yyyy-MM-dd"));
+
+                await conn.OpenAsync();
+
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        data.Add(new OverduePenalties
+                        {
+                            FI_Id = reader["FI_Id"] != DBNull.Value ? Convert.ToInt32(reader["FI_Id"]) : 0,
+                            FICode = Convert.ToInt64( reader["FICode"]?.ToString()),
+                            EMIDate = Convert.ToDateTime( reader["EMIDate"] != DBNull.Value ? Convert.ToDateTime(reader["EMIDate"]) : (DateTime?)null),
+                            OverDueDays = reader["OverDueDays"] != DBNull.Value ? Convert.ToInt32(reader["OverDueDays"]) : 0,
+                            TotalOverDueAmount = reader["TotalOverDueAmount"] != DBNull.Value ? Convert.ToDecimal(reader["TotalOverDueAmount"]) : 0,
+                            CreatorName = reader["CreatorName"]?.ToString(),
+                            FullName = reader["FullName"]?.ToString(),
+                            BranchName = reader["BranchName"]?.ToString(),
+                            GroupName = reader["GroupName"]?.ToString(),
+                            CreationDate=Convert.ToDateTime( reader["CreationDate"]?.ToString())
+                        });
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(request.SearchTerm))
+            {
+                string term = request.SearchTerm.ToLower();
+                data = data.Where(x =>
+                    x.FICode.ToString().Contains(term) ||
+                    x.FullName.ToLower().Contains(term) ||
+                    x.BranchName.ToLower().Contains(term) ||
+                    x.GroupName.ToLower().Contains(term)
+                ).ToList();
+            }
+
+            if (request.MinOverdueDays.HasValue)
+            {
+                data = data.Where(x => x.OverDueDays >= request.MinOverdueDays.Value).ToList();
+            }
+            if (request.SortOrder == "ASC")
+                data = data.OrderBy(x => x.GetType().GetProperty(request.SortBy)?.GetValue(x, null)).ToList();
+            else
+                data = data.OrderByDescending(x => x.GetType().GetProperty(request.SortBy)?.GetValue(x, null)).ToList();
+            var totalRecords = data.Count;
+            var pagedData = data.Skip((request.PageNumber - 1) * request.PageSize)
+                                .Take(request.PageSize)
+                                .ToList();
+
+            result.Data = pagedData;
+            result.TotalRecords = totalRecords;
+            result.PageSize = request.PageSize;
+            result.CurrentPage = request.PageNumber;
+            result.TotalPages = (int)Math.Ceiling((double)totalRecords / request.PageSize);
+            result.HasPreviousPage = request.PageNumber > 1;
+            result.HasNextPage = request.PageNumber < result.TotalPages;
+
+            return result;
+        }
+        public async Task<List<OverduePenalties>> ExportOverdueExcel(string creatorId, string branchCode, string groupCode, string startDate, string endDate, string dbname, bool isLive)
+        {
+            List<OverduePenalties> data = new List<OverduePenalties>();
+            using (SqlConnection conn = _credManager.getConnections(dbname, isLive))
+            using (SqlCommand cmd = new SqlCommand("Usp_GetOverduePenalties", conn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.AddWithValue("@CreatorID", creatorId);
+                cmd.Parameters.AddWithValue("@BranchCode", branchCode);
+                cmd.Parameters.AddWithValue("@GroupCode", groupCode);
+                cmd.Parameters.AddWithValue("@StartDate",(Convert.ToDateTime( startDate)).ToString("yyyy-MM-dd"));
+                cmd.Parameters.AddWithValue("@EndDate",(Convert.ToDateTime( endDate)).ToString("yyyy-MM-dd"));
+
+                await conn.OpenAsync();
+
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        data.Add(new OverduePenalties
+                        {
+                            FI_Id = reader["FI_Id"] != DBNull.Value ? Convert.ToInt32(reader["FI_Id"]) : 0,
+                            FICode = Convert.ToInt64(reader["FICode"]?.ToString()),
+                            EMIDate = Convert.ToDateTime(reader["EMIDate"] != DBNull.Value ? Convert.ToDateTime(reader["EMIDate"]) : (DateTime?)null),
+                            OverDueDays = reader["OverDueDays"] != DBNull.Value ? Convert.ToInt32(reader["OverDueDays"]) : 0,
+                            TotalOverDueAmount = reader["TotalOverDueAmount"] != DBNull.Value ? Convert.ToDecimal(reader["TotalOverDueAmount"]) : 0,
+                            CreatorName = reader["CreatorName"]?.ToString(),
+                            FullName = reader["FullName"]?.ToString(),
+                            BranchName = reader["BranchName"]?.ToString(),
+                            GroupName = reader["GroupName"]?.ToString(),
+                            CreationDate = Convert.ToDateTime(reader["CreationDate"]?.ToString()),
+                            Rate = Convert.ToDecimal( reader["Rate"]?.ToString()),
+                        });
+                    }
+                }
+            }
+
+            
+
+            return data;
+        }
     }
 }
