@@ -119,5 +119,22 @@ namespace PDL.ReportService.Repository.Repository
                 return reportsBLL.SMCodeValidation(file, dbname, isLive);
             }
         }
+
+
+        public async Task<PaginationResponse<OverduePenalties>> GetOverdueRecordsAsync(PaginationRequest<OverduePenalties> paginationRequest, string dbname, bool isLive)
+        {
+            using (var reportsBLL = new ReportsBLL(_configuration))
+            {
+                return await reportsBLL.GetOverdueRecordsAsync(paginationRequest,  dbname,  isLive);
+            }
+        }
+
+        public async Task<List<OverduePenalties>> ExportOverdueExcel(string creatorId, string branchCode, string groupCode, string startDate, string endDate, string dbname, bool isLive)
+        {
+            using (var reportsBLL = new ReportsBLL(_configuration))
+            {
+                return await reportsBLL.ExportOverdueExcel( creatorId,  branchCode,  groupCode,  startDate,  endDate, dbname, isLive);
+            }
+        }
     }
 }

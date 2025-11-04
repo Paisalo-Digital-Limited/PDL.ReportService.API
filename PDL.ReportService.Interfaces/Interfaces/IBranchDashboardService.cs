@@ -34,5 +34,10 @@ namespace PDL.ReportService.Interfaces.Interfaces
         //----------------------MD--------------------------//
         List<IciciQrTransactionVM> ICICIQRCallBackReport(DateTime? FromDate, DateTime? ToDate, int pageNumber, int pageSize, bool islive);
         List<SanctionedFiRecordVM> SchemeWiseCaseReport(DateTime? FromDate, DateTime? ToDate,string SchCode, int pageNumber, int pageSize, bool islive);
+
+        //added by ramesh
+
+       List<GroupMaster> GetGroupMaster(string Branchcode,int CreatorId, string activeuser, bool islive);
+
     }
 }
