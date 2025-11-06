@@ -101,68 +101,6 @@ namespace PDL.ReportService.Logics.BLL
             }
             return dt;
         }
-        //public byte[] GenerateLedgerPdf(List<LedgerRow> rows, LedgerHeader header)
-        //{
-        //    using (var ms = new MemoryStream())
-        //    {
-        //        Document doc = new Document(PageSize.A4, 30, 30, 30, 30);
-        //        PdfWriter.GetInstance(doc, ms);
-        //        doc.Open();
-
-        //        Paragraph title = new Paragraph("Paisalo Digital Limited",
-        //            FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16));
-        //        title.Alignment = Element.ALIGN_CENTER;
-        //        doc.Add(title);
-
-        //        Paragraph sub = new Paragraph("Personal Ledger",
-        //            FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 14));
-        //        sub.Alignment = Element.ALIGN_CENTER;
-        //        doc.Add(sub);
-
-        //        doc.Add(new Paragraph("\n"));
-
-        //        PdfPTable headerTable = new PdfPTable(2);
-        //        headerTable.WidthPercentage = 100;
-
-        //        headerTable.AddCell($"From Date: {header.FromDate}");
-        //        headerTable.AddCell($"To Date: {header.ToDate}");
-        //        headerTable.AddCell($"Code: {header.PartyCode}");
-        //        headerTable.AddCell($"Party Name: {header.PartyName}");
-        //        headerTable.AddCell($"Regd No: {header.RegdNo}");
-        //        headerTable.AddCell($"Invest: {header.InvestAmount}");
-        //        headerTable.AddCell("");
-        //        headerTable.AddCell($"Total No of Inst: {header.TotalInstallment}");
-
-        //        doc.Add(headerTable);
-
-        //        doc.Add(new Paragraph("\n"));
-
-        //        PdfPTable table = new PdfPTable(5);
-        //        table.WidthPercentage = 100;
-
-        //        string[] headers = { "Date", "Particulars", "Debit", "Credit", "Balance" };
-        //        foreach (var h in headers)
-        //        {
-        //            PdfPCell cell = new PdfPCell(new Phrase(h));
-        //            cell.BackgroundColor = BaseColor.LIGHT_GRAY;
-        //            table.AddCell(cell);
-        //        }
-
-        //        foreach (var r in rows)
-        //        {
-        //            table.AddCell(r.Date);
-        //            table.AddCell(r.Particulars);
-        //            table.AddCell(r.Debit.ToString("N2"));
-        //            table.AddCell(r.Credit.ToString("N2"));
-        //            table.AddCell(r.Balance.ToString("N2"));
-        //        }
-
-        //        doc.Add(table);
-        //        doc.Close();
-
-        //        return ms.ToArray();
-        //    }
-
         public byte[] GenerateLedgerExcel(List<LedgerRow> rows, LedgerHeader header)
         {
             using (var wb = new XLWorkbook())
