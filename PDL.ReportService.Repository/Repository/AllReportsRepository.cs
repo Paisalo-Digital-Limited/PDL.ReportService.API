@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using NPOI.SS.Formula.Functions;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.BLL;
@@ -32,6 +33,14 @@ namespace PDL.ReportService.Repository.Repository
             using (AllReportsBLL bll=new AllReportsBLL(_configuration))
             {
                 return bll.RcPostReportsList(CreatorID, VDate, VNO, FromDate, ToDate, PageSize, PageNumber, dbname, isLive);
+            }
+        }
+        public byte[] GenerateLedgerPdf(string SmCode, string dbname, bool isLive)
+        {
+            using (AllReportsBLL bll=new AllReportsBLL(_configuration))
+            {
+                var data = bll.GetLedgerData(SmCode,dbname, isLive);
+                return bll.GenerateLedgerExcel(data.Rows, data.Header);
             }
         }
     }

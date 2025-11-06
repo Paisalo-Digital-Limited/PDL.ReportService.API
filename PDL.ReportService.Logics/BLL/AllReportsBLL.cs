@@ -1,6 +1,12 @@
-﻿using DocumentFormat.OpenXml.EMMA;
+﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.EMMA;
+using DocumentFormat.OpenXml.Office2010.PowerPoint;
+using DocumentFormat.OpenXml.Wordprocessing;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using NPOI.SS.Formula.Functions;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Logics.Credentials;
 using System;
@@ -9,10 +15,13 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using Document = DocumentFormat.OpenXml.Wordprocessing.Document;
+using Paragraph = iTextSharp.text.Paragraph;
 
 namespace PDL.ReportService.Logics.BLL
 {
-    public class AllReportsBLL:BaseBLL
+    public class AllReportsBLL : BaseBLL
     {
         private readonly IConfiguration _configuration;
         private readonly CredManager _credManager;
@@ -69,9 +78,9 @@ namespace PDL.ReportService.Logics.BLL
         public DataTable RcPostReportsList(int CreatorID, string? VDate, string? VNO, string? FromDate, string? ToDate, int? PageSize, int? PageNumber, string dbname, bool isLive)
         {
             DataTable dt = new DataTable();
-            using (SqlConnection con= _credManager.getConnections(dbname, isLive))
+            using (SqlConnection con = _credManager.getConnections(dbname, isLive))
             {
-                using(SqlCommand cmd=new SqlCommand("Usp_GetAllReportsList", con))
+                using (SqlCommand cmd = new SqlCommand("Usp_GetAllReportsList", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Mode", "RcPostReportsList");
@@ -91,6 +100,214 @@ namespace PDL.ReportService.Logics.BLL
                 }
             }
             return dt;
+        }
+        //public byte[] GenerateLedgerPdf(List<LedgerRow> rows, LedgerHeader header)
+        //{
+        //    using (var ms = new MemoryStream())
+        //    {
+        //        Document doc = new Document(PageSize.A4, 30, 30, 30, 30);
+        //        PdfWriter.GetInstance(doc, ms);
+        //        doc.Open();
+
+        //        Paragraph title = new Paragraph("Paisalo Digital Limited",
+        //            FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16));
+        //        title.Alignment = Element.ALIGN_CENTER;
+        //        doc.Add(title);
+
+        //        Paragraph sub = new Paragraph("Personal Ledger",
+        //            FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 14));
+        //        sub.Alignment = Element.ALIGN_CENTER;
+        //        doc.Add(sub);
+
+        //        doc.Add(new Paragraph("\n"));
+
+        //        PdfPTable headerTable = new PdfPTable(2);
+        //        headerTable.WidthPercentage = 100;
+
+        //        headerTable.AddCell($"From Date: {header.FromDate}");
+        //        headerTable.AddCell($"To Date: {header.ToDate}");
+        //        headerTable.AddCell($"Code: {header.PartyCode}");
+        //        headerTable.AddCell($"Party Name: {header.PartyName}");
+        //        headerTable.AddCell($"Regd No: {header.RegdNo}");
+        //        headerTable.AddCell($"Invest: {header.InvestAmount}");
+        //        headerTable.AddCell("");
+        //        headerTable.AddCell($"Total No of Inst: {header.TotalInstallment}");
+
+        //        doc.Add(headerTable);
+
+        //        doc.Add(new Paragraph("\n"));
+
+        //        PdfPTable table = new PdfPTable(5);
+        //        table.WidthPercentage = 100;
+
+        //        string[] headers = { "Date", "Particulars", "Debit", "Credit", "Balance" };
+        //        foreach (var h in headers)
+        //        {
+        //            PdfPCell cell = new PdfPCell(new Phrase(h));
+        //            cell.BackgroundColor = BaseColor.LIGHT_GRAY;
+        //            table.AddCell(cell);
+        //        }
+
+        //        foreach (var r in rows)
+        //        {
+        //            table.AddCell(r.Date);
+        //            table.AddCell(r.Particulars);
+        //            table.AddCell(r.Debit.ToString("N2"));
+        //            table.AddCell(r.Credit.ToString("N2"));
+        //            table.AddCell(r.Balance.ToString("N2"));
+        //        }
+
+        //        doc.Add(table);
+        //        doc.Close();
+
+        //        return ms.ToArray();
+        //    }
+
+        public byte[] GenerateLedgerExcel(List<LedgerRow> rows, LedgerHeader header)
+        {
+            using (var wb = new XLWorkbook())
+            {
+                var ws = wb.Worksheets.Add("Ledger");
+
+                int currentRow = 1;
+
+                // Title
+                ws.Cell(currentRow, 1).Value = "Paisalo Digital Limited";
+                ws.Cell(currentRow, 1).Style.Font.Bold = true;
+                ws.Cell(currentRow, 1).Style.Font.FontSize = 16;
+                ws.Range(currentRow, 1, currentRow, 5).Merge().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                currentRow++;
+
+                ws.Cell(currentRow, 1).Value = "Personal Ledger";
+                ws.Cell(currentRow, 1).Style.Font.Bold = true;
+                ws.Cell(currentRow, 1).Style.Font.FontSize = 14;
+                ws.Range(currentRow, 1, currentRow, 5).Merge().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                currentRow += 2;
+
+                // Header table
+                ws.Cell(currentRow, 1).Value = "From Date";
+                ws.Cell(currentRow, 2).Value = header.FromDate;
+                ws.Cell(currentRow, 3).Value = "To Date";
+                ws.Cell(currentRow, 4).Value = header.ToDate;
+                currentRow++;
+
+                ws.Cell(currentRow, 1).Value = "Code";
+                ws.Cell(currentRow, 2).Value = header.PartyCode;
+                ws.Cell(currentRow, 3).Value = "Party Name";
+                ws.Cell(currentRow, 4).Value = header.PartyName;
+                currentRow++;
+
+                ws.Cell(currentRow, 1).Value = "Regd No";
+                ws.Cell(currentRow, 2).Value = header.RegdNo;
+                ws.Cell(currentRow, 3).Value = "Invest Amount";
+                ws.Cell(currentRow, 4).Value = header.InvestAmount;
+                currentRow++;
+
+                ws.Cell(currentRow, 2).Value = "Total No of Installments";
+                ws.Cell(currentRow, 3).Value = header.TotalInstallment;
+                currentRow += 2;
+
+                // Ledger table header
+                string[] excelHeaders = { "Date", "Particulars", "Debit", "Credit", "Balance" };
+                for (int i = 0; i < excelHeaders.Length; i++)
+                {
+                    ws.Cell(currentRow, i + 1).Value = excelHeaders[i];
+                    ws.Cell(currentRow, i + 1).Style.Fill.BackgroundColor = XLColor.LightGray;
+                    ws.Cell(currentRow, i + 1).Style.Font.Bold = true;
+                }
+                currentRow++;
+                int startDataRow = currentRow;
+
+                // Ledger rows
+                foreach (var r in rows)
+                {
+                    ws.Cell(currentRow, 1).Value = r.Date;
+                    ws.Cell(currentRow, 2).Value = r.Particulars;
+                    ws.Cell(currentRow, 3).Value = r.Debit;
+                    ws.Cell(currentRow, 4).Value = r.Credit;
+                    ws.Cell(currentRow, 5).Value = r.Balance;
+
+                    // Format numbers
+                    ws.Cell(currentRow, 3).Style.NumberFormat.Format = "#,##0.00";
+                    ws.Cell(currentRow, 4).Style.NumberFormat.Format = "#,##0.00";
+                    ws.Cell(currentRow, 5).Style.NumberFormat.Format = "#,##0.00";
+
+                    currentRow++;
+                }
+
+                ws.Cell(currentRow, 2).Value = "Total";
+                ws.Cell(currentRow, 3).FormulaA1 = $"=SUM(C{startDataRow}:C{currentRow - 1})";
+                ws.Cell(currentRow, 4).FormulaA1 = $"=SUM(D{startDataRow}:D{currentRow - 1})";
+                ws.Cell(currentRow, 5).FormulaA1 = $"=SUM(E{startDataRow}:E{currentRow - 1})";
+
+                ws.Range(currentRow, 2, currentRow, 5).Style.Font.Bold = true;
+                currentRow += 2;
+
+                // Footer notes
+                ws.Cell(currentRow, 1).Value = "Unless the constituent notifies the company immediately of any discrepancy found by him/her in this statement of account, it will be taken that he/she has found the account correct.";
+                ws.Range(currentRow, 1, currentRow + 1, 5).Merge().Style.Alignment.WrapText = true;
+                currentRow += 2;
+                ws.Cell(currentRow, 1).Value = "This is a system generated output and requires no signature.";
+                ws.Range(currentRow, 1, currentRow, 5).Merge();
+                ws.Columns().AdjustToContents();
+
+                using (var ms = new MemoryStream())
+                {
+                    wb.SaveAs(ms);
+                    return ms.ToArray();
+                }
+            }
+        }
+
+        public LedgerResponse GetLedgerData(string SmCode, string dbname, bool isLive)
+        {
+            var result = new LedgerResponse();
+            result.Rows = new List<LedgerRow>();
+
+            using (SqlConnection con = _credManager.getConnections(dbname, isLive))
+            {
+                using (SqlCommand cmd = new SqlCommand("Usp_GetRcLedgerData", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@SmCode", SmCode);
+                    con.Open();
+
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        if (dr.Read())
+                        {
+                            result.Header = new LedgerHeader
+                            {
+                                FromDate = dr["FromDate"] != DBNull.Value ? dr["FromDate"].ToString() : string.Empty,
+                                ToDate = dr["ToDate"] != DBNull.Value ? dr["ToDate"].ToString() : string.Empty,
+                                PartyCode = dr["PartyCode"] != DBNull.Value ? dr["PartyCode"].ToString() : string.Empty,
+                                PartyName = dr["PartyName"] != DBNull.Value ? dr["PartyName"].ToString() : string.Empty,
+                                //RegdNo = dr["RegdNo"] != DBNull.Value ? dr["RegdNo"].ToString() : string.Empty,
+                                InvestAmount = dr["Invest"] != DBNull.Value ? Convert.ToDecimal(dr["Invest"]) : 0m,
+                                TotalInstallment = dr["TotalInstallment"] != DBNull.Value ? Convert.ToInt32(dr["TotalInstallment"]) : 0
+                            };
+                        }
+
+                        if (dr.NextResult())
+                        {
+                            while (dr.Read())
+                            {
+                                result.Rows.Add(new LedgerRow
+                                {
+                                    Date = dr["Date"] != DBNull.Value ? dr["Date"].ToString() : string.Empty,
+                                    Particulars = dr["Particulars"] != DBNull.Value ? dr["Particulars"].ToString() : string.Empty,
+                                    Debit = dr["Debit"] != DBNull.Value ? Convert.ToDecimal(dr["Debit"]) : 0m,
+                                    Credit = dr["Credit"] != DBNull.Value ? Convert.ToDecimal(dr["Credit"]) : 0m,
+                                    Balance = dr["Balance"] != DBNull.Value ? Convert.ToDecimal(dr["Balance"]) : 0m
+                                });
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            return result;
         }
     }
 }
