@@ -37,10 +37,17 @@ namespace PDL.ReportService.Repository.Repository
         }
         public byte[] GenerateLedgerPdf(string SmCode, string dbname, bool isLive)
         {
+            using (AllReportsBLL bll = new AllReportsBLL(_configuration))
+            {
+                var data = bll.GetLedgerData(SmCode, dbname, isLive);
+                return bll.GenerateLedgerExcel(data.Rows, data.Header);
+            }
+        }
+       public bool GetSmCode(string SmCode, string dbname, bool isLive)
+        {
             using (AllReportsBLL bll=new AllReportsBLL(_configuration))
             {
-                var data = bll.GetLedgerData(SmCode,dbname, isLive);
-                return bll.GenerateLedgerExcel(data.Rows, data.Header);
+               return bll.GetSmCode(SmCode,dbname,isLive);
             }
         }
     }

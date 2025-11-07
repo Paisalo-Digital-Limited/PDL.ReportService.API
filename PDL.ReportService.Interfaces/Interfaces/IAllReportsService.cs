@@ -15,5 +15,6 @@ namespace PDL.ReportService.Interfaces.Interfaces
        DataTable AllReportsList(AllReportParameterVM obj,string dbname,bool isLive);
        DataTable RcPostReportsList(int CreatorID, string? VDate, string? VNO, string? FromDate, string? ToDate, int? PageSize, int? PageNumber,string dbname,bool isLive);
         byte[] GenerateLedgerPdf(string SmCode, string dbname, bool isLive);
+        bool GetSmCode(string SmCode, string dbname, bool isLive);
     }
 }

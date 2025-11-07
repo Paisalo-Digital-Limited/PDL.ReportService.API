@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.VariantTypes;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using PDL.ReportService.Entites.VM;
@@ -92,28 +93,42 @@ namespace PDL.ReportService.API.Controllers
 
             try
             {
-                var pdfBytes = _allReportsService.GenerateLedgerPdf(SmCode, dbname, isLive);
-                if (pdfBytes != null)
+                bool res = _allReportsService.GetSmCode(SmCode,dbname,isLive);
+                if (res == true)
                 {
-                    return Ok(new
+                    var pdfBytes = _allReportsService.GenerateLedgerPdf(SmCode, dbname, isLive);
+                    if (pdfBytes != null)
                     {
-                        message = (resourceManager.GetString("GETSUCCESS")),
-                        data = File(
-                                  pdfBytes,
-                                  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                  $"Ledger_{SmCode}_{DateTime.Now:yyyyMMdd}.xlsx"
-                              )
-                    });
+                        return Ok(new
+                        {
+                            message = (resourceManager.GetString("GETSUCCESS")),
+                            data = File(
+                                      pdfBytes,
+                                      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                      $"Ledger_{SmCode}_{DateTime.Now:yyyyMMdd}.xlsx"
+                                  )
+                        });
+                    }
+                    else
+                    {
+                        return Ok(new
+                        {
+                            message = resourceManager.GetString("NORECORD"),
+                            data = pdfBytes
+
+                        });
+                    }
                 }
                 else
                 {
                     return Ok(new
                     {
-                        message = resourceManager.GetString("NORECORD"),
-                        data = pdfBytes
+                        message = resourceManager.GetString("SMCODENOTFOUND"),
+                        data = res
 
                     });
                 }
+                
             }
             catch (Exception ex)
             {
@@ -121,5 +136,6 @@ namespace PDL.ReportService.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
     }
 }

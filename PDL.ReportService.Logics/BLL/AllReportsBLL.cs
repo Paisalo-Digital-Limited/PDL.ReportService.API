@@ -247,5 +247,32 @@ namespace PDL.ReportService.Logics.BLL
 
             return result;
         }
+        public bool GetSmCode(string smCode,string dbname, bool isLive)
+        {
+            bool result = false;
+
+            using (SqlConnection con = _credManager.getConnections(dbname, isLive))
+            {
+                con.Open();
+
+                using (var cmd = new SqlCommand("Usp_GetAllReportsList", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "GetSmCode");
+                    cmd.Parameters.AddWithValue("@SmCode", smCode);
+
+                    var res = cmd.ExecuteScalar();
+
+                    if (res != null && res != DBNull.Value)
+                    {
+                        result = Convert.ToInt32(res) == 1;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+
     }
 }

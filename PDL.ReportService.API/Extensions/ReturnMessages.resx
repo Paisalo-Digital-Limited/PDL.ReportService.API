@@ -189,4 +189,7 @@
   <data name="SMCODENOTEXIST" xml:space="preserve">
     <value>No Smcodes found in the Excel file !!</value>
   </data>
+  <data name="SMCODENOTFOUND" xml:space="preserve">
+    <value>Record not exist for this SmCode !!!</value>
+  </data>
 </root>
