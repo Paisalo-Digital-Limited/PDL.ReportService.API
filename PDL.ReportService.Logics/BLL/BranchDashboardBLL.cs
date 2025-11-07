@@ -1229,5 +1229,42 @@ namespace PDL.ReportService.Logics.BLL
             return result;
         }
         #endregion
+
+
+
+
+        //added by ramesh
+
+        public List<GroupMaster> GetGroupMaster(string Branchcode,int Creatorid, string activeUser, bool islive)
+        {
+            string dbname = Helper.Helper.GetDBName(_configuration);
+            using (SqlConnection con = _credManager.getConnections(dbname, islive))
+            {
+                using (var cmd = new SqlCommand("Usp_GroupMasterByBranchcode", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                   
+                    cmd.Parameters.AddWithValue("@Branchcode", Branchcode);
+                    cmd.Parameters.AddWithValue("@CreatorId", Creatorid);
+
+                    var branches = new List<GroupMaster>();
+                    con.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            branches.Add(new GroupMaster
+                            {
+                                GroupCode = reader["GroupCode"] == DBNull.Value ? null : reader["GroupCode"]?.ToString(),
+                                GroupName = reader["GroupName"] == DBNull.Value ? null : reader["GroupName"]?.ToString(),
+                                
+                            });
+                        }
+                    }
+                    return branches;
+                }
+            }
+        }
     }
 }

@@ -24,6 +24,8 @@ namespace PDL.ReportService.Interfaces.Interfaces
         List<LedgerReportVM> GetLedgerReport(string smCode, string dbName, bool isLive, int pageNumber, int pageSize);
         Task<data> GetAccountAggregatorReportAsync(long? fiCode, int? creatorId, string? smCode, string activeUser, bool isLive, string dbName);
         dynamic SMCodeValidation(SMCodeValidationVM file, string dbname, bool isLive);
+        Task<PaginationResponse<OverduePenalties>> GetOverdueRecordsAsync(PaginationRequest<OverduePenalties> paginationRequest, string dbname, bool isLive);
+        Task<List<OverduePenalties>> ExportOverdueExcel(string creatorId, string branchCode, string groupCode, string startDate, string endDate, string dbname, bool isLive);
 
     }
 }

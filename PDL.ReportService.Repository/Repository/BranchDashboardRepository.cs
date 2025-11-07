@@ -174,5 +174,14 @@ namespace PDL.ReportService.Repository.Repository
                 return branchDashboard.SchemeWiseCaseReport(FromDate, ToDate,SchCode, pageNumber, pageSize, islive);
             }
         }
+
+
+        public List<GroupMaster> GetGroupMaster(string Branchcode, int creatorid, string activeuser, bool islive)
+        {
+            using (BranchDashboardBLL branchDashboard = new BranchDashboardBLL(_configuration))
+            {
+                return branchDashboard.GetGroupMaster(Branchcode,  creatorid, activeuser, islive);
+            }
+        }
     }
 }
