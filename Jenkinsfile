@@ -157,7 +157,7 @@ pipeline {
 
         stage('Push Docker Image to GHCR') {
             steps {
-                withCredentials([string(credentialsId: 'ghcr-token', variable: 'GITHUB_TOKEN')]) {
+                withCredentials([string(credentialsId: 'ghcr-token1', variable: 'GITHUB_TOKEN')]) {
                     sh """
                         echo "${GITHUB_TOKEN}" | docker login ghcr.io -u paisalo-digital-limited --password-stdin
                         docker push ${IMAGE_NAME}
