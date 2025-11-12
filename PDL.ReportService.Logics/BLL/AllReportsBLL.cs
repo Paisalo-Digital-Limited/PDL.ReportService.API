@@ -272,7 +272,29 @@ namespace PDL.ReportService.Logics.BLL
 
             return result;
         }
+        public DataTable GetICICIQrCallbackResponse(string? FromDate, string? ToDate, int? PageSize, int? PageNumber, string dbname, bool isLive)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection con = _credManager.getConnections(dbname, isLive))
+            {
+                using (SqlCommand cmd = new SqlCommand("Usp_GetAllReportsList", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "GetICICIQrCallbackResponse");
+                    cmd.Parameters.AddWithValue("@FromDate", FromDate);
+                    cmd.Parameters.AddWithValue("@ToDate", ToDate);
+                    cmd.Parameters.AddWithValue("@PageSize", PageSize);
+                    cmd.Parameters.AddWithValue("@PageNumber", PageNumber);
+                    con.Open();
 
+                    using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
+                }
+            }
+            return dt;
+        }
 
     }
 }
