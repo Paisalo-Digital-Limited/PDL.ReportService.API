@@ -50,6 +50,14 @@ namespace PDL.ReportService.Repository.Repository
                return bll.GetSmCode(SmCode,dbname,isLive);
             }
         }
+
+        public async Task< byte[]> GenerateGeneralLedgerExcel(string SmCode, string dbname, bool isLive)
+        {
+            using (AllReportsBLL bll = new AllReportsBLL(_configuration))
+            {
+                return await bll.GenerateGeneralLedgerExcel(SmCode, dbname, isLive);
+            }
+        }
     }
 
 }

@@ -18,6 +18,8 @@ namespace PDL.ReportService.Entites.VM
         public decimal Debit { get; set; }
         public decimal Credit { get; set; }
         public decimal Balance { get; set; }
+        public DateTime VoucherDate { get; set; }
+        public string OverdueDays { get; set; }
     }
     public class LedgerHeader
     {
