@@ -50,6 +50,21 @@ namespace PDL.ReportService.Repository.Repository
                return bll.GetSmCode(SmCode,dbname,isLive);
             }
         }
+        public DataTable GetICICIQrCallbackResponse(string? FromDate, string? ToDate, int? PageSize, int? PageNumber, string dbname, bool isLive)
+        {
+            using (AllReportsBLL bll = new AllReportsBLL(_configuration))
+            {
+                return bll.GetICICIQrCallbackResponse(FromDate, ToDate, PageSize, PageNumber, dbname, isLive);
+            }
+        }
+
+        public async Task<byte[]> GenerateGeneralLedgerExcel(string SmCode, string dbname, bool isLive)
+        {
+            using (AllReportsBLL bll = new AllReportsBLL(_configuration))
+            {
+                return await bll.GenerateGeneralLedgerExcel(SmCode, dbname, isLive);
+            }
+        }
     }
 
 }

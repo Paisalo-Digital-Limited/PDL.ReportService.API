@@ -136,6 +136,95 @@ namespace PDL.ReportService.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [HttpGet]
+        public IActionResult GetICICIQrCallbackResponse(string? FromDate, string? ToDate, int? PageSize, int? PageNumber)
+        {
+            string dbname = GetDBName();
+            bool isLive = GetIslive();
+
+            try
+            {
+                DataTable result = _allReportsService.GetICICIQrCallbackResponse(FromDate, ToDate, PageSize, PageNumber, dbname, isLive);
+                if (result.Rows.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        message = (resourceManager.GetString("GETSUCCESS")),
+                        data = JsonConvert.SerializeObject(result)
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("NORECORD"),
+                        data = JsonConvert.SerializeObject(result)
+
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetICICIQrCallbackResponse_AllReports");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> DownloadGeneralLedger(string SmCode)
+        {
+            string dbname = GetDBName();
+            bool isLive = GetIslive();
+
+            try
+            {
+                bool res = _allReportsService.GetSmCode(SmCode, dbname, isLive);
+                if (res == true)
+                {
+                    var pdfBytes = await _allReportsService.GenerateGeneralLedgerExcel(SmCode, dbname, isLive);
+
+
+                    if (pdfBytes != null)
+                    {
+                        return Ok(new
+                        {
+                            message = (resourceManager.GetString("GETSUCCESS")),
+                            data = File(
+                                      pdfBytes,
+                                      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                      $"Ledger_{SmCode}_{DateTime.Now:yyyyMMdd}.xlsx"
+                                  )
+                        });
+                    }
+                    else
+                    {
+                        return Ok(new
+                        {
+                            message = resourceManager.GetString("NORECORD"),
+                            data = pdfBytes
+
+                        });
+                    }
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("SMCODENOTFOUND"),
+                        data = res
+
+                    });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "DownloadGeneralLedger_AllReports");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
     }
 }
