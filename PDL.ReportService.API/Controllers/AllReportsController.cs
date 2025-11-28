@@ -1,11 +1,15 @@
 ﻿using DocumentFormat.OpenXml.VariantTypes;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
+using NPOI.SS.Formula.Functions;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Interfaces.Interfaces;
+using PDL.ReportService.Logics.Credentials;
 using PDL.ReportService.Logics.Helper;
 using System.Data;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PDL.ReportService.API.Controllers
 {
@@ -225,6 +229,95 @@ namespace PDL.ReportService.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetAheadOptions()
+        
+        {
+            string dbname = GetDBName();
+            bool isLive = GetIslive();
+            try
+            {
+                var aheadresponces = await _allReportsService.GetAllAhead(dbname, isLive);
+
+
+                if (aheadresponces != null)
+                {
+                    return Ok(new
+                    {
+                        message = (resourceManager.GetString("GETSUCCESS")),
+                        data = aheadresponces
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("NORECORD"),
+                        data = ""
+
+                    });
+                }
+            }
+
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetAheadOptions_AllReports");
+                return BadRequest(new { message = ex.Message });
+            }
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult>GetTrailBalance( [FromBody] AHeaddata listaheaddata )
+        {
+            string dbname = GetDBName();
+            bool isLive = GetIslive();
+
+            try
+            {
+                 int fyStartYear = (System.DateTime.Now.Month <= 3) ? System.DateTime.Now.Year - 1 : System.DateTime.Now.Year;
+                int fyEndYear = (System.DateTime.Now.Month <= 3) ? System.DateTime.Now.Year : System.DateTime.Now.Year + 1;
+
+                DateTime financialYearStart = new DateTime(fyStartYear, 4, 1);
+                DateTime financialYearEnd = new DateTime(fyEndYear, 3, 31);
+
+                var pdfBytes = await _allReportsService.GetTrailBalance(listaheaddata.ahead, financialYearStart, financialYearEnd, dbname, isLive);
+
+
+                    if (pdfBytes != null)
+                    {
+                        return Ok(new
+                        {
+                            message = (resourceManager.GetString("GETSUCCESS")),
+                            data = File(
+                                      pdfBytes,
+                                      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                      $"TrialBalance_{financialYearStart}_{financialYearEnd}.xlsx"
+                                  )
+                        });
+                    }
+                    else
+                    {
+                        return Ok(new
+                        {
+                            message = resourceManager.GetString("NORECORD"),
+                            data = pdfBytes
+
+                        });
+                    }
+                
+                
+
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetTrailBalance_AllReports");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
 
     }
 }

@@ -19,5 +19,9 @@ namespace PDL.ReportService.Interfaces.Interfaces
         DataTable GetICICIQrCallbackResponse(string? FromDate, string? ToDate, int? PageSize, int? PageNumber, string dbname, bool isLive);
 
         Task<byte[]> GenerateGeneralLedgerExcel(string SmCode, string dbname, bool isLive);
+        Task<byte[]> GetTrailBalance( List<string>Ahead, DateTime startdate,DateTime enddate, string dbname, bool isLive);
+
+        Task<List<RCdata>> GetAllAhead(string dbname, bool isLive);
+    
     }
 }

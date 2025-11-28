@@ -19,7 +19,7 @@ namespace PDL.ReportService.Logics.Credentials
 
 
             string conStr = string.Empty;
-            string passwdKey = config["password"];
+            string passwdKey = config["dbSalt"];
             string cipherText = config["pwencyped"];
             string userkey = config["userSalt"];
             string userText = config["userNameEnc"];
@@ -47,7 +47,7 @@ namespace PDL.ReportService.Logics.Credentials
         {
             var config = _configuration.GetSection("encryptSalts");
             string conStr = string.Empty;
-            string passwdKey = config["password"];
+            string passwdKey = config["dbSalt"];
             string cipherText = config["pwencyped"];
             string userkey = config["userSalt"];
             string userText = config["userNameEnc"];

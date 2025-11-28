@@ -65,6 +65,22 @@ namespace PDL.ReportService.Repository.Repository
                 return await bll.GenerateGeneralLedgerExcel(SmCode, dbname, isLive);
             }
         }
+
+        public async Task<byte[]> GetTrailBalance(List<string> Ahead ,DateTime startdate,DateTime enddate, string dbname, bool isLive)
+        {
+            using (AllReportsBLL bll = new AllReportsBLL(_configuration))
+            {
+                return await bll.GetTrailBalance(Ahead, startdate, enddate, dbname, isLive);
+            }
+        }
+
+        public async Task<List<RCdata>> GetAllAhead( string dbname, bool isLive)
+        {
+            using (AllReportsBLL bll = new AllReportsBLL(_configuration))
+            {
+                return await bll.GetAllAhead(dbname, isLive);
+            }
+        }
     }
 
 }

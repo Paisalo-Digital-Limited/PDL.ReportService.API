@@ -37,75 +37,75 @@ namespace PDL.ReportService.API.Extensions
                     ClockSkew = TimeSpan.Zero     // or keep minimal (default is 5 mins)
                 };
 
-                options.Events = new JwtBearerEvents
-                {
-                    OnTokenValidated = async context =>
-                    {
-                        string userIdClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                        string tokenVersionClaim = context.Principal?.FindFirst("tokenVersion")?.Value;
-                        string nameClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
-                        string emailClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+                //options.Events = new JwtBearerEvents
+                //{
+                //    OnTokenValidated = async context =>
+                //    {
+                //        string userIdClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                //        string tokenVersionClaim = context.Principal?.FindFirst("tokenVersion")?.Value;
+                //        string nameClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+                //        string emailClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
 
-                        if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(tokenVersionClaim))
-                        {
-                            context.Fail("Invalid token claims.");
-                            context.HttpContext.Items["JwtError"] = "Invalid token claims.";
-                            return;
-                        }
+                //        if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(tokenVersionClaim))
+                //        {
+                //            context.Fail("Invalid token claims.");
+                //            context.HttpContext.Items["JwtError"] = "Invalid token claims.";
+                //            return;
+                //        }
 
-                        long userId = long.Parse(userIdClaim);
-                        int tokenVersionInToken = int.Parse(tokenVersionClaim);
+                //        long userId = long.Parse(userIdClaim);
+                //        int tokenVersionInToken = int.Parse(tokenVersionClaim);
 
-                        var userRepo = context.HttpContext.RequestServices.GetRequiredService<UserRepository>();
-                        var user = await userRepo.GetByIdAsync(userId);
+                //        var userRepo = context.HttpContext.RequestServices.GetRequiredService<UserRepository>();
+                //        var user = await userRepo.GetByIdAsync(userId);
 
-                        if (user == null)
-                        {
-                            context.Fail("Invalid user: User not found.");
-                            context.HttpContext.Items["JwtError"] = "Invalid user: User not found.";
-                        }
-                        else if (user.Id.ToString() != userIdClaim)
-                        {
-                            context.Fail("Invalid user: ID mismatch.");
-                            context.HttpContext.Items["JwtError"] = "Invalid user: ID mismatch.";
-                        }
-                        else if (!string.Equals(user.Email, emailClaim, StringComparison.OrdinalIgnoreCase))
-                        {
-                            context.Fail("Invalid user: Email mismatch.");
-                            context.HttpContext.Items["JwtError"] = "Invalid user: Email mismatch.";
-                        }
-                        else if (!string.Equals(user.Name, nameClaim, StringComparison.OrdinalIgnoreCase))
-                        {
-                            context.Fail("Invalid user: Name mismatch.");
-                            context.HttpContext.Items["JwtError"] = "Invalid user: Name mismatch.";
-                        }
-                        else if (user.TokenVersion != tokenVersionInToken)
-                        {
-                            context.Fail("Token has been invalidated due to password change.");
-                            context.HttpContext.Items["JwtError"] = "Token has been invalidated due to password change.";
-                        }
-                    },
+                //        if (user == null)
+                //        {
+                //            context.Fail("Invalid user: User not found.");
+                //            context.HttpContext.Items["JwtError"] = "Invalid user: User not found.";
+                //        }
+                //        else if (user.Id.ToString() != userIdClaim)
+                //        {
+                //            context.Fail("Invalid user: ID mismatch.");
+                //            context.HttpContext.Items["JwtError"] = "Invalid user: ID mismatch.";
+                //        }
+                //        else if (!string.Equals(user.Email, emailClaim, StringComparison.OrdinalIgnoreCase))
+                //        {
+                //            context.Fail("Invalid user: Email mismatch.");
+                //            context.HttpContext.Items["JwtError"] = "Invalid user: Email mismatch.";
+                //        }
+                //        else if (!string.Equals(user.Name, nameClaim, StringComparison.OrdinalIgnoreCase))
+                //        {
+                //            context.Fail("Invalid user: Name mismatch.");
+                //            context.HttpContext.Items["JwtError"] = "Invalid user: Name mismatch.";
+                //        }
+                //        else if (user.TokenVersion != tokenVersionInToken)
+                //        {
+                //            context.Fail("Token has been invalidated due to password change.");
+                //            context.HttpContext.Items["JwtError"] = "Token has been invalidated due to password change.";
+                //        }
+                //    },
 
-                    OnChallenge = async context =>
-                    {
-                        context.HandleResponse();
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        context.Response.ContentType = "application/json";
+                //    OnChallenge = async context =>
+                //    {
+                //        context.HandleResponse();
+                //        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                //        context.Response.ContentType = "application/json";
 
-                        // Read message from HttpContext if available
-                        string errorMessage = context.HttpContext.Items.ContainsKey("JwtError")
-                            ? context.HttpContext.Items["JwtError"]?.ToString()
-                            : context.ErrorDescription ?? "Your session has expired or token is invalid.";
+                //        // Read message from HttpContext if available
+                //        string errorMessage = context.HttpContext.Items.ContainsKey("JwtError")
+                //            ? context.HttpContext.Items["JwtError"]?.ToString()
+                //            : context.ErrorDescription ?? "Your session has expired or token is invalid.";
 
-                        var errorResponse = new
-                        {
-                            error = "Unauthorized",
-                            message = errorMessage
-                        };
+                //        var errorResponse = new
+                //        {
+                //            error = "Unauthorized",
+                //            message = errorMessage
+                //        };
 
-                        await context.Response.WriteAsync(JsonSerializer.Serialize(errorResponse));
-                    }
-                };
+                //        await context.Response.WriteAsync(JsonSerializer.Serialize(errorResponse));
+                //    }
+                //};
 
             });
         }

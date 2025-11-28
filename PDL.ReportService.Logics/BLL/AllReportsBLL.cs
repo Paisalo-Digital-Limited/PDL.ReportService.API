@@ -18,8 +18,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Document = DocumentFormat.OpenXml.Wordprocessing.Document;
-using Paragraph = iTextSharp.text.Paragraph;
+
 
 namespace PDL.ReportService.Logics.BLL
 {
@@ -249,7 +248,7 @@ namespace PDL.ReportService.Logics.BLL
 
             return result;
         }
-        public bool GetSmCode(string smCode,string dbname, bool isLive)
+        public bool GetSmCode(string smCode, string dbname, bool isLive)
         {
             bool result = false;
 
@@ -902,5 +901,356 @@ namespace PDL.ReportService.Logics.BLL
             worksheet.Cell(footerRow, 1).Style.Font.Italic = true;
         }
 
+        //Trial Balalnce Started
+        //list of ahead
+        public async Task<List<RCdata>> GetAllAhead(string dbname, bool isLive)
+        {
+              RCdata amast = new RCdata();
+            List<RCdata> ahead = new List<RCdata>();
+
+            using (SqlConnection con = _credManager.getConnections(dbname, isLive))
+            {
+                await con.OpenAsync();
+
+                using (var cmd = new SqlCommand("Usp_GetRC_ForTrialBalance", con))
+                {
+                    cmd.Parameters.AddWithValue("@mode", "Ahead");
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var row = new RCdata {
+
+                                AHEAD = reader["Code"]?.ToString()?.Trim() ?? string.Empty
+
+                            };
+                            ahead.Add(row);
+                        }
+                    }
+                }
+            }
+
+            return ahead;
+        }
+
+
+
+
+        //calculating ahead data
+        public async Task<byte[]> GetTrailBalance(List<string> Ahead, DateTime startdate, DateTime enddate, string dbname, bool isLive)
+        {
+            var rawRows = await GetRawRcForTrialBalance(Ahead, startdate, enddate, dbname, isLive);
+            var response = await ComputeTrialBalanceFromRawRows(rawRows);
+            string companyName = "Paisalo Digital Limited";
+            byte[] trailbalance = await ExportTrialBalanceToExcel_WithSubtotals(response, startdate, enddate, companyName);
+            return trailbalance;
+        }
+
+        public async Task<List<RCdata>> GetRawRcForTrialBalance(List<string> aheads, DateTime fromDate, DateTime toDate, string dbname, bool isLive)
+        {
+            var results = new List<RCdata>();
+            try
+            {
+               
+                if (aheads == null || aheads.Count == 0)
+                    return results;
+                var normalizedCsv = string.Join(",", aheads
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim()));
+
+                using (SqlConnection con = _credManager.getConnections(dbname, isLive))
+                {
+                    await con.OpenAsync();
+
+                    using (var cmd = new SqlCommand("Usp_GetRC_ForTrialBalance", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@FromDate", fromDate.Date);
+                        cmd.Parameters.AddWithValue("@ToDate", toDate.Date);
+                        cmd.Parameters.AddWithValue("@Aheads", normalizedCsv);
+                        cmd.Parameters.AddWithValue("@mode", "TB");
+
+                        using (var reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                var row = new RCdata
+                                {
+                                    AHEAD = reader["AHEAD"]?.ToString()?.Trim() ?? string.Empty,
+                                    VDESC = reader["DESCRIPTION"]?.ToString()?.Trim() ?? string.Empty,
+                                    DR = reader["DR"] != DBNull.Value ? Convert.ToDecimal(reader["DR"]) : 0m,
+                                    CR = reader["CR"] != DBNull.Value ? Convert.ToDecimal(reader["CR"]) : 0m
+                                };
+                                results.Add(row);
+                            }
+                        }
+                    }
+                }
+
+                return results;
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return results;
+        }
+        public async Task<byte[]> ExportTrialBalanceToExcel_WithSubtotals(TrialBalanceResponseVM tb, DateTime startdate, DateTime endate, string reportTitle = "Paisalo Digital Limited")
+        {
+            using (var wb = new XLWorkbook())
+            {
+                var ws = wb.Worksheets.Add("Trial Balance");
+                ws.PageSetup.PageOrientation = XLPageOrientation.Landscape;
+
+                
+                CreateStyledHeader(ws, reportTitle, startdate, endate);
+
+                int headerRow = 5;
+                CreateTableHeader(ws, headerRow);
+
+                var r = headerRow + 1;
+                foreach (var row in tb.Rows)
+                {
+                    ws.Cell(r, 1).Value = row.Ahead;
+                    ws.Cell(r, 2).Value = row.Description ?? "";
+
+                    if (row.Debit.HasValue && row.Debit.Value != 0m)
+                    {
+                        var ccell = ws.Cell(r, 3);
+                        ccell.Value = row.Debit.Value;
+                        ccell.Style.NumberFormat.Format = "#,##0.00";
+                        ccell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    }
+                    else
+                    {
+                        ws.Cell(r, 3).Value = "";
+                    }
+
+                    if (row.Credit.HasValue && row.Credit.Value != 0m)
+                    {
+                        var ccell = ws.Cell(r, 4);
+                        ccell.Value = row.Credit.Value;
+                        ccell.Style.NumberFormat.Format = "#,##0.00";
+                        ccell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    }
+                    else
+                    {
+                        ws.Cell(r, 4).Value = "";
+                    }
+
+                    for (int c = 1; c <= 4; c++)
+                    {
+                        ws.Cell(r, c).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                        ws.Cell(r, c).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    }
+
+                    r++;
+                }
+
+              
+                ws.Cell(r, 1).Value = "GRAND TOTAL";
+                ws.Range(r, 1, r, 2).Merge();
+                ws.Cell(r, 1).Style.Font.Bold = true;
+                ws.Cell(r, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+
+                if (tb.TotalDebit.HasValue)
+                {
+                    var td = ws.Cell(r, 3);
+                    td.Value = tb.TotalDebit.Value;
+                    td.Style.NumberFormat.Format = "#,##0.00";
+                    td.Style.Font.Bold = true;
+                    td.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    td.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                }
+                else
+                {
+                    ws.Cell(r, 3).Value = "";
+                }
+
+                if (tb.TotalCredit.HasValue)
+                {
+                    var tc = ws.Cell(r, 4);
+                    tc.Value = tb.TotalCredit.Value;
+                    tc.Style.NumberFormat.Format = "#,##0.00";
+                    tc.Style.Font.Bold = true;
+                    tc.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    tc.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                }
+                else
+                {
+                    ws.Cell(r, 4).Value = "";
+                }
+
+               
+                r += 2;
+                var diffVal = tb.Difference ?? 0m;
+                var diffAbs = Math.Abs(diffVal);
+                var diffType = string.IsNullOrWhiteSpace(tb.DifferenceType) ? (diffVal > 0 ? "Debit" : diffVal < 0 ? "Credit" : "Balanced") : tb.DifferenceType;
+                ws.Cell(r, 1).Value = $"Difference In Trial Balance = {diffAbs:N2} {diffType}";
+                ws.Range(r, 1, r, 4).Merge();
+
+                
+                ws.Column(1).Width = 18;
+                ws.Column(2).Width = 50;
+                ws.Column(3).Width = 20;
+                ws.Column(4).Width = 20;
+                ws.Columns().AdjustToContents();
+
+                using (var ms = new MemoryStream())
+                {
+                    wb.SaveAs(ms);
+                    return ms.ToArray();
+                }
+            }
+        }
+
+
+
+
+
+        public async Task<TrialBalanceResponseVM> ComputeTrialBalanceFromRawRows(List<RCdata> rawRows)
+        {
+            var response = new TrialBalanceResponseVM();
+            if (rawRows == null || rawRows.Count == 0) return response;
+
+            
+            var aheadOrder = rawRows
+                .Select((x, idx) => new { x.AHEAD, idx })
+                .GroupBy(x => (x.AHEAD ?? "").Trim())
+                .Select(g => new { Ahead = g.Key, FirstIndex = g.Min(x => x.idx) })
+                .OrderBy(x => x.FirstIndex)
+                .Select(x => x.Ahead)
+                .ToList();
+
+          
+            var gsKey = aheadOrder.FirstOrDefault(a => string.Equals(a, "GSUSPANC", StringComparison.OrdinalIgnoreCase));
+            if (gsKey != null)
+            {
+                aheadOrder.Remove(gsKey);
+                aheadOrder.Add(gsKey);
+            }
+
+           
+            var grouped = rawRows
+                .GroupBy(r => (r.AHEAD ?? "").Trim())
+             
+                .OrderBy(g =>
+                {
+                    var idx = aheadOrder.IndexOf(g.Key);
+                    return idx >= 0 ? idx : int.MaxValue;
+                });
+
+            foreach (var g in grouped)
+            {
+               
+                var debitSum = g.Sum(x => x.DR);
+                var creditSum = g.Sum(x => x.CR);
+
+             
+                var net = Math.Round(debitSum - creditSum, 2);
+
+                decimal? debitToShow = null;
+                decimal? creditToShow = null;
+
+                if (net > 0m)
+                    debitToShow = net;
+                else if (net < 0m)
+                    creditToShow = Math.Abs(net);
+
+                
+                string description =
+                    g.LastOrDefault(x => !string.IsNullOrWhiteSpace(x.VDESC))?.VDESC
+                    ?? g.First().VDESC
+                    ?? "";
+
+                var row = new TrialBalanceRow
+                {
+                    Ahead = g.Key,
+                    Description = description,
+                    Debit = debitToShow,
+                    Credit = creditToShow
+                };
+
+                response.Rows.Add(row);
+            }
+
+         
+            decimal displayedTotalDebit = response.Rows.Where(r => r.Debit.HasValue).Sum(r => r.Debit.Value);
+            decimal displayedTotalCredit = response.Rows.Where(r => r.Credit.HasValue).Sum(r => r.Credit.Value);
+
+            displayedTotalDebit = Math.Round(displayedTotalDebit, 2);
+            displayedTotalCredit = Math.Round(displayedTotalCredit, 2);
+
+            response.TotalDebit = displayedTotalDebit != 0m ? (decimal?)displayedTotalDebit : null;
+            response.TotalCredit = displayedTotalCredit != 0m ? (decimal?)displayedTotalCredit : null;
+
+            response.Difference = Math.Round(displayedTotalDebit - displayedTotalCredit, 2);
+
+            if (response.Difference > 0m)
+                response.DifferenceType = "Debit";
+            else if (response.Difference < 0m)
+                response.DifferenceType = "Credit";
+            else
+                response.DifferenceType = "Balanced";
+
+            return response;
+        }
+
+
+        private void CreateStyledHeader(IXLWorksheet ws, string companyName, DateTime fromDate, DateTime toDate)
+        {
+
+            ws.Range(1, 1, 1, 4).Merge();
+            ws.Cell(1, 1).Value = companyName;
+            ws.Cell(1, 1).Style.Font.Bold = true;
+            ws.Cell(1, 1).Style.Font.FontSize = 16;
+            ws.Cell(1, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.Cell(1, 1).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+
+            ws.Range(2, 1, 2, 4).Merge();
+            ws.Cell(2, 1).Value = "TRIAL BALANCE OF ALL ACCOUNT HEADS";
+            ws.Cell(2, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.Cell(2, 1).Style.Font.Underline = XLFontUnderlineValues.Single;
+            ws.Cell(2, 1).Style.Font.Bold = true;
+
+
+            ws.Cell(1, 5).Value = "From Date";
+            ws.Cell(1, 6).Value = fromDate.ToString("dd/MM/yyyy");
+            ws.Cell(2, 5).Value = "To Date";
+            ws.Cell(2, 6).Value = toDate.ToString("dd/MM/yyyy");
+
+
+            ws.Row(4).Height = 8;
+        }
+
+
+        private void CreateTableHeader(IXLWorksheet ws, int headerRow)
+        {
+            ws.Cell(headerRow, 1).Value = "AHEAD";
+            ws.Cell(headerRow, 2).Value = "DESCRIPTION";
+            ws.Cell(headerRow, 3).Value = "DEBIT";
+            ws.Cell(headerRow, 4).Value = "CREDIT";
+
+            for (int c = 1; c <= 4; c++)
+            {
+                var cell = ws.Cell(headerRow, c);
+                cell.Style.Font.Bold = true;
+                cell.Style.Font.Underline = XLFontUnderlineValues.Single;
+                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+            }
+
+
+            ws.Cell(headerRow, 3).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+            ws.Cell(headerRow, 4).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+        }
+    
+       
+    
     }
+
 }
+
