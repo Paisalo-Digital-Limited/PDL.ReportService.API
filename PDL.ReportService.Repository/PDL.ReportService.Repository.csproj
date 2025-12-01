@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="EPPlus" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PDL.ReportService.Interfaces\PDL.ReportService.Interfaces.csproj" />
     <ProjectReference Include="..\PDL.ReportService.Logics\PDL.ReportService.Logics.csproj" />
   </ItemGroup>
