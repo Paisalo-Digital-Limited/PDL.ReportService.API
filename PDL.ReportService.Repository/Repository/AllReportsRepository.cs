@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using NPOI.SS.Formula.Functions;
 using PDL.ReportService.Entites.VM;
+using PDL.ReportService.Entites.VM.ReportVM;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.BLL;
 using SixLabors.ImageSharp;
@@ -81,6 +82,9 @@ namespace PDL.ReportService.Repository.Repository
                 return await bll.GetAllAhead(dbname, isLive);
             }
         }
+
+
+        
     }
 
 }

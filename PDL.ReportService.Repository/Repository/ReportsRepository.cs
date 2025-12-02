@@ -136,5 +136,21 @@ namespace PDL.ReportService.Repository.Repository
                 return await reportsBLL.ExportOverdueExcel( creatorId,  branchCode,  groupCode,  startDate,  endDate, dbname, isLive);
             }
         }
+
+        public async Task<List<QRMandateReportsVM>> GetQRMandateReportsAsync(string SmCode, string mode, DateTime fromDate, DateTime toDate, string dbName, bool isLive)
+        {
+            using (AllReportsBLL bll = new AllReportsBLL(_configuration))
+            {
+                return await bll.GetQRMandateReportsAsync(SmCode, mode, fromDate, toDate, dbName, isLive);
+            }
+        }
+
+        public async Task<InstallementCollectionStatusVM> GetInstallmentCollectionReportsAsync(string SmCode, string dbName, bool isLive)
+        {
+            using (AllReportsBLL bll = new AllReportsBLL(_configuration))
+            {
+                return await bll.GetInstallmentCollectionReportsAsync(SmCode, dbName, isLive);
+            }
+        }
     }
 }
