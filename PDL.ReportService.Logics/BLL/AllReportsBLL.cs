@@ -905,7 +905,7 @@ namespace PDL.ReportService.Logics.BLL
         //list of ahead
         public async Task<List<RCdata>> GetAllAhead(string dbname, bool isLive)
         {
-              RCdata amast = new RCdata();
+            RCdata amast = new RCdata();
             List<RCdata> ahead = new List<RCdata>();
 
             using (SqlConnection con = _credManager.getConnections(dbname, isLive))
@@ -921,7 +921,8 @@ namespace PDL.ReportService.Logics.BLL
                     {
                         while (await reader.ReadAsync())
                         {
-                            var row = new RCdata {
+                            var row = new RCdata
+                            {
 
                                 AHEAD = reader["Code"]?.ToString()?.Trim() ?? string.Empty
 
@@ -953,7 +954,7 @@ namespace PDL.ReportService.Logics.BLL
             var results = new List<RCdata>();
             try
             {
-               
+
                 if (aheads == null || aheads.Count == 0)
                     return results;
                 var normalizedCsv = string.Join(",", aheads
@@ -991,7 +992,7 @@ namespace PDL.ReportService.Logics.BLL
 
                 return results;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
@@ -1005,7 +1006,7 @@ namespace PDL.ReportService.Logics.BLL
                 var ws = wb.Worksheets.Add("Trial Balance");
                 ws.PageSetup.PageOrientation = XLPageOrientation.Landscape;
 
-                
+
                 CreateStyledHeader(ws, reportTitle, startdate, endate);
 
                 int headerRow = 5;
@@ -1050,7 +1051,7 @@ namespace PDL.ReportService.Logics.BLL
                     r++;
                 }
 
-              
+
                 ws.Cell(r, 1).Value = "GRAND TOTAL";
                 ws.Range(r, 1, r, 2).Merge();
                 ws.Cell(r, 1).Style.Font.Bold = true;
@@ -1084,7 +1085,7 @@ namespace PDL.ReportService.Logics.BLL
                     ws.Cell(r, 4).Value = "";
                 }
 
-               
+
                 r += 2;
                 var diffVal = tb.Difference ?? 0m;
                 var diffAbs = Math.Abs(diffVal);
@@ -1092,7 +1093,7 @@ namespace PDL.ReportService.Logics.BLL
                 ws.Cell(r, 1).Value = $"Difference In Trial Balance = {diffAbs:N2} {diffType}";
                 ws.Range(r, 1, r, 4).Merge();
 
-                
+
                 ws.Column(1).Width = 18;
                 ws.Column(2).Width = 50;
                 ws.Column(3).Width = 20;
@@ -1116,7 +1117,7 @@ namespace PDL.ReportService.Logics.BLL
             var response = new TrialBalanceResponseVM();
             if (rawRows == null || rawRows.Count == 0) return response;
 
-            
+
             var aheadOrder = rawRows
                 .Select((x, idx) => new { x.AHEAD, idx })
                 .GroupBy(x => (x.AHEAD ?? "").Trim())
@@ -1125,7 +1126,7 @@ namespace PDL.ReportService.Logics.BLL
                 .Select(x => x.Ahead)
                 .ToList();
 
-          
+
             var gsKey = aheadOrder.FirstOrDefault(a => string.Equals(a, "GSUSPANC", StringComparison.OrdinalIgnoreCase));
             if (gsKey != null)
             {
@@ -1133,10 +1134,10 @@ namespace PDL.ReportService.Logics.BLL
                 aheadOrder.Add(gsKey);
             }
 
-           
+
             var grouped = rawRows
                 .GroupBy(r => (r.AHEAD ?? "").Trim())
-             
+
                 .OrderBy(g =>
                 {
                     var idx = aheadOrder.IndexOf(g.Key);
@@ -1145,11 +1146,11 @@ namespace PDL.ReportService.Logics.BLL
 
             foreach (var g in grouped)
             {
-               
+
                 var debitSum = g.Sum(x => x.DR);
                 var creditSum = g.Sum(x => x.CR);
 
-             
+
                 var net = Math.Round(debitSum - creditSum, 2);
 
                 decimal? debitToShow = null;
@@ -1160,7 +1161,7 @@ namespace PDL.ReportService.Logics.BLL
                 else if (net < 0m)
                     creditToShow = Math.Abs(net);
 
-                
+
                 string description =
                     g.LastOrDefault(x => !string.IsNullOrWhiteSpace(x.VDESC))?.VDESC
                     ?? g.First().VDESC
@@ -1177,7 +1178,7 @@ namespace PDL.ReportService.Logics.BLL
                 response.Rows.Add(row);
             }
 
-         
+
             decimal displayedTotalDebit = response.Rows.Where(r => r.Debit.HasValue).Sum(r => r.Debit.Value);
             decimal displayedTotalCredit = response.Rows.Where(r => r.Credit.HasValue).Sum(r => r.Credit.Value);
 
@@ -1247,10 +1248,184 @@ namespace PDL.ReportService.Logics.BLL
             ws.Cell(headerRow, 3).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
             ws.Cell(headerRow, 4).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
         }
-    
-       
-    
-    }
 
+
+
+    public async Task<InstallementCollectionStatusVM> GetInstallmentCollectionReportsAsync(string smcode,string dbname,bool isLive,
+    CancellationToken cancellationToken = default)
+        {
+            var result = new InstallementCollectionStatusVM
+            {
+                emis = new List<Emidata>(),
+                emiCollections = new List<EmiCollectiondata>(),
+                custname = string.Empty,
+                mobile = string.Empty,
+                LoanStatus = string.Empty
+            };
+
+            try
+            {
+                
+                using (SqlConnection con = _credManager.getConnections(dbname, isLive))
+                using (var cmd = new SqlCommand("Usp_GetQrPaymentsLogs_Reports", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandTimeout = 600;
+                    cmd.Parameters.Add("@smcode", SqlDbType.VarChar, 50).Value = smcode ?? string.Empty;
+                    cmd.Parameters.Add("@Mode", SqlDbType.VarChar, 50).Value = "Installments";
+                    await con.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+                    
+                    using (var reader = await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection, cancellationToken).ConfigureAwait(false))
+                    {
+                        
+                        bool headerSet = false;
+                        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                        {
+                            if (!headerSet)
+                            {
+                                result.custname = !reader.IsDBNull(reader.GetOrdinal("CustName"))
+                                    ? reader.GetString(reader.GetOrdinal("CustName"))
+                                    : string.Empty;
+
+                                result.mobile = !reader.IsDBNull(reader.GetOrdinal("Mobile"))
+                                    ? reader.GetString(reader.GetOrdinal("Mobile"))
+                                    : string.Empty;
+
+                                result.LoanStatus = !reader.IsDBNull(reader.GetOrdinal("LoanStatus"))
+                                    ? reader.GetString(reader.GetOrdinal("LoanStatus"))
+                                    : string.Empty;
+
+                                headerSet = true;
+                            }
+
+                            var emi = new Emidata
+                            {
+                                AMT = Convert.ToDecimal( !reader.IsDBNull(reader.GetOrdinal("AMT"))
+                                    ? reader.GetDouble(reader.GetOrdinal("AMT"))
+                                    : 0m),
+                                PVN_RCP_DT = !reader.IsDBNull(reader.GetOrdinal("PVN_RCP_DT"))
+                                    ? reader.GetDateTime(reader.GetOrdinal("PVN_RCP_DT"))
+                                    : (DateTime?)null
+                            };
+                            result.emis.Add(emi);
+                        }
+
+                        if (await reader.NextResultAsync(cancellationToken).ConfigureAwait(false))
+                        {
+                            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                            {
+                                var emiColl = new EmiCollectiondata
+                                {
+                                    CR = Convert.ToDecimal( !reader.IsDBNull(reader.GetOrdinal("CR"))
+                                        ? reader.GetDouble(reader.GetOrdinal("CR"))
+                                        : 0m),
+                                    VDATE = !reader.IsDBNull(reader.GetOrdinal("VDATE"))
+                                        ? reader.GetDateTime(reader.GetOrdinal("VDATE"))
+                                        : (DateTime?)null,
+                                    VNO = !reader.IsDBNull(reader.GetOrdinal("VNO"))
+                                        ? reader.GetString(reader.GetOrdinal("VNO"))
+                                        : string.Empty
+                                };
+                                result.emiCollections.Add(emiColl);
+                            }
+                        }
+                    } 
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }   
+
+
+            return result;
+        }
+
+
+        public async Task<List<QRMandateReportsVM>> GetQRMandateReportsAsync(string smCode,string mode,
+         DateTime? fromDate,DateTime? toDate,string dbname,bool isLive,CancellationToken cancellationToken = default)
+        {
+            var result = new List<QRMandateReportsVM>();
+
+            try
+            {
+                using var con = _credManager.getConnections(dbname, isLive); 
+                using var cmd = new SqlCommand("Usp_GetQrPaymentsLogs_Reports", con)
+                {
+                    CommandType = CommandType.StoredProcedure,
+                    CommandTimeout = 600
+                };
+
+                
+                cmd.Parameters.Add("@SmCode", SqlDbType.VarChar, 50).Value = smCode ?? string.Empty;
+                cmd.Parameters.Add("@Mode", SqlDbType.VarChar, 50).Value = mode ?? string.Empty;
+                cmd.Parameters.Add("@Fromdate", SqlDbType.DateTime).Value = (object?)fromDate ?? DBNull.Value;
+                cmd.Parameters.Add("@Todate", SqlDbType.DateTime).Value = (object?)toDate ?? DBNull.Value;
+
+                await con.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+                
+                using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection, cancellationToken).ConfigureAwait(false);
+
+               
+                if (mode.Equals("QrPaymentsLogs", StringComparison.OrdinalIgnoreCase))
+                {
+                    
+                    int ordSmCode = reader.GetOrdinal("SmCode");
+                    int ordAmount = reader.GetOrdinal("PayerAmount");
+                    int ordTxnId = reader.GetOrdinal("TxnStatus");
+                    int ordCreationDate = reader.GetOrdinal("CreationDate");
+
+                    while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        var item = new QRMandateReportsVM
+                        {
+                            SmCode = !reader.IsDBNull(ordSmCode) ? reader.GetString(ordSmCode) : string.Empty,
+                            amount = !reader.IsDBNull(ordAmount) ? reader.GetDecimal(ordAmount) : 0m,
+                            txnId = !reader.IsDBNull(ordTxnId) ? reader.GetString(ordTxnId) : string.Empty,
+                            CreationDate =  !reader.IsDBNull(ordCreationDate) ? reader.GetDateTime(ordCreationDate) : (DateTime?)null
+                        };
+                        result.Add(item);
+                    }
+                }
+                 if (mode.Equals("MandateLogs", StringComparison.OrdinalIgnoreCase))
+                {
+                    
+                    int ordSmCode = reader.GetOrdinal("SmCode");
+                    int ordPayerAmount = reader.GetOrdinal("PayerAmount");
+                    int ordTxnStatus = reader.GetOrdinal("TxnStatus");
+                    int ordCreationOn = reader.GetOrdinal("CreationDate");
+
+                    while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        var item = new QRMandateReportsVM
+                        {
+                            SmCode = !reader.IsDBNull(ordSmCode) ? reader.GetString(ordSmCode) : string.Empty,
+                            amount = !reader.IsDBNull(ordPayerAmount) ? reader.GetDecimal(ordPayerAmount) : 0m,
+                            TxnStatus = !reader.IsDBNull(ordTxnStatus) ? reader.GetString(ordTxnStatus) : string.Empty,
+                            CreationDate = !reader.IsDBNull(ordCreationOn) ? reader.GetDateTime(ordCreationOn) : (DateTime?)null
+                        };
+                        result.Add(item);
+                    }
+                }
+                
+            }
+            catch (Exception ex)
+            {
+              Console.WriteLine(ex);
+            }
+           
+
+            return result;
+        }
+
+
+    }
 }
+
+
+
+
+
 

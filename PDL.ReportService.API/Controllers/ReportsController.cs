@@ -509,9 +509,9 @@ namespace PDL.ReportService.API.Controllers
 
 
 
-       
+
         [HttpGet]
-        public async Task<IActionResult> ExportOverdueExcel(string creatorId,string branchCode,string groupCode, string startDate, string endDate)
+        public async Task<IActionResult> ExportOverdueExcel(string creatorId, string branchCode, string groupCode, string startDate, string endDate)
         {
             try
             {
@@ -526,13 +526,13 @@ namespace PDL.ReportService.API.Controllers
                     {
                         var worksheet = workbook.Worksheets.Add("Overdue Records");
 
-                        
+
                         string[] headers = {
             "FI ID", "Full Name", "Branch Name", "Group Name", "Creator Name",
             "EMI Date", "Rate", "Overdue Days", "Total Overdue Amount", "Creation Date"
         };
 
-                        
+
                         for (int i = 0; i < headers.Length; i++)
                         {
                             var cell = worksheet.Cell(1, i + 1);
@@ -542,7 +542,7 @@ namespace PDL.ReportService.API.Controllers
                             cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         }
 
-                       
+
                         for (int i = 0; i < response.Count; i++)
                         {
                             var row = response[i];
@@ -554,17 +554,17 @@ namespace PDL.ReportService.API.Controllers
                             worksheet.Cell(rowNum, 4).Value = row.GroupName ?? "";
                             worksheet.Cell(rowNum, 5).Value = row.CreatorName ?? "";
 
-                            
+
                             worksheet.Cell(rowNum, 6).Value = row.EMIDate != DateTime.MinValue ? row.EMIDate : (DateTime?)null;
                             worksheet.Cell(rowNum, 6).Style.DateFormat.Format = "yyyy-MM-dd";
 
-                            
+
                             worksheet.Cell(rowNum, 7).Value = row.Rate;
                             worksheet.Cell(rowNum, 8).Value = row.OverDueDays;
                             worksheet.Cell(rowNum, 9).Value = row.TotalOverDueAmount;
                             worksheet.Cell(rowNum, 9).Style.NumberFormat.Format = "#,##0.00";
 
-                            
+
                             worksheet.Cell(rowNum, 10).Value = DateTime.Now;
                             worksheet.Cell(rowNum, 10).Style.DateFormat.Format = "yyyy-MM-dd HH:mm:ss";
                         }
@@ -596,7 +596,7 @@ namespace PDL.ReportService.API.Controllers
                         data = exceldata
                     });
 
-                    
+
                 }
                 else
                 {
@@ -617,7 +617,59 @@ namespace PDL.ReportService.API.Controllers
             }
 
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetQRMendateReports(string SmCode,string Mode, DateTime fromdate, DateTime Todate)
+        {
+            try
+            {
+                string dbName = GetDBName();
+                bool isLive = GetIslive();
+                if (string.IsNullOrEmpty(dbName))
+                {
+                    return BadRequest(new { message = resourceManager.GetString("NULLDBNAME") });
+                }
+                var result = _reports.GetQRMandateReportsAsync(SmCode, Mode, fromdate, Todate, dbName, isLive);
+                return Ok(new
+                {
+                    message = resourceManager.GetString("GETSUCCESS"),
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetInstallmentCollectionReports_Reports");
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetInstallmentCollectionReports(string SmCode)
+        {
+            try
+            {
+                string dbName = GetDBName();
+                bool isLive = GetIslive();
+                if (string.IsNullOrEmpty(dbName))
+                {
+                    return BadRequest(new { message = resourceManager.GetString("NULLDBNAME") });
+                }
+                var result = _reports.GetInstallmentCollectionReportsAsync(SmCode, dbName, isLive);
+                return Ok(new
+                {
+                    message = resourceManager.GetString("GETSUCCESS"),
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetInstallmentCollectionReports_Reports");
+                return BadRequest(ex.Message);
+            }
+        }
     }
+}
 
 
         //[HttpGet]
@@ -668,5 +720,9 @@ namespace PDL.ReportService.API.Controllers
         //}
 
 
+
+
+
+
+
     
-}
