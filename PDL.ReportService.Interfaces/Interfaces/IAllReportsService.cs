@@ -22,6 +22,6 @@ namespace PDL.ReportService.Interfaces.Interfaces
         Task<byte[]> GetTrailBalance( List<string>Ahead, DateTime startdate,DateTime enddate, string dbname, bool isLive);
 
         Task<List<RCdata>> GetAllAhead(string dbname, bool isLive);
-    
+        DataTable GetNewCasesForAMonth(string? FromDate, string? ToDate, string dbname, bool isLive);
     }
 }
