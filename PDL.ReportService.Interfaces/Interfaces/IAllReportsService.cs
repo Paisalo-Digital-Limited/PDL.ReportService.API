@@ -1,4 +1,5 @@
 ﻿using PDL.ReportService.Entites.VM;
+using PDL.ReportService.Entites.VM.ReportVM;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,11 +18,13 @@ namespace PDL.ReportService.Interfaces.Interfaces
         byte[] GenerateLedgerPdf(string SmCode, string dbname, bool isLive);
         bool GetSmCode(string SmCode, string dbname, bool isLive);
         DataTable GetICICIQrCallbackResponse(string? FromDate, string? ToDate, int? PageSize, int? PageNumber, string dbname, bool isLive);
-
         Task<byte[]> GenerateGeneralLedgerExcel(string SmCode, string dbname, bool isLive);
         Task<byte[]> GetTrailBalance( List<string>Ahead, DateTime startdate,DateTime enddate, string dbname, bool isLive);
-
         Task<List<RCdata>> GetAllAhead(string dbname, bool isLive);
+        List<ApplicationFormDataModel> GetAppFormData(int Fi_Id, string dbname, bool isLive);
+        List<HouseVisitReportModel> GenerateHomeVisitReports(int Fi_Id, string dbname, bool isLive);
+        List<SecondEsignVM> GetSecondEsignReportData(int Fi_Id, string dbname, bool isLive);
         DataTable GetNewCasesForAMonth(string? FromDate, string? ToDate, string dbname, bool isLive);
+
     }
 }
