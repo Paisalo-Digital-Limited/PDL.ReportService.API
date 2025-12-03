@@ -685,7 +685,10 @@ namespace PDL.ReportService.API.Controllers
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetInsuranceReport_Reports");
-                return BadRequest(new { message = (resourceManager.GetString("BADREQUEST")), data = "" });
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
             }
         }
         #endregion
