@@ -144,5 +144,12 @@ namespace PDL.ReportService.Repository.Repository
                 return reportsBLL.GetCibilReport(searchDate,dbName,isLive);
             }
         }
+        public List<InsuranceDataVM> GetInsuranceReport(string fromDate, string toDate, string dbName, bool isLive)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.GetInsuranceReport(fromDate,toDate, dbName, isLive);
+            }
+        }
     }
 }

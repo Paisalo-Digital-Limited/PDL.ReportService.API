@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.ExtendedProperties;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -1016,6 +1017,84 @@ namespace PDL.ReportService.Logics.BLL
                                 NoInsDue = reader["no_ins_due"] == DBNull.Value ? (short?)null : Convert.ToInt16(reader["no_ins_due"]),
                                 DiffDtClosedDtReport = reader["DiffDtClosedDtReport"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["DiffDtClosedDtReport"])
                             };
+                            result.Add(vm);
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return result;
+        }
+
+        public List<InsuranceDataVM> GetInsuranceReport(string fromDate,string toDate,string dbName, bool isLive)
+        {
+            List<InsuranceDataVM> result = new List<InsuranceDataVM>();
+
+            string spName = "Usp_GetInsuranceData";
+
+            try
+            {
+                using (SqlConnection con = _credManager.getConnections(dbName, isLive))
+                using (SqlCommand cmd = new SqlCommand(spName, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@FromDate", SqlDbType.DateTime).Value = fromDate;
+                    cmd.Parameters.Add("@ToDate", SqlDbType.DateTime).Value = toDate;
+
+                    if (con.State == ConnectionState.Closed)
+                        con.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            InsuranceDataVM vm = new InsuranceDataVM
+                            {
+                                BranchName = reader["BranchName"]?.ToString(),
+                                LoanAppliRecDt = reader["LoanAppliRecDt"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["LoanAppliRecDt"]),
+
+                                LoanAcctNo = reader["LoanAcctNo"]?.ToString(),
+                                LoanAmount = reader["LoanAmount"] == DBNull.Value ? null: (double?)Convert.ToDouble(reader["LoanAmount"]),
+                                LoanTenure = reader["LoanTenure"] == DBNull.Value? null: (double?)Convert.ToDouble(reader["LoanTenure"]),
+                                LoanType = reader["LoanType"]?.ToString(),
+
+                                Title = reader["Title"]?.ToString(),
+                                ApplicantFirstName = reader["ApplicantFirstName"]?.ToString(),
+                                ApplicantLastName = reader["ApplicantLastName"]?.ToString(),
+
+                                DOB = reader["DOB"]?.ToString(),
+                                Gender = reader["Gender"]?.ToString(),
+
+                                Address = reader["Address"]?.ToString(),
+                                Address2 = reader["Address2"]?.ToString(),
+                                PinCode = reader["PinCode"]?.ToString(),
+                                EmailID = reader["EmailID"]?.ToString(),
+                                MobileNo = reader["MobileNo"]?.ToString(),
+
+                                InsuredFirstName = reader["InsuredFirstName"]?.ToString(),
+                                InsuredLastName = reader["InsuredLastName"]?.ToString(),
+                                InsuredDOB = reader["InsuredDOB"]?.ToString(),
+                                InsuredRelationShip = reader["InsuredRelationShip"]?.ToString(),
+
+                                Insured2FirstName = reader["Insured2FirstName"]?.ToString(),
+                                Insured2LastName = reader["Insured2LastName"]?.ToString(),
+                                Insured2DOB = reader["Insured2DOB"]?.ToString(),
+                                Insured2RelationShip = reader["Insured2RelationShip"]?.ToString(),
+
+                                NomineeName = reader["NomineeName"]?.ToString(),
+                                NomineeDOB = reader["NomineeDOB"]?.ToString(),
+                                Relation = reader["Relation"]?.ToString(),
+
+                                SumAssured = reader["SumAssured"] == DBNull.Value? null : (double?)Convert.ToDouble(reader["SumAssured"]),
+                                TransactionAmount = reader["TransactionAmount"] == DBNull.Value? null: (double?)Convert.ToDouble(reader["TransactionAmount"]),
+                                TransactionDate = reader["TransactionDate"]?.ToString(),           
+                                TransactionDetails_UTR = reader["TransactionDetails_UTR"]?.ToString()
+                            };
+
+
                             result.Add(vm);
                         }
                     }
