@@ -9,16 +9,8 @@ using OfficeOpenXml;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Entites.VM.ReportVM;
 using PDL.ReportService.Logics.Credentials;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Linq;
-using System.Resources;
-using System.Runtime.InteropServices.JavaScript;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+
 
 namespace PDL.ReportService.Logics.BLL
 {
@@ -39,8 +31,8 @@ namespace PDL.ReportService.Logics.BLL
             {
                 CaseHistories = new List<CaseHistoryVM>(),
                 TotalCount = 0,
-                InvalidSmCodeCount = 0, 
-                NoHistoryCount = 0      
+                InvalidSmCodeCount = 0,
+                NoHistoryCount = 0
             };
 
             using (SqlConnection con = _credManager.getConnections(dbName, isLive))
@@ -133,7 +125,7 @@ namespace PDL.ReportService.Logics.BLL
             {
                 // Connection open according to dbtype
                 if (dbtype == "SBIPDLCOL")
-                    con =  _credManager.getConnections(dbName, isLive);
+                    con = _credManager.getConnections(dbName, isLive);
                 else if (dbtype == "PDLERP")
                     con = _credManager.getConnections(dbName, isLive);
                 else
@@ -698,7 +690,7 @@ namespace PDL.ReportService.Logics.BLL
                 throw new Exception("Failed to fetch account aggregator report: " + ex.Message, ex);
             }
         }
-      
+
         public async Task<List<string>> SMCodeValidation(SMCodeValidationVM file, string dbname, bool isLive)
         {
             var missingCodes = new List<string>();
@@ -786,7 +778,7 @@ namespace PDL.ReportService.Logics.BLL
             // Step 4: Return Result as JSON
             return missingCodes;
         }
-        public async Task<PaginationResponse<OverduePenalties>> GetOverdueRecordsAsync(PaginationRequest<OverduePenalties> request,string dbname,bool isLive)
+        public async Task<PaginationResponse<OverduePenalties>> GetOverdueRecordsAsync(PaginationRequest<OverduePenalties> request, string dbname, bool isLive)
         {
             var result = new PaginationResponse<OverduePenalties>();
             var data = new List<OverduePenalties>();
@@ -817,15 +809,15 @@ namespace PDL.ReportService.Logics.BLL
                         data.Add(new OverduePenalties
                         {
                             FI_Id = reader["FI_Id"] != DBNull.Value ? Convert.ToInt32(reader["FI_Id"]) : 0,
-                            FICode = Convert.ToInt64( reader["FICode"]?.ToString()),
-                            EMIDate = Convert.ToDateTime( reader["EMIDate"] != DBNull.Value ? Convert.ToDateTime(reader["EMIDate"]) : (DateTime?)null),
+                            FICode = Convert.ToInt64(reader["FICode"]?.ToString()),
+                            EMIDate = Convert.ToDateTime(reader["EMIDate"] != DBNull.Value ? Convert.ToDateTime(reader["EMIDate"]) : (DateTime?)null),
                             OverDueDays = reader["OverDueDays"] != DBNull.Value ? Convert.ToInt32(reader["OverDueDays"]) : 0,
                             TotalOverDueAmount = reader["TotalOverDueAmount"] != DBNull.Value ? Convert.ToDecimal(reader["TotalOverDueAmount"]) : 0,
                             CreatorName = reader["CreatorName"]?.ToString(),
                             FullName = reader["FullName"]?.ToString(),
                             BranchName = reader["BranchName"]?.ToString(),
                             GroupName = reader["GroupName"]?.ToString(),
-                            CreationDate=Convert.ToDateTime( reader["CreationDate"]?.ToString())
+                            CreationDate = Convert.ToDateTime(reader["CreationDate"]?.ToString())
                         });
                     }
                 }
@@ -876,8 +868,8 @@ namespace PDL.ReportService.Logics.BLL
                 cmd.Parameters.AddWithValue("@CreatorID", creatorId);
                 cmd.Parameters.AddWithValue("@BranchCode", branchCode);
                 cmd.Parameters.AddWithValue("@GroupCode", groupCode);
-                cmd.Parameters.AddWithValue("@StartDate",(Convert.ToDateTime( startDate)).ToString("yyyy-MM-dd"));
-                cmd.Parameters.AddWithValue("@EndDate",(Convert.ToDateTime( endDate)).ToString("yyyy-MM-dd"));
+                cmd.Parameters.AddWithValue("@StartDate", (Convert.ToDateTime(startDate)).ToString("yyyy-MM-dd"));
+                cmd.Parameters.AddWithValue("@EndDate", (Convert.ToDateTime(endDate)).ToString("yyyy-MM-dd"));
 
                 await conn.OpenAsync();
 
@@ -897,15 +889,144 @@ namespace PDL.ReportService.Logics.BLL
                             BranchName = reader["BranchName"]?.ToString(),
                             GroupName = reader["GroupName"]?.ToString(),
                             CreationDate = Convert.ToDateTime(reader["CreationDate"]?.ToString()),
-                            Rate = Convert.ToDecimal( reader["Rate"]?.ToString()),
+                            Rate = Convert.ToDecimal(reader["Rate"]?.ToString()),
                         });
                     }
                 }
             }
 
-            
+
 
             return data;
         }
+
+        public List<CibilDataVM> GetCibilReport(string searchDate, string dbName, bool isLive)
+        {
+            List<CibilDataVM> result = new List<CibilDataVM>();
+
+            string spName = "usp_getCibilData";
+
+            try
+            {
+                using (SqlConnection con = _credManager.getConnections(dbName, isLive))
+                using (SqlCommand cmd = new SqlCommand(spName, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@reportDate", SqlDbType.SmallDateTime).Value = searchDate;
+
+                    if (con.State == ConnectionState.Closed)
+                        con.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            CibilDataVM vm = new CibilDataVM
+                            {
+                                ConsumerName = reader["Consumer Name"] == DBNull.Value ? null : reader["Consumer Name"].ToString().Trim(),
+                                DOB = reader["Date Of Birth"] == DBNull.Value ? null : reader["Date Of Birth"].ToString().Trim(),
+                                Gender = reader["Gender"] == DBNull.Value ? null : reader["Gender"].ToString().Trim(),
+                                IncomeTaxId = reader["Income Tax ID Number"] == DBNull.Value ? null : Helper.Helper.Decrypt(reader["Income Tax ID Number"].ToString(), _configuration["encryptSalts:pan"]),                        
+
+                                PassportNumber = reader["Passport Number"] == DBNull.Value ? null : reader["Passport Number"].ToString().Trim(),
+                                PassportIssueDate = reader["Passport Issue Date"] == DBNull.Value ? null : reader["Passport Issue Date"].ToString().Trim(),
+                                PassportExpiryDate = reader["Passport Expiry Date"] == DBNull.Value ? null : reader["Passport Expiry Date"].ToString().Trim(),
+
+                                VoterIdNumber = reader["Voter ID Number"] == DBNull.Value ? null : Helper.Helper.Decrypt(reader["Voter ID Number"].ToString(), _configuration["encryptSalts:voterid"]),
+
+                                DrivingLicenseNumber = reader["Driving License Number"] == DBNull.Value ? null : Helper.Helper.Decrypt(reader["Driving License Number"].ToString(), _configuration["encryptSalts:DL"]),
+                                DrivingLicenseIssueDate = reader["Driving License Issue Date"] == DBNull.Value ? null : reader["Driving License Issue Date"].ToString().Trim(),
+                                DrivingLicenseExpiryDate = reader["Driving License Expiry Date"] == DBNull.Value ? null : reader["Driving License Expiry Date"].ToString().Trim(),
+
+                                AdditionalId2 = reader["Additional ID #2"] == DBNull.Value ? null : reader["Additional ID #2"].ToString().Trim(),
+
+                                TelephoneMobile = reader["Telephone No.Mobile"] == DBNull.Value ? null : reader["Telephone No.Mobile"].ToString().Trim(),
+                                TelephoneResidence = reader["Telephone No.Residence"] == DBNull.Value ? null : reader["Telephone No.Residence"].ToString().Trim(),
+                                TelephoneOffice = reader["Telephone No.Office"] == DBNull.Value ? null : reader["Telephone No.Office"].ToString().Trim(),
+                                ExtensionOffice = reader["Extension Office"] == DBNull.Value ? null : reader["Extension Office"].ToString().Trim(),
+                                TelephoneOther = reader["Telephone No.Other"] == DBNull.Value ? null : reader["Telephone No.Other"].ToString().Trim(),
+                                ExtensionOther = reader["Extension Other"] == DBNull.Value ? null : reader["Extension Other"].ToString().Trim(),
+
+                                EmailId1 = reader["Email ID 1"] == DBNull.Value ? null : reader["Email ID 1"].ToString().Trim(),
+                                EmailId2 = reader["Email ID 2"] == DBNull.Value ? null : reader["Email ID 2"].ToString().Trim(),
+
+                                // Address 1
+                                Address1 = reader["Address 1"] == DBNull.Value ? null : reader["Address 1"].ToString().Trim(),
+                                StateCode1 = reader["State Code 1"] == DBNull.Value ? null : reader["State Code 1"].ToString().Trim(),
+                                PinCode1 = reader["PIN Code 1"] == DBNull.Value ? null : reader["PIN Code 1"].ToString().Trim(),
+                                AddressCategory1 = reader["Address Category 1"] == DBNull.Value ? null : reader["Address Category 1"].ToString().Trim(),
+                                ResidenceCode1 = reader["Residence Code 1"] == DBNull.Value ? null : reader["Residence Code 1"].ToString().Trim(),
+
+                                // Address 2
+                                Address2 = reader["Address 2"] == DBNull.Value ? null : reader["Address 2"].ToString().Trim(),
+                                StateCode2 = reader["State Code 2"] == DBNull.Value ? null : reader["State Code 2"].ToString().Trim(),
+                                PinCode2 = reader["PIN Code 2"] == DBNull.Value ? null : reader["PIN Code 2"].ToString().Trim(),
+                                AddressCategory2 = reader["Address Category 2"] == DBNull.Value ? null : reader["Address Category 2"].ToString().Trim(),
+                                ResidenceCode2 = reader["Residence Code 2"] == DBNull.Value ? null : reader["Residence Code 2"].ToString().Trim(),
+
+                                // Current/New Account
+                                CurrentNewMemberCode = reader["Current/New Member Code"] == DBNull.Value ? null : reader["Current/New Member Code"].ToString().Trim(),
+                                CurrentNewMemberShortName = reader["Current/New Member Short Name"] == DBNull.Value ? null : reader["Current/New Member Short Name"].ToString().Trim(),
+                                CurrentNewAccountNumber = reader["Current/New Account Number"] == DBNull.Value ? null : reader["Current/New Account Number"].ToString().Trim(),
+                                AccountType = reader["Account Type"] == DBNull.Value ? null : reader["Account Type"].ToString().Trim(),
+                                OwnershipIndicator = reader["Ownership Indicator"] == DBNull.Value ? null : reader["Ownership Indicator"].ToString().Trim(),
+
+                                DateOpenedDisbursed = reader["Date Opened/ Disbursed"] == DBNull.Value ? null : reader["Date Opened/ Disbursed"].ToString().Trim(),
+                                DateOfLastPayment = reader["Date Of Last Payment"] == DBNull.Value ? null : reader["Date Of Last Payment"].ToString().Trim(),
+                                DateClosed = reader["Date Closed"] == DBNull.Value ? null : reader["Date Closed"].ToString().Trim(),
+                                DateReported = reader["Date Reported"] == DBNull.Value ? null : reader["Date Reported"].ToString().Trim(),
+
+                                HighCreditOrSanctionedAmount = reader["High Credit / Sanctioned Amount"] == DBNull.Value ? null : reader["High Credit / Sanctioned Amount"].ToString().Trim(),
+                                CurrentBalance = reader["Current Balance"] == DBNull.Value ? null : reader["Current Balance"].ToString().Trim(),
+                                AmountOverdue = reader["Amount Overdue"] == DBNull.Value ? null : reader["Amount Overdue"].ToString().Trim(),
+                                NumberOfDaysPastDue = reader["Number Of Days Past Due"] == DBNull.Value ? null : reader["Number Of Days Past Due"].ToString().Trim(),
+
+                                // Old Account
+                                OldMemberCode = reader["Old Member Code"] == DBNull.Value ? null : reader["Old Member Code"].ToString().Trim(),
+                                OldMemberShortName = reader["Old Member Short Name"] == DBNull.Value ? null : reader["Old Member Short Name"].ToString().Trim(),
+                                OldAccountNumber = reader["Old Acc No"] == DBNull.Value ? null : reader["Old Acc No"].ToString().Trim(),
+                                OldAccountType = reader["Old Acc Type"] == DBNull.Value ? null : reader["Old Acc Type"].ToString().Trim(),
+                                OldOwnershipIndicator = reader["Old Ownership Indicator"] == DBNull.Value ? null : reader["Old Ownership Indicator"].ToString().Trim(),
+
+                                SuitFiledWilfulDefault = reader["Suit Filed / Wilful Default"] == DBNull.Value ? null : reader["Suit Filed / Wilful Default"].ToString().Trim(),
+                                WrittenOffSettledStatus = reader["Written-off and Settled Status"] == DBNull.Value ? null : reader["Written-off and Settled Status"].ToString().Trim(),
+                                AssetClassification = reader["Asset Classification"] == DBNull.Value ? null : reader["Asset Classification"].ToString().Trim(),
+
+                                ValueOfCollateral = reader["Value of Collateral"] == DBNull.Value ? null : reader["Value of Collateral"].ToString().Trim(),
+                                TypeOfCollateral = reader["Type of Collateral"] == DBNull.Value ? null : reader["Type of Collateral"].ToString().Trim(),
+
+                                CreditLimit = reader["Credit Limit"] == DBNull.Value ? null : reader["Credit Limit"].ToString().Trim(),
+                                CashLimit = reader["Cash Limit"] == DBNull.Value ? null : reader["Cash Limit"].ToString().Trim(),
+                                RateOfInterest = reader["Rate of Interest"] == DBNull.Value ? null : reader["Rate of Interest"].ToString().Trim(),
+                                RepaymentTenure = reader["RepaymentTenure"] == DBNull.Value ? null : reader["RepaymentTenure"].ToString().Trim(),
+                                EMIAmount = reader["EMI Amount"] == DBNull.Value ? null : reader["EMI Amount"].ToString().Trim(),
+
+                                WrittenOffAmountTotal = reader["Written- off Amount (Total)"] == DBNull.Value ? null : reader["Written- off Amount (Total)"].ToString().Trim(),
+                                WrittenOffPrincipalAmount = reader["Written- off Principal Amount"] == DBNull.Value ? null : reader["Written- off Principal Amount"].ToString().Trim(),
+                                SettlementAmount = reader["Settlement Amt"] == DBNull.Value ? null : reader["Settlement Amt"].ToString().Trim(),
+
+                                PaymentFrequency = reader["Payment Frequency"] == DBNull.Value ? null : reader["Payment Frequency"].ToString().Trim(),
+                                ActualPaymentAmount = reader["Actual Payment Amt"] == DBNull.Value ? null : reader["Actual Payment Amt"].ToString().Trim(),
+
+                                OccupationCode = reader["Occupation Code"] == DBNull.Value ? null : reader["Occupation Code"].ToString().Trim(),
+                                Income = reader["Income"] == DBNull.Value ? null : reader["Income"].ToString().Trim(),
+                                NetGrossIncomeIndicator = reader["Net/Gross Income Indicator"] == DBNull.Value ? null : reader["Net/Gross Income Indicator"].ToString().Trim(),
+                                MonthlyAnnualIncomeIndicator = reader["Monthly/Annual Income Indicator"] == DBNull.Value ? null : reader["Monthly/Annual Income Indicator"].ToString().Trim(),
+
+                                NoInsDue = reader["no_ins_due"] == DBNull.Value ? (short?)null : Convert.ToInt16(reader["no_ins_due"]),
+                                DiffDtClosedDtReport = reader["DiffDtClosedDtReport"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["DiffDtClosedDtReport"])
+                            };
+                            result.Add(vm);
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return result;
+        }
+
     }
 }

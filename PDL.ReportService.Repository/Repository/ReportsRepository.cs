@@ -136,5 +136,13 @@ namespace PDL.ReportService.Repository.Repository
                 return await reportsBLL.ExportOverdueExcel( creatorId,  branchCode,  groupCode,  startDate,  endDate, dbname, isLive);
             }
         }
+
+        public List<CibilDataVM> GetCibilReport(string searchDate, string dbName, bool isLive)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.GetCibilReport(searchDate,dbName,isLive);
+            }
+        }
     }
 }
