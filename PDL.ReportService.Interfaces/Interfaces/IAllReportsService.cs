@@ -1,4 +1,5 @@
 ﻿using PDL.ReportService.Entites.VM;
+using PDL.ReportService.Entites.VM.ReportVM;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -22,6 +23,9 @@ namespace PDL.ReportService.Interfaces.Interfaces
         Task<byte[]> GetTrailBalance( List<string>Ahead, DateTime startdate,DateTime enddate, string dbname, bool isLive);
 
         Task<List<RCdata>> GetAllAhead(string dbname, bool isLive);
-    
+
+        List<ApplicationFormDataModel> GetAppFormData(int Fi_Id, string dbname, bool isLive);
+        List<HouseVisitReportModel> GenerateHomeVisitReports(int Fi_Id, string dbname, bool isLive);
+        List<SecondEsignVM> GetSecondEsignReportData(int Fi_Id, string dbname, bool isLive);
     }
 }

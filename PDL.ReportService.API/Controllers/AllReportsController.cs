@@ -5,10 +5,12 @@ using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using NPOI.SS.Formula.Functions;
 using PDL.ReportService.Entites.VM;
+using PDL.ReportService.Entites.VM.ReportVM;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.Credentials;
 using PDL.ReportService.Logics.Helper;
 using System.Data;
+using System.Security.Claims;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PDL.ReportService.API.Controllers
@@ -97,7 +99,7 @@ namespace PDL.ReportService.API.Controllers
 
             try
             {
-                bool res = _allReportsService.GetSmCode(SmCode,dbname,isLive);
+                bool res = _allReportsService.GetSmCode(SmCode, dbname, isLive);
                 if (res == true)
                 {
                     var pdfBytes = _allReportsService.GenerateLedgerPdf(SmCode, dbname, isLive);
@@ -132,7 +134,7 @@ namespace PDL.ReportService.API.Controllers
 
                     });
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -233,7 +235,7 @@ namespace PDL.ReportService.API.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetAheadOptions()
-        
+
         {
             string dbname = GetDBName();
             bool isLive = GetIslive();
@@ -270,14 +272,14 @@ namespace PDL.ReportService.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult>GetTrailBalance( [FromBody] AHeaddata listaheaddata )
+        public async Task<IActionResult> GetTrailBalance([FromBody] AHeaddata listaheaddata)
         {
             string dbname = GetDBName();
             bool isLive = GetIslive();
 
             try
             {
-                 int fyStartYear = (System.DateTime.Now.Month <= 3) ? System.DateTime.Now.Year - 1 : System.DateTime.Now.Year;
+                int fyStartYear = (System.DateTime.Now.Month <= 3) ? System.DateTime.Now.Year - 1 : System.DateTime.Now.Year;
                 int fyEndYear = (System.DateTime.Now.Month <= 3) ? System.DateTime.Now.Year : System.DateTime.Now.Year + 1;
 
                 DateTime financialYearStart = new DateTime(fyStartYear, 4, 1);
@@ -286,29 +288,29 @@ namespace PDL.ReportService.API.Controllers
                 var pdfBytes = await _allReportsService.GetTrailBalance(listaheaddata.ahead, financialYearStart, financialYearEnd, dbname, isLive);
 
 
-                    if (pdfBytes != null)
+                if (pdfBytes != null)
+                {
+                    return Ok(new
                     {
-                        return Ok(new
-                        {
-                            message = (resourceManager.GetString("GETSUCCESS")),
-                            data = File(
-                                      pdfBytes,
-                                      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                      $"TrialBalance_{financialYearStart}_{financialYearEnd}.xlsx"
-                                  )
-                        });
-                    }
-                    else
+                        message = (resourceManager.GetString("GETSUCCESS")),
+                        data = File(
+                                  pdfBytes,
+                                  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                  $"TrialBalance_{financialYearStart}_{financialYearEnd}.xlsx"
+                              )
+                    });
+                }
+                else
+                {
+                    return Ok(new
                     {
-                        return Ok(new
-                        {
-                            message = resourceManager.GetString("NORECORD"),
-                            data = pdfBytes
+                        message = resourceManager.GetString("NORECORD"),
+                        data = pdfBytes
 
-                        });
-                    }
-                
-                
+                    });
+                }
+
+
 
             }
             catch (Exception ex)
@@ -317,7 +319,175 @@ namespace PDL.ReportService.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        #region GetApplicationFormData By Virendra
 
+        [HttpGet]
+        public IActionResult GetApplicationFormData(int Fi_Id)
+        {
+            try
+            {
+                string dbname = GetDBName();
+                string activeUser = User.FindFirstValue(ClaimTypes.Name);
 
+                if (string.IsNullOrEmpty(dbname))
+                {
+                    return BadRequest(new
+                    {
+                        message = resourceManager.GetString("NULLDBNAME"),
+                        data = ""
+                    });
+                }
+
+                if (Fi_Id <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = resourceManager.GetString("NOTEXISTID"),
+                        data = ""
+                    });
+                }
+
+                //List<> fiDetailsModels = _fiDetails.GetDetails(FiCode, SmCode, Creator, dbname, GetIslive());
+                List<ApplicationFormDataModel> applicationFormDataModels = _allReportsService.GetAppFormData(Fi_Id, dbname, GetIslive());
+
+                if (applicationFormDataModels != null && applicationFormDataModels.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = applicationFormDataModels
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETFAIL"),
+                        data = applicationFormDataModels
+                    });
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message,
+                    data = ""
+                });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GenerateHomeVisits(int Fi_Id)
+        {
+            try
+            {
+                string dbname = GetDBName();
+                string activeUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(dbname))
+                {
+                    return BadRequest(new
+                    {
+                        message = resourceManager.GetString("NULLDBNAME"),
+                        data = ""
+                    });
+                }
+
+                if (Fi_Id <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = resourceManager.GetString("NOTEXISTID"),
+                        data = ""
+                    });
+                }
+
+                List<HouseVisitReportModel> res = _allReportsService.GenerateHomeVisitReports(Fi_Id, dbname, GetIslive());
+
+                if (res != null && res.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = res
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("NORECORD"),
+                        data = res
+                    });
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message,
+                    data = ""
+                });
+            }
+        }
+
+        [HttpGet]
+        //[AllowAnonymous]
+        public IActionResult GetSecondEsignReportData(int Fi_Id)
+        {
+            try
+            {
+                string dbname = GetDBName();
+                string activeUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(dbname))
+                {
+                    return BadRequest(new
+                    {
+                        message = resourceManager.GetString("NULLDBNAME"),
+                        data = ""
+                    });
+                }
+
+                if (Fi_Id <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = resourceManager.GetString("NOTEXISTID"),
+                        data = ""
+                    });
+                }
+
+                List<SecondEsignVM> res = _allReportsService.GetSecondEsignReportData(Fi_Id, dbname, GetIslive());
+
+                if (res != null)
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = res
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("NORECORD"),
+                        data = res
+                    });
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message,
+                    data = ""
+                });
+            }
+        }
+
+        #endregion
     }
 }
