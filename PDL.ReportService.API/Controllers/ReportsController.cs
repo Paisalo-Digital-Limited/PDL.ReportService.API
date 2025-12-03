@@ -1,4 +1,6 @@
-﻿using ClosedXML.Excel;
+﻿using Azure;
+using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -509,9 +511,9 @@ namespace PDL.ReportService.API.Controllers
 
 
 
-       
+
         [HttpGet]
-        public async Task<IActionResult> ExportOverdueExcel(string creatorId,string branchCode,string groupCode, string startDate, string endDate)
+        public async Task<IActionResult> ExportOverdueExcel(string creatorId, string branchCode, string groupCode, string startDate, string endDate)
         {
             try
             {
@@ -526,13 +528,13 @@ namespace PDL.ReportService.API.Controllers
                     {
                         var worksheet = workbook.Worksheets.Add("Overdue Records");
 
-                        
+
                         string[] headers = {
             "FI ID", "Full Name", "Branch Name", "Group Name", "Creator Name",
             "EMI Date", "Rate", "Overdue Days", "Total Overdue Amount", "Creation Date"
         };
 
-                        
+
                         for (int i = 0; i < headers.Length; i++)
                         {
                             var cell = worksheet.Cell(1, i + 1);
@@ -542,7 +544,7 @@ namespace PDL.ReportService.API.Controllers
                             cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         }
 
-                       
+
                         for (int i = 0; i < response.Count; i++)
                         {
                             var row = response[i];
@@ -554,17 +556,17 @@ namespace PDL.ReportService.API.Controllers
                             worksheet.Cell(rowNum, 4).Value = row.GroupName ?? "";
                             worksheet.Cell(rowNum, 5).Value = row.CreatorName ?? "";
 
-                            
+
                             worksheet.Cell(rowNum, 6).Value = row.EMIDate != DateTime.MinValue ? row.EMIDate : (DateTime?)null;
                             worksheet.Cell(rowNum, 6).Style.DateFormat.Format = "yyyy-MM-dd";
 
-                            
+
                             worksheet.Cell(rowNum, 7).Value = row.Rate;
                             worksheet.Cell(rowNum, 8).Value = row.OverDueDays;
                             worksheet.Cell(rowNum, 9).Value = row.TotalOverDueAmount;
                             worksheet.Cell(rowNum, 9).Style.NumberFormat.Format = "#,##0.00";
 
-                            
+
                             worksheet.Cell(rowNum, 10).Value = DateTime.Now;
                             worksheet.Cell(rowNum, 10).Style.DateFormat.Format = "yyyy-MM-dd HH:mm:ss";
                         }
@@ -596,7 +598,7 @@ namespace PDL.ReportService.API.Controllers
                         data = exceldata
                     });
 
-                    
+
                 }
                 else
                 {
@@ -617,56 +619,131 @@ namespace PDL.ReportService.API.Controllers
             }
 
         }
+
+        #region CibilReport
+        [HttpGet]
+        public IActionResult GetCibilReport(string searchDate)
+        {
+            string dbName = GetDBName();
+            bool isLive = GetIslive();
+            try
+            {
+                var response = _reports.GetCibilReport(searchDate,dbName,isLive);
+
+                if (response.Count>0)
+                {
+                    return Ok(new
+                    {
+                        message = (resourceManager.GetString("GETSUCCESS")),
+                        data = response
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("NORECORD"),
+                        data=""
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration,GetIslive(), "GetCibilReport_Reports");
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
+        #endregion
+
+        #region Insurance Data
+        [HttpGet]
+        public IActionResult GetInsuranceReport(string fromDate,string toDate)
+        {
+            string dbName = GetDBName();
+            bool isLive = GetIslive();
+            try
+            {
+                var response = _reports.GetInsuranceReport(fromDate,toDate, dbName, isLive);
+
+                if (response.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        message = (resourceManager.GetString("GETSUCCESS")),
+                        data = response
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("NORECORD"),
+                        data = ""
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetInsuranceReport_Reports");
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
+        #endregion
     }
 
 
-        //[HttpGet]
-        //public async Task<IActionResult> GetOverdueRecords(
-        //        [FromQuery] int pageNumber = 1,
-        //        [FromQuery] int pageSize = 10,
-        //        [FromQuery] string searchTerm = "",
-        //        [FromQuery] int? minOverdueDays = null,
-        //        [FromQuery] string sortBy = "OverDueDays",
-        //        [FromQuery] string sortOrder = "DESC")
-        //{
-        //    try
-        //    {
-        //        // Validation
-        //        if (pageNumber < 1)
-        //        {
-        //            return BadRequest(new { message = "Page number must be greater than 0" });
-        //        }
+    //[HttpGet]
+    //public async Task<IActionResult> GetOverdueRecords(
+    //        [FromQuery] int pageNumber = 1,
+    //        [FromQuery] int pageSize = 10,
+    //        [FromQuery] string searchTerm = "",
+    //        [FromQuery] int? minOverdueDays = null,
+    //        [FromQuery] string sortBy = "OverDueDays",
+    //        [FromQuery] string sortOrder = "DESC")
+    //{
+    //    try
+    //    {
+    //        // Validation
+    //        if (pageNumber < 1)
+    //        {
+    //            return BadRequest(new { message = "Page number must be greater than 0" });
+    //        }
 
-        //        if (pageSize < 1 || pageSize > 100)
-        //        {
-        //            return BadRequest(new { message = "Page size must be between 1 and 100" });
-        //        }
+    //        if (pageSize < 1 || pageSize > 100)
+    //        {
+    //            return BadRequest(new { message = "Page size must be between 1 and 100" });
+    //        }
 
-        //        var request = new PaginationRequest<OverduePenalties>
-        //        {
-        //            PageNumber = pageNumber,
-        //            PageSize = pageSize,
-        //            SearchTerm = searchTerm,
-        //            MinOverdueDays = minOverdueDays,
-        //            SortBy = sortBy,
-        //            SortOrder = sortOrder.ToUpper(),
-        //            data = new List<OverduePenalties>()
-        //        };
-
-
-
-        //        var response = await _overdueService.GetOverdueRecordsAsync(request);
+    //        var request = new PaginationRequest<OverduePenalties>
+    //        {
+    //            PageNumber = pageNumber,
+    //            PageSize = pageSize,
+    //            SearchTerm = searchTerm,
+    //            MinOverdueDays = minOverdueDays,
+    //            SortBy = sortBy,
+    //            SortOrder = sortOrder.ToUpper(),
+    //            data = new List<OverduePenalties>()
+    //        };
 
 
-        //        return Ok(response);
-        //    }
-        //    catch (Exception ex)
-        //    {
 
-        //        return StatusCode(500, new { message = "An error occurred while fetching overdue records", error = ex.Message });
-        //    }
-        //}
+    //        var response = await _overdueService.GetOverdueRecordsAsync(request);
 
 
-    
+    //        return Ok(response);
+    //    }
+    //    catch (Exception ex)
+    //    {
+
+    //        return StatusCode(500, new { message = "An error occurred while fetching overdue records", error = ex.Message });
+    //    }
+    //}
+
+
 }

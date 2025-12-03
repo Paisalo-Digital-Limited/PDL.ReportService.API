@@ -83,6 +83,16 @@ namespace PDL.ReportService.Repository.Repository
             }
         }
 
+        public DataTable GetNewCasesForAMonth(string? FromDate, string? ToDate, string dbname, bool isLive)
+        {
+            using (AllReportsBLL bll = new AllReportsBLL(_configuration))
+            {
+                return  bll.GetNewCasesForAMonth(FromDate, ToDate,dbname, isLive);
+            }
+        }
+    }
+
+
         #region GetApplicationFormData
         public List<ApplicationFormDataModel> GetAppFormData(int Fi_Id, string dbname, bool isLive)
         {

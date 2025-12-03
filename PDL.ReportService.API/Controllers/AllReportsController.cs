@@ -378,6 +378,7 @@ namespace PDL.ReportService.API.Controllers
         }
 
         [HttpGet]
+
         public IActionResult GenerateHomeVisits(int Fi_Id)
         {
             try
@@ -489,5 +490,39 @@ namespace PDL.ReportService.API.Controllers
         }
 
         #endregion
+
+        public IActionResult GetNewCasesForAMonth(string? FromDate, string? ToDate)
+        {
+            string dbname = GetDBName();
+            bool isLive = GetIslive();
+
+            try
+            {
+                DataTable result = _allReportsService.GetNewCasesForAMonth(FromDate, ToDate, dbname, isLive);
+                if (result.Rows.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        message = (resourceManager.GetString("GETSUCCESS")),
+                        data = JsonConvert.SerializeObject(result)
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("NORECORD"),
+                        data = JsonConvert.SerializeObject(result)
+
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetNewCasesForAMonth_AllReports");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
     }
 }
