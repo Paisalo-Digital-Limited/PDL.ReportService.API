@@ -650,7 +650,48 @@ namespace PDL.ReportService.API.Controllers
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration,GetIslive(), "GetCibilReport_Reports");
-                return BadRequest(new { message = (resourceManager.GetString("BADREQUEST")), data = "" });
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
+        #endregion
+
+        #region Insurance Data
+        [HttpGet]
+        public IActionResult GetInsuranceReport(string fromDate,string toDate)
+        {
+            string dbName = GetDBName();
+            bool isLive = GetIslive();
+            try
+            {
+                var response = _reports.GetInsuranceReport(fromDate,toDate, dbName, isLive);
+
+                if (response.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        message = (resourceManager.GetString("GETSUCCESS")),
+                        data = response
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("NORECORD"),
+                        data = ""
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetInsuranceReport_Reports");
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
             }
         }
         #endregion

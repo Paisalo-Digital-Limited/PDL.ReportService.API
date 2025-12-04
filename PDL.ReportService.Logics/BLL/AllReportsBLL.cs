@@ -1,6 +1,7 @@
 ﻿using ClosedXML.Excel;
 using DocumentFormat.OpenXml.EMMA;
 using DocumentFormat.OpenXml.Office2010.PowerPoint;
+using DocumentFormat.OpenXml.Office2016.Drawing;
 using DocumentFormat.OpenXml.Wordprocessing;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
@@ -11,6 +12,7 @@ using NPOI.SS.Formula.Functions;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Entites.VM.ReportVM;
 using PDL.ReportService.Logics.Credentials;
+using Renci.SshNet;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -905,7 +907,7 @@ namespace PDL.ReportService.Logics.BLL
         //list of ahead
         public async Task<List<RCdata>> GetAllAhead(string dbname, bool isLive)
         {
-              RCdata amast = new RCdata();
+            RCdata amast = new RCdata();
             List<RCdata> ahead = new List<RCdata>();
 
             using (SqlConnection con = _credManager.getConnections(dbname, isLive))
@@ -921,7 +923,8 @@ namespace PDL.ReportService.Logics.BLL
                     {
                         while (await reader.ReadAsync())
                         {
-                            var row = new RCdata {
+                            var row = new RCdata
+                            {
 
                                 AHEAD = reader["Code"]?.ToString()?.Trim() ?? string.Empty
 
@@ -953,7 +956,7 @@ namespace PDL.ReportService.Logics.BLL
             var results = new List<RCdata>();
             try
             {
-               
+
                 if (aheads == null || aheads.Count == 0)
                     return results;
                 var normalizedCsv = string.Join(",", aheads
@@ -991,7 +994,7 @@ namespace PDL.ReportService.Logics.BLL
 
                 return results;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
@@ -1005,7 +1008,7 @@ namespace PDL.ReportService.Logics.BLL
                 var ws = wb.Worksheets.Add("Trial Balance");
                 ws.PageSetup.PageOrientation = XLPageOrientation.Landscape;
 
-                
+
                 CreateStyledHeader(ws, reportTitle, startdate, endate);
 
                 int headerRow = 5;
@@ -1050,7 +1053,7 @@ namespace PDL.ReportService.Logics.BLL
                     r++;
                 }
 
-              
+
                 ws.Cell(r, 1).Value = "GRAND TOTAL";
                 ws.Range(r, 1, r, 2).Merge();
                 ws.Cell(r, 1).Style.Font.Bold = true;
@@ -1084,7 +1087,7 @@ namespace PDL.ReportService.Logics.BLL
                     ws.Cell(r, 4).Value = "";
                 }
 
-               
+
                 r += 2;
                 var diffVal = tb.Difference ?? 0m;
                 var diffAbs = Math.Abs(diffVal);
@@ -1092,7 +1095,7 @@ namespace PDL.ReportService.Logics.BLL
                 ws.Cell(r, 1).Value = $"Difference In Trial Balance = {diffAbs:N2} {diffType}";
                 ws.Range(r, 1, r, 4).Merge();
 
-                
+
                 ws.Column(1).Width = 18;
                 ws.Column(2).Width = 50;
                 ws.Column(3).Width = 20;
@@ -1116,7 +1119,7 @@ namespace PDL.ReportService.Logics.BLL
             var response = new TrialBalanceResponseVM();
             if (rawRows == null || rawRows.Count == 0) return response;
 
-            
+
             var aheadOrder = rawRows
                 .Select((x, idx) => new { x.AHEAD, idx })
                 .GroupBy(x => (x.AHEAD ?? "").Trim())
@@ -1125,7 +1128,7 @@ namespace PDL.ReportService.Logics.BLL
                 .Select(x => x.Ahead)
                 .ToList();
 
-          
+
             var gsKey = aheadOrder.FirstOrDefault(a => string.Equals(a, "GSUSPANC", StringComparison.OrdinalIgnoreCase));
             if (gsKey != null)
             {
@@ -1133,10 +1136,10 @@ namespace PDL.ReportService.Logics.BLL
                 aheadOrder.Add(gsKey);
             }
 
-           
+
             var grouped = rawRows
                 .GroupBy(r => (r.AHEAD ?? "").Trim())
-             
+
                 .OrderBy(g =>
                 {
                     var idx = aheadOrder.IndexOf(g.Key);
@@ -1145,11 +1148,11 @@ namespace PDL.ReportService.Logics.BLL
 
             foreach (var g in grouped)
             {
-               
+
                 var debitSum = g.Sum(x => x.DR);
                 var creditSum = g.Sum(x => x.CR);
 
-             
+
                 var net = Math.Round(debitSum - creditSum, 2);
 
                 decimal? debitToShow = null;
@@ -1160,7 +1163,7 @@ namespace PDL.ReportService.Logics.BLL
                 else if (net < 0m)
                     creditToShow = Math.Abs(net);
 
-                
+
                 string description =
                     g.LastOrDefault(x => !string.IsNullOrWhiteSpace(x.VDESC))?.VDESC
                     ?? g.First().VDESC
@@ -1177,7 +1180,7 @@ namespace PDL.ReportService.Logics.BLL
                 response.Rows.Add(row);
             }
 
-         
+
             decimal displayedTotalDebit = response.Rows.Where(r => r.Debit.HasValue).Sum(r => r.Debit.Value);
             decimal displayedTotalCredit = response.Rows.Where(r => r.Credit.HasValue).Sum(r => r.Credit.Value);
 
@@ -1247,9 +1250,408 @@ namespace PDL.ReportService.Logics.BLL
             ws.Cell(headerRow, 3).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
             ws.Cell(headerRow, 4).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
         }
-    
-       
-    
+
+
+        #region GetApplicationFormData By Virendra 
+        public List<ApplicationFormDataModel> GetApplicationFormDatas(int Fi_Id, string dbname, bool isLive)
+        {
+            List<ApplicationFormDataModel> result = new List<ApplicationFormDataModel>();
+
+            try
+            {
+                using (SqlConnection con = _credManager.getConnections(dbname, isLive))
+                {
+                    using (SqlCommand cmd = new SqlCommand("GetAPPLICATIONFORMData", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@Id", Fi_Id);
+
+                        con.Open();
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                ApplicationFormDataModel vm = new ApplicationFormDataModel
+                                {
+
+                                    Fid = reader["fi_id"] != DBNull.Value ? Convert.ToInt32(reader["fi_id"]) : 0,
+                                    FICode = reader["FICode"] != DBNull.Value ? reader["FICode"].ToString() : string.Empty,
+                                    ResidentialAddress = reader["ResidentialAddress"] != DBNull.Value ? reader["ResidentialAddress"].ToString() : string.Empty,
+                                    Creator = reader["Creator"] != DBNull.Value ? reader["Creator"].ToString() : string.Empty,
+                                    Guardian = reader["Guardian"] != DBNull.Value ? reader["Guardian"].ToString() : string.Empty,
+                                    CustName = reader["CustName"] != DBNull.Value ? reader["CustName"].ToString() : string.Empty,
+                                    DOB = reader["DOB"] != DBNull.Value ? Convert.ToDateTime(reader["DOB"]) : default(DateTime),
+                                    Age = reader["Age"] != DBNull.Value ? Convert.ToInt32(reader["Age"]) : 0,
+                                    Gender = reader["Gender"] != DBNull.Value ? reader["Gender"].ToString() : string.Empty,
+                                    NoOfDependencies = reader["NoOfDependencies"] != DBNull.Value ? Convert.ToInt32(reader["NoOfDependencies"]) : 0,
+                                    Education = reader["education"] != DBNull.Value ? reader["education"].ToString() : string.Empty,
+                                    SkillCertification = reader["SkillCertification"] != DBNull.Value ? reader["SkillCertification"].ToString() : string.Empty,
+                                    VoterID = reader["voterid"] != DBNull.Value ? Helper.Helper.Decrypt(reader["voterid"].ToString(), _configuration["encryptSalts:voterid"]) : string.Empty,
+                                    DrivingLicense = reader["drivinglic"] != DBNull.Value ? Helper.Helper.Decrypt(reader["drivinglic"].ToString(), _configuration["encryptSalts:DL"]) : string.Empty,
+                                    PanNo = reader["PanNO"] != DBNull.Value ? Helper.Helper.Decrypt(reader["PanNO"].ToString(), _configuration["encryptSalts:pan"]) : string.Empty,
+                                    Mobile = reader["Mobile"] != DBNull.Value ? reader["Mobile"].ToString() : string.Empty,
+                                    EmailID = reader["EMAIL_ID"] != DBNull.Value ? reader["EMAIL_ID"].ToString() : string.Empty,
+                                    LoanPurpose = reader["Loan_Purpose"] != DBNull.Value ? reader["Loan_Purpose"].ToString() : string.Empty,
+                                    LoanPeriod = reader["Loan_Period"] != DBNull.Value ? reader["Loan_Period"].ToString() : string.Empty,
+                                    BankIFSC = reader["Bank_IFCS"] != DBNull.Value ? reader["Bank_IFCS"].ToString() : string.Empty,
+                                    LoanAmount = reader["Loan_amt"] != DBNull.Value ? Convert.ToDecimal(reader["Loan_amt"]) : 0,
+                                    Caste = reader["Cast"] != DBNull.Value ? reader["Cast"].ToString() : string.Empty,
+                                    Pincode = reader["Pin"] != DBNull.Value ? reader["Pin"].ToString() : string.Empty,
+                                    GroupCode = reader["GroupCode"] != DBNull.Value ? reader["GroupCode"].ToString() : string.Empty,
+                                    ProfilePic = reader["ProfilePic"] != DBNull.Value ? reader["ProfilePic"].ToString() : string.Empty,
+                                    RelationWithBorrower = reader["RelationWBorrower"] != DBNull.Value ? reader["RelationWBorrower"].ToString() : string.Empty,
+                                    BankAddress = reader["BankAddress"] != DBNull.Value ? reader["BankAddress"].ToString() : string.Empty,
+                                    BankName = reader["BankName"] != DBNull.Value ? reader["BankName"].ToString() : string.Empty,
+                                    Fi_BankName = reader["Fi_BankName"] != DBNull.Value ? reader["Fi_BankName"].ToString() : string.Empty,
+                                    BankAccountNo = reader["BankAccountNo"] != DBNull.Value ? reader["BankAccountNo"].ToString() : string.Empty,
+                                    NoOfChildren = reader["NoOfChildren"] != DBNull.Value ? Convert.ToInt32(reader["NoOfChildren"]) : 0,
+                                    FamilyMonthlyIncome = reader["FamMonthlyIncome"] != DBNull.Value ? Convert.ToDecimal(reader["FamMonthlyIncome"]) : 0,
+                                    // IsMarried = reader["isMarried"] != DBNull.Value ? (Convert.ToBoolean(reader["isMarried"]) ? "Married" : "Unmarried") : string.Empty,
+                                    IsMarried = reader["isMarried"] != DBNull.Value ? reader["isMarried"].ToString() : string.Empty,
+                                    Telephone = reader["Telephone"] != DBNull.Value ? reader["Telephone"].ToString() : string.Empty,
+                                    VillageName = reader["VILLAGE_NAME"] != DBNull.Value ? reader["VILLAGE_NAME"].ToString() : string.Empty,
+                                    DistrictName = reader["DIST_NAME"] != DBNull.Value ? reader["DIST_NAME"].ToString() : string.Empty,
+                                    SubDistrictName = reader["SUB_DIST_NAME"] != DBNull.Value ? reader["SUB_DIST_NAME"].ToString() : string.Empty,
+                                    IsHouseRentedOrOwned = reader["house_status"] != DBNull.Value ? reader["house_status"].ToString() : string.Empty,
+                                    NoOfAdult = reader["NoOfAdult"] != DBNull.Value ? reader["NoOfAdult"].ToString() : string.Empty,
+                                    EarningFamMem = reader["EarningFamMem"] != DBNull.Value ? reader["EarningFamMem"].ToString() : string.Empty,
+                                    FamMemIncome = reader["FamMemIncome"] != DBNull.Value ? reader["FamMemIncome"].ToString() : string.Empty,
+                                    SpecialSocialCategory = reader["Cast"] != DBNull.Value ? reader["Cast"].ToString() : string.Empty,
+                                    sanctionAmount = reader["sanctionAmount"] != DBNull.Value ? Convert.ToDecimal(reader["sanctionAmount"]) : 0,
+                                    NomineName = reader["NomineName"] != DBNull.Value ? reader["NomineName"].ToString() : string.Empty,
+                                    smcode = reader["smcode"] != DBNull.Value ? reader["smcode"].ToString() : string.Empty,
+                                    CSOName = reader["CSOName"] != DBNull.Value ? reader["CSOName"].ToString() : string.Empty,
+                                    BranchCode = reader["BranchCode"] != DBNull.Value ? reader["BranchCode"].ToString() : string.Empty,
+                                    Occupation = reader["Occupation"] != DBNull.Value ? reader["Occupation"].ToString() : string.Empty,
+                                    Income = reader["Income"] != DBNull.Value ? reader["Income"].ToString() : string.Empty,
+                                    BorrowerEducation = reader["BorrowerEducation"] != DBNull.Value ? reader["BorrowerEducation"].ToString() : string.Empty,
+                                    IsBorrowerHandicap = reader["IsHandicap"] != DBNull.Value ? reader["IsHandicap"].ToString() : string.Empty,
+                                    GR_Name = reader["GR_Name"] != DBNull.Value ? reader["GR_Name"].ToString() : string.Empty,
+                                    GR_AGE = reader["GR_AGE"] != DBNull.Value ? reader["GR_AGE"].ToString() : string.Empty,
+                                    GR_PIC = reader["GR_PIC"] != DBNull.Value ? reader["GR_PIC"].ToString() : string.Empty,
+                                    GR_DOB = reader["GR_DOB"] != DBNull.Value ? reader["GR_DOB"].ToString() : string.Empty,
+                                    GR_GENDER = reader["GR_GENDER"] != DBNull.Value ? reader["GR_GENDER"].ToString() : string.Empty,
+                                    GR_PHONE = reader["GR_PHONE"] != DBNull.Value ? reader["GR_PHONE"].ToString() : string.Empty,
+                                    GR_VOTER = reader["GR_VOTER"] != DBNull.Value ? Helper.Helper.Decrypt(reader["GR_VOTER"].ToString(), _configuration["encryptSalts:voterid"]) : string.Empty,
+
+                                    GR_GUARDIAN = reader["GR_GURDIAN"] != DBNull.Value ? reader["GR_GURDIAN"].ToString() : string.Empty,
+                                    GR_RelationWithBorrower = reader["GR_RELATION"] != DBNull.Value ? reader["GR_RELATION"].ToString() : string.Empty,
+                                    Years_in_business = reader["Years_in_business"] != DBNull.Value ? reader["Years_in_business"].ToString() : string.Empty,
+                                    Religion = reader["Religion"] != DBNull.Value ? reader["Religion"].ToString() : string.Empty,
+                                    CustomerId = reader["CustomerId"] != DBNull.Value ? reader["CustomerId"].ToString() : string.Empty,
+                                };
+                                result.Add(vm);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Optional: log the error: 'Error inserting guarantor and uploading picture to SFTP: Bad message'
+
+                throw new ArgumentException($"Error fetching application form data : {ex.Message}");
+            }
+
+            return result;
+        }
+        public List<HouseVisitReportModel> GenerateHomeVisitDataReports(int Fi_Id, string dbname, bool isLive)
+        {
+            List<HouseVisitReportModel> result = new List<HouseVisitReportModel>();
+
+            try
+            {
+                using (SqlConnection con = _credManager.getConnections(dbname, isLive))
+                {
+                    using (SqlCommand cmd = new SqlCommand("Usp_GetHouseVisitDetails", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@Id", Fi_Id);
+
+                        con.Open();
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                HouseVisitReportModel HouseVisitReportModel = new HouseVisitReportModel
+                                {
+                                    FId = reader["Id"] != DBNull.Value ? Convert.ToInt32(reader["Id"]) : 0,
+                                    FICode = reader["FICode"] != DBNull.Value ? Convert.ToInt64(reader["FICode"]) : 0,
+                                    Name = reader["Name"] != DBNull.Value ? reader["Name"].ToString() : string.Empty,
+                                    Age = reader["Age"] != DBNull.Value ? Convert.ToInt32(reader["Age"]) : 0,
+                                    Guardian = reader["Guardian"] != DBNull.Value ? reader["Guardian"].ToString() : string.Empty,
+                                    Addr = reader["Addr"] != DBNull.Value ? reader["Addr"].ToString() : string.Empty,
+                                    Creator = reader["Creator"] != DBNull.Value ? reader["Creator"].ToString() : string.Empty,
+                                    LoanAmount = reader["Loan_amount"] != DBNull.Value ? reader["Loan_amount"].ToString() : string.Empty,
+                                    CurrentPhone = reader["CPhone"] != DBNull.Value ? reader["CPhone"].ToString() : string.Empty,
+                                    PPhone = reader["Phone"] != DBNull.Value ? reader["Phone"].ToString() : string.Empty,
+                                    Code = reader["code"] != DBNull.Value ? reader["code"].ToString() : string.Empty,
+                                    Date = DateTime.Now,
+                                    BranchName = reader["BranchName"] != DBNull.Value ? reader["BranchName"].ToString() : string.Empty,
+                                    AreaCode = reader["AreaCode"] != DBNull.Value ? reader["AreaCode"].ToString() : string.Empty,
+                                    AreaName = reader["AreaName"] != DBNull.Value ? reader["AreaName"].ToString() : string.Empty,
+                                    GroupCode = reader["GroupCode"] != DBNull.Value ? reader["GroupCode"].ToString() : string.Empty,
+                                    HouseType = reader["HouseType"] != DBNull.Value ? reader["HouseType"].ToString() : string.Empty,
+                                    Center = reader["Center"] != DBNull.Value ? reader["Center"].ToString() : string.Empty,
+                                    EmpCode = reader["EmpCode"] != DBNull.Value ? reader["EmpCode"].ToString() : string.Empty,
+                                    BusinessVerification = reader["BusinessVerification"] != DBNull.Value ? reader["BusinessVerification"].ToString() : string.Empty,
+                                    Image = reader["Image"] != DBNull.Value ? reader["Image"].ToString() : string.Empty,
+                                    ResidenceType = reader["Residence_Type"] != DBNull.Value ? reader["Residence_Type"].ToString() : string.Empty,
+                                    HouseMonthlyRent = reader["HouseMonthlyRent"] != DBNull.Value ? reader["HouseMonthlyRent"].ToString() : string.Empty,
+                                    DistanceToBranch = reader["Distancetobranch"] != DBNull.Value ? reader["Distancetobranch"].ToString() : string.Empty,
+                                    TimeToReachBranch = reader["Timetoreachbranch"] != DBNull.Value ? reader["Timetoreachbranch"].ToString() : string.Empty,
+                                    TotalExperienceOccupation = reader["TotalExperienceOccupation"] != DBNull.Value ? reader["TotalExperienceOccupation"].ToString() : string.Empty,
+                                    FamilyMemberFromPaisalo = reader["FamilymemberfromPaisalo"] != DBNull.Value ? reader["FamilymemberfromPaisalo"].ToString() : string.Empty,
+                                    MonthlyIncome = reader["monthlyIncome"] != DBNull.Value ? reader["monthlyIncome"].ToString() : string.Empty,
+                                    MonthlySales = reader["monthlySales"] != DBNull.Value ? reader["monthlySales"].ToString() : string.Empty,
+                                    IsvalidLocation = reader["IsvalidLocation"] != DBNull.Value ? reader["IsvalidLocation"].ToString() : string.Empty,
+                                    CPFlifeStyle = reader["CPFlifeStyle"] != DBNull.Value ? reader["CPFlifeStyle"].ToString() : string.Empty,
+                                    CpfPOAddressVerify = reader["CpfPOAddressVerify"] != DBNull.Value ? reader["CpfPOAddressVerify"].ToString() : string.Empty,
+                                    PhotoIdVerification = reader["PhotoIdVerification"] != DBNull.Value ? reader["PhotoIdVerification"].ToString() : string.Empty,
+                                    CurrentAddressprof = reader["CurrentAddressprof"] != DBNull.Value ? reader["CurrentAddressprof"].ToString() : string.Empty,
+                                    HasbandWifeAgeverificaton = reader["HasbandWifeAgeverificaton"] != DBNull.Value ? reader["HasbandWifeAgeverificaton"].ToString() : string.Empty,
+                                    ParmanentAddressPincode = reader["ParmanentAddressPincode"] != DBNull.Value ? reader["ParmanentAddressPincode"].ToString() : string.Empty,
+                                    StampOnPhotocopy = reader["StampOnPhotocopy"] != DBNull.Value ? reader["StampOnPhotocopy"].ToString() : string.Empty,
+                                    LastLoanVerification = reader["LastLoanVerification"] != DBNull.Value ? reader["LastLoanVerification"].ToString() : string.Empty,
+                                    LoanUsagePercentage = reader["LoanUsagePercentage"] != DBNull.Value ? reader["LoanUsagePercentage"].ToString() : string.Empty,
+                                    AbsentReasonInCentermeeting = reader["AbsentReasonInCentermeeting"] != DBNull.Value ? reader["AbsentReasonInCentermeeting"].ToString() : string.Empty,
+                                    RepaymentFault = reader["RepaymentFault"] != DBNull.Value ? reader["RepaymentFault"].ToString() : string.Empty,
+                                    LoanreasonVerification = reader["LoanreasonVerification"] != DBNull.Value ? reader["LoanreasonVerification"].ToString() : string.Empty,
+                                    IsAppliedAmountAppropriate = reader["IsAppliedAmountAppropriate"] != DBNull.Value ? reader["IsAppliedAmountAppropriate"].ToString() : string.Empty,
+                                    FamilyAwarenessaboutloan = reader["FamilyAwarenessaboutloan"] != DBNull.Value ? reader["FamilyAwarenessaboutloan"].ToString() : string.Empty,
+                                    IsloanAppropriateforBusiness = reader["IsloanAppropriateforBusiness"] != DBNull.Value ? reader["IsloanAppropriateforBusiness"].ToString() : string.Empty,
+                                    Businessaffectedourrelation = reader["Businessaffectedourrelation"] != DBNull.Value ? reader["Businessaffectedourrelation"].ToString() : string.Empty,
+                                    Repayeligiblity = reader["Repayeligiblity"] != DBNull.Value ? reader["Repayeligiblity"].ToString() : string.Empty,
+                                    Cashflowoffamily = reader["Cashflowoffamily"] != DBNull.Value ? reader["Cashflowoffamily"].ToString() : string.Empty,
+                                    IncomeMatchedwithprofile = reader["IncomeMatchedwithprofile"] != DBNull.Value ? reader["IncomeMatchedwithprofile"].ToString() : string.Empty,
+                                    BorrowersupportedGroup = reader["BorrowersupportedGroup"] != DBNull.Value ? reader["BorrowersupportedGroup"].ToString() : string.Empty,
+                                    ComissionDemand = reader["ComissionDemand"] != DBNull.Value ? reader["ComissionDemand"].ToString() : string.Empty,
+                                    GroupReadyToVilay = reader["GroupReadyToVilay"] != DBNull.Value ? reader["GroupReadyToVilay"].ToString() : string.Empty,
+                                    GroupHasBloodRelation = reader["GroupHasBloodRelation"] != DBNull.Value ? reader["GroupHasBloodRelation"].ToString() : string.Empty,
+                                    OverlimitLoanBorrowfromgroup = reader["OverlimitLoan_borrowfromgroup"] != DBNull.Value ? reader["OverlimitLoan_borrowfromgroup"].ToString() : string.Empty,
+                                    workingPlaceVerification = reader["workingPlaceVerification"] != DBNull.Value ? reader["workingPlaceVerification"].ToString() : string.Empty,
+                                    StockVerification = reader["StockVerification"] != DBNull.Value ? reader["StockVerification"].ToString() : string.Empty,
+                                    VerifyExternalLoan = reader["VerifyExternalLoan"] != DBNull.Value ? reader["VerifyExternalLoan"].ToString() : string.Empty,
+                                    RelationofInterviewer = reader["RelationofInterviewer"] != DBNull.Value ? reader["RelationofInterviewer"].ToString() : string.Empty,
+                                    NetmonthlyincomeAfterproposedloan = reader["Netmonthlyincome_afterproposedloan"] != DBNull.Value ? reader["Netmonthlyincome_afterproposedloan"].ToString() : string.Empty,
+                                    Totalmonthlyhouseholdexpenses = reader["Totalmonthlyhouseholdexpenses"] != DBNull.Value ? reader["Totalmonthlyhouseholdexpenses"].ToString() : string.Empty,
+                                    Netmonthlyincomeotherfamilymembers = reader["Netmonthlyincomeotherfamilymembers"] != DBNull.Value ? reader["Netmonthlyincomeotherfamilymembers"].ToString() : string.Empty,
+                                    Relationearningmember = reader["Relationearningmember"] != DBNull.Value ? reader["Relationearningmember"].ToString() : string.Empty,
+                                    UnderstandInsaurancePolicy = reader["UnderstandInsaurancePolicy"] != DBNull.Value ? reader["UnderstandInsaurancePolicy"].ToString() : string.Empty,
+                                    feedbacknearbyresident = reader["feedbacknearbyresident"] != DBNull.Value ? reader["feedbacknearbyresident"].ToString() : string.Empty,
+                                    Mobilereferenceperson2 = reader["Mobilereferenceperson2"] != DBNull.Value ? reader["Mobilereferenceperson2"].ToString() : string.Empty,
+                                    Namereferenceperson2 = reader["Namereferenceperson2"] != DBNull.Value ? reader["Namereferenceperson2"].ToString() : string.Empty,
+                                    Residential_Stability = reader["Residential_Stability"] != DBNull.Value ? reader["Residential_Stability"].ToString() : string.Empty,
+                                    Residing_with = reader["Residing_with"] != DBNull.Value ? reader["Residing_with"].ToString() : string.Empty,
+                                    Totalmonthlyexpensesofoccupation = reader["Totalmonthlyexpensesofoccupation"] != DBNull.Value ? reader["Totalmonthlyexpensesofoccupation"].ToString() : string.Empty,
+                                    Mobilereferenceperson1 = reader["Mobilereferenceperson1"] != DBNull.Value ? reader["Mobilereferenceperson1"].ToString() : string.Empty,
+                                    WorkExperience = reader["workExperience"] != DBNull.Value ? reader["workExperience"].ToString() : string.Empty,
+                                    toatlDebtUnderLimit = reader["toatlDebtUnderLimit"] != DBNull.Value ? reader["toatlDebtUnderLimit"].ToString() : string.Empty,
+                                    UnderstandsFaultPolicy = reader["UnderstandsFaultPolicy"] != DBNull.Value ? reader["UnderstandsFaultPolicy"].ToString() : string.Empty,
+                                    GuarantorName = reader["GuarantorName"] != DBNull.Value ? reader["GuarantorName"].ToString() : string.Empty,
+                                    SeasonDependency = reader["SeasonDependency"] != DBNull.Value ? reader["SeasonDependency"].ToString() : string.Empty,
+                                    loansufficientwithdebt = reader["loansufficientwithdebt"] != DBNull.Value ? reader["loansufficientwithdebt"].ToString() : string.Empty,
+                                    workingPlacedescription = reader["workingPlacedescription"] != DBNull.Value ? reader["workingPlacedescription"].ToString() : string.Empty,
+                                    IsWorkingPlaceValid = reader["IsWorkingPlaceValid"] != DBNull.Value ? reader["IsWorkingPlaceValid"].ToString() : string.Empty,
+                                    GuarantorAge = reader["GuarantorAge"] != DBNull.Value ? reader["GuarantorAge"].ToString() : string.Empty,
+                                    GuarantorPhone = reader["GuarantorPhone"] != DBNull.Value ? reader["GuarantorPhone"].ToString() : string.Empty,
+                                    GuarantorRelation = reader["GuarantorRelation"] != DBNull.Value ? reader["GuarantorRelation"].ToString() : string.Empty,
+                                    Namereferenceperson1 = reader["Namereferenceperson1"] != DBNull.Value ? reader["Namereferenceperson1"].ToString() : string.Empty,
+                                    CSOName = reader["CSOName"] != DBNull.Value ? reader["CSOName"].ToString() : string.Empty,
+                                    NameofInterviewed = reader["NameofInterviewed"] != DBNull.Value ? reader["NameofInterviewed"].ToString() : string.Empty,
+
+                                };
+
+                                result.Add(HouseVisitReportModel);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(" Error Get Home Visit Data ", ex);
+            }
+
+            return result;
+        }
+
+
+        //second esign 
+
+        public List<SecondEsignVM> GetSecondEsignReportDatas(int Fi_Id, string dbname, bool isLive)
+        {
+            var secondEsignVMList = new List<SecondEsignVM>();
+
+            try
+            {
+                // Get PDF form data
+                DataTable pdfFormDt = GetSbiPdfAllData(Fi_Id, dbname, isLive, "P");
+
+                // Get Form60 data
+                DataTable form60Dt = GetSbiForm60Data(Fi_Id, dbname, isLive, "P");
+
+                // Get Household income data
+                DataTable householdIncomeDt = GetSbiHouseholdIncome(Fi_Id, dbname, isLive);
+
+                // Map DataTables into your ViewModel
+                foreach (DataRow row in pdfFormDt.Rows)
+                {
+                    var vm = new SecondEsignVM
+                    {
+             
+                        F_Id = Fi_Id,
+                        CustName = row["CustName"]?.ToString(),
+                        Gaurdian = row["Gaurdian"]?.ToString(),
+                        EmailId = row["Email_Id"]?.ToString(),
+                        Creator = row["CreatorName"]?.ToString(),
+                        Age = row["Age"]?.ToString(),
+                        DOB = DateTime.TryParse(row["DOB"]?.ToString(), out var dob) ? dob : (DateTime?)null,
+                        NOB = row["NOB"]?.ToString(),
+                        Gender = row["Gender"]?.ToString(),
+                        VoterId = row["Voter_id"]?.ToString(),
+                       // AadharId = row["AadharId"]?.ToString(),
+                        DrivingLicense = row["DL"]?.ToString(),
+                        LoanReason = row["Loan_Reason"]?.ToString(),
+                        Cast = row["Cast"]?.ToString(),
+                        BranchCode = row["BranchCode"]?.ToString(),
+                        BankAccountNo = row["BankAccountNo"]?.ToString(),
+                        BankName = row["BankName"]?.ToString(),
+                    //    Telephone = row["TelephoneNo"]?.ToString(),
+                        BankAddress = row["BankAddress"]?.ToString(),
+                        BankIFSC = row["Bank_IFCS"]?.ToString(),
+                        ResidentialAddress = row["ResidentialAddress"]?.ToString(),
+                        SanctionedAmt = decimal.TryParse(row["SanctionedAmt"]?.ToString(), out var amt) ? amt : (decimal?)null,
+                        LoanDuration = int.TryParse(row["Loan_duration"]?.ToString(), out var dur) ? dur : (int?)null,
+                        RateOfInterestBlended = decimal.TryParse(row["rateOfInterestBlended"]?.ToString(), out var roi) ? roi : (decimal?)null,
+                        SchIrr = decimal.TryParse(row["SchIrr"]?.ToString(), out var irr) ? irr : (decimal?)null,
+                        GroupCode = row["GroupCode"]?.ToString(),
+                        BranchName = row["BranchName"]?.ToString(),
+                        PanNO = row["Pan_no"]?.ToString(),
+                        Pin = row["Pin"]?.ToString(),
+                        Religion = row["Religion"]?.ToString(),
+                        IsMarried = row["isMarried"]?.ToString(),
+                        Income = decimal.TryParse(row["Income"]?.ToString(), out var income) ? income : (decimal?)null,
+                        FutureIncome = decimal.TryParse(row["FutureIncome"]?.ToString(), out var fincome) ? fincome : (decimal?)null,
+                        FamIncomeSource = row["Family_Income_Source"]?.ToString(),
+                        FamMonthlyIncome = decimal.TryParse(row["FamMonthlyIncome"]?.ToString(), out var famInc) ? famInc : (decimal?)null,
+                    //    Education = row["Education"]?.ToString(),
+                        EDUCATION_CODE = row["EDUCATION_CODE"]?.ToString(),
+                   //     StateName = row["StateName"]?.ToString(),
+                     //   RentalIncome = decimal.TryParse(row["RentalIncome"]?.ToString(), out var rentInc) ? rentInc : (decimal?)null,
+                  //      PensionIncome = decimal.TryParse(row["PensionIncome"]?.ToString(), out var penInc) ? penInc : (decimal?)null,
+                        Picture = row["Picture"]?.ToString()
+                    };
+
+                    secondEsignVMList.Add(vm);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("Error in GetSecondEsignReportDatas", ex);
+            }
+
+            return secondEsignVMList;
+        }
+
+
+
+        public DataTable GetSbiPdfAllData(long fiId, string dbname, bool isLive, string type)
+        {
+            string query = type.Trim().ToUpper() == "Z"
+                ? "Usp_SecondEsignDocCorporateSanction"
+                : "Usp_PdfFormDynamic";
+
+            var dt = new DataTable();
+
+            using (SqlConnection con = _credManager.getConnections(dbname, isLive))
+            using (SqlCommand cmd = new SqlCommand(query, con))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@Mode", SqlDbType.VarChar).Value = "GetAllPdfApplicationForm";
+                cmd.Parameters.Add("@Fi_Id", SqlDbType.BigInt).Value = fiId;
+
+                using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                {
+                    da.Fill(dt);
+                }
+            }
+
+            return dt;
+        }
+
+        public DataTable GetSbiForm60Data(long fiId, string dbname, bool isLive, string type)
+        {
+            string query = type.Trim().ToUpper() == "Z"
+                ? "Usp_SecondEsignDocCorporateSanction"
+                : "Usp_PdfFormDynamic";
+
+            var dt = new DataTable();
+
+            using (SqlConnection con = _credManager.getConnections(dbname, isLive))
+            using (SqlCommand cmd = new SqlCommand(query, con))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@Mode", SqlDbType.VarChar).Value = "GetFatcaDetails";
+                cmd.Parameters.Add("@Fi_Id", SqlDbType.BigInt).Value = fiId;
+
+                using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                {
+                    da.Fill(dt);
+                }
+            }
+
+            return dt;
+        }
+
+        public DataTable GetSbiHouseholdIncome(long fiId, string dbname, bool isLive)
+        {
+            string query = "Usp_PdfFormDynamic";
+            var dt = new DataTable();
+
+            using (SqlConnection con = _credManager.getConnections(dbname, isLive))
+            using (SqlCommand cmd = new SqlCommand(query, con))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@Mode", SqlDbType.VarChar).Value = "GETHOUSEHOLDINCOME";
+                cmd.Parameters.Add("@Fi_Id", SqlDbType.BigInt).Value = fiId;
+
+                using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                {
+                    da.Fill(dt);
+                }
+            }
+
+            return dt;
+        }
+
+        #endregion
+
+
+        public DataTable GetNewCasesForAMonth(string? FromDate, string? ToDate, string dbname, bool isLive)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection con = _credManager.getConnections(dbname, isLive))
+            {
+                using (SqlCommand cmd = new SqlCommand("Usp_GetAllReportsList", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "NewCasesForAMonth");
+                    cmd.Parameters.AddWithValue("@FromDate", FromDate);
+                    cmd.Parameters.AddWithValue("@ToDate", ToDate);
+                    con.Open();
+
+                    using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
+                }
+            }
+            return dt;
+        }
+
     }
 
 }
