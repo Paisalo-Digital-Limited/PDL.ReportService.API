@@ -90,7 +90,7 @@ namespace PDL.ReportService.Repository.Repository
                 return  bll.GetNewCasesForAMonth(FromDate, ToDate,dbname, isLive);
             }
         }
-    }
+ 
 
 
         #region GetApplicationFormData
