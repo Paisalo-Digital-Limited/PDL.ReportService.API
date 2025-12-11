@@ -620,6 +620,58 @@ namespace PDL.ReportService.API.Controllers
 
         }
 
+
+        [HttpGet]
+        public async Task<IActionResult> GetQRMendateReports(string SmCode,string Mode, DateTime fromdate, DateTime Todate)
+        {
+            try
+            {
+                string dbName = GetDBName();
+                bool isLive = GetIslive();
+                if (string.IsNullOrEmpty(dbName))
+                {
+                    return BadRequest(new { message = resourceManager.GetString("NULLDBNAME") });
+                }
+                var result = _reports.GetQRMandateReportsAsync(SmCode, Mode, fromdate, Todate, dbName, isLive);
+                return Ok(new
+                {
+                    message = resourceManager.GetString("GETSUCCESS"),
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetInstallmentCollectionReports_Reports");
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetInstallmentCollectionReports(string SmCode)
+        {
+            try
+            {
+                string dbName = GetDBName();
+                bool isLive = GetIslive();
+                if (string.IsNullOrEmpty(dbName))
+                {
+                    return BadRequest(new { message = resourceManager.GetString("NULLDBNAME") });
+                }
+                var result = _reports.GetInstallmentCollectionReportsAsync(SmCode, dbName, isLive);
+                return Ok(new
+                {
+                    message = resourceManager.GetString("GETSUCCESS"),
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetInstallmentCollectionReports_Reports");
+                return BadRequest(ex.Message);
+            }
+        }
+
         #region CibilReport
         [HttpGet]
         public IActionResult GetCibilReport(string searchDate)
@@ -695,7 +747,9 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         #endregion
+
     }
+}
 
 
     //[HttpGet]
@@ -746,4 +800,3 @@ namespace PDL.ReportService.API.Controllers
     //}
 
 
-}

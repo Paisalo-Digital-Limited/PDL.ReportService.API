@@ -26,7 +26,13 @@ namespace PDL.ReportService.Interfaces.Interfaces
         dynamic SMCodeValidation(SMCodeValidationVM file, string dbname, bool isLive);
         Task<PaginationResponse<OverduePenalties>> GetOverdueRecordsAsync(PaginationRequest<OverduePenalties> paginationRequest, string dbname, bool isLive);
         Task<List<OverduePenalties>> ExportOverdueExcel(string creatorId, string branchCode, string groupCode, string startDate, string endDate, string dbname, bool isLive);
+
+
+        Task<List<QRMandateReportsVM>> GetQRMandateReportsAsync(string SmCode,string Mode,DateTime fromDate, DateTime toDate, string dbName, bool isLive);
+        Task<InstallementCollectionStatusVM> GetInstallmentCollectionReportsAsync(string SmCode, string dbName, bool isLive);
+
         List<CibilDataVM> GetCibilReport(string searchDate, string dbName, bool isLive);
         List<InsuranceDataVM> GetInsuranceReport(string fromDate, string toDate,string dbName, bool isLive);
+
     }
 }
