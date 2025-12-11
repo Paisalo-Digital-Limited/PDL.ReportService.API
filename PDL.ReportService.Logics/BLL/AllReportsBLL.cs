@@ -1252,6 +1252,7 @@ namespace PDL.ReportService.Logics.BLL
         }
 
 
+
         #region GetApplicationFormData By Virendra 
         public List<ApplicationFormDataModel> GetApplicationFormDatas(int Fi_Id, string dbname, bool isLive)
         {
@@ -1654,5 +1655,184 @@ namespace PDL.ReportService.Logics.BLL
 
     }
 
+
+
+
+    public async Task<InstallementCollectionStatusVM> GetInstallmentCollectionReportsAsync(string smcode,string dbname,bool isLive,
+    CancellationToken cancellationToken = default)
+        {
+            var result = new InstallementCollectionStatusVM
+            {
+                emis = new List<Emidata>(),
+                emiCollections = new List<EmiCollectiondata>(),
+                custname = string.Empty,
+                mobile = string.Empty,
+                LoanStatus = string.Empty
+            };
+
+            try
+            {
+                
+                using (SqlConnection con = _credManager.getConnections(dbname, isLive))
+                using (var cmd = new SqlCommand("Usp_GetQrPaymentsLogs_Reports", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandTimeout = 600;
+                    cmd.Parameters.Add("@smcode", SqlDbType.VarChar, 50).Value = smcode ?? string.Empty;
+                    cmd.Parameters.Add("@Mode", SqlDbType.VarChar, 50).Value = "Installments";
+                    await con.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+                    
+                    using (var reader = await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection, cancellationToken).ConfigureAwait(false))
+                    {
+                        
+                        bool headerSet = false;
+                        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                        {
+                            if (!headerSet)
+                            {
+                                result.custname = !reader.IsDBNull(reader.GetOrdinal("CustName"))
+                                    ? reader.GetString(reader.GetOrdinal("CustName"))
+                                    : string.Empty;
+
+                                result.mobile = !reader.IsDBNull(reader.GetOrdinal("Mobile"))
+                                    ? reader.GetString(reader.GetOrdinal("Mobile"))
+                                    : string.Empty;
+
+                                result.LoanStatus = !reader.IsDBNull(reader.GetOrdinal("LoanStatus"))
+                                    ? reader.GetString(reader.GetOrdinal("LoanStatus"))
+                                    : string.Empty;
+
+                                headerSet = true;
+                            }
+
+                            var emi = new Emidata
+                            {
+                                AMT = Convert.ToDecimal( !reader.IsDBNull(reader.GetOrdinal("AMT"))
+                                    ? reader.GetDouble(reader.GetOrdinal("AMT"))
+                                    : 0m),
+                                PVN_RCP_DT = !reader.IsDBNull(reader.GetOrdinal("PVN_RCP_DT"))
+                                    ? reader.GetDateTime(reader.GetOrdinal("PVN_RCP_DT"))
+                                    : (DateTime?)null
+                            };
+                            result.emis.Add(emi);
+                        }
+
+                        if (await reader.NextResultAsync(cancellationToken).ConfigureAwait(false))
+                        {
+                            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                            {
+                                var emiColl = new EmiCollectiondata
+                                {
+                                    CR = Convert.ToDecimal( !reader.IsDBNull(reader.GetOrdinal("CR"))
+                                        ? reader.GetDouble(reader.GetOrdinal("CR"))
+                                        : 0m),
+                                    VDATE = !reader.IsDBNull(reader.GetOrdinal("VDATE"))
+                                        ? reader.GetDateTime(reader.GetOrdinal("VDATE"))
+                                        : (DateTime?)null,
+                                    VNO = !reader.IsDBNull(reader.GetOrdinal("VNO"))
+                                        ? reader.GetString(reader.GetOrdinal("VNO"))
+                                        : string.Empty
+                                };
+                                result.emiCollections.Add(emiColl);
+                            }
+                        }
+                    } 
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }   
+
+
+            return result;
+        }
+
+
+        public async Task<List<QRMandateReportsVM>> GetQRMandateReportsAsync(string smCode,string mode,
+         DateTime? fromDate,DateTime? toDate,string dbname,bool isLive,CancellationToken cancellationToken = default)
+        {
+            var result = new List<QRMandateReportsVM>();
+
+            try
+            {
+                using var con = _credManager.getConnections(dbname, isLive); 
+                using var cmd = new SqlCommand("Usp_GetQrPaymentsLogs_Reports", con)
+                {
+                    CommandType = CommandType.StoredProcedure,
+                    CommandTimeout = 600
+                };
+
+                
+                cmd.Parameters.Add("@SmCode", SqlDbType.VarChar, 50).Value = smCode ?? string.Empty;
+                cmd.Parameters.Add("@Mode", SqlDbType.VarChar, 50).Value = mode ?? string.Empty;
+                cmd.Parameters.Add("@Fromdate", SqlDbType.DateTime).Value = (object?)fromDate ?? DBNull.Value;
+                cmd.Parameters.Add("@Todate", SqlDbType.DateTime).Value = (object?)toDate ?? DBNull.Value;
+
+                await con.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+                
+                using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection, cancellationToken).ConfigureAwait(false);
+
+               
+                if (mode.Equals("QrPaymentsLogs", StringComparison.OrdinalIgnoreCase))
+                {
+                    
+                    int ordSmCode = reader.GetOrdinal("SmCode");
+                    int ordAmount = reader.GetOrdinal("PayerAmount");
+                    int ordTxnId = reader.GetOrdinal("TxnStatus");
+                    int ordCreationDate = reader.GetOrdinal("CreationDate");
+
+                    while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        var item = new QRMandateReportsVM
+                        {
+                            SmCode = !reader.IsDBNull(ordSmCode) ? reader.GetString(ordSmCode) : string.Empty,
+                            amount = !reader.IsDBNull(ordAmount) ? reader.GetDecimal(ordAmount) : 0m,
+                            txnId = !reader.IsDBNull(ordTxnId) ? reader.GetString(ordTxnId) : string.Empty,
+                            CreationDate =  !reader.IsDBNull(ordCreationDate) ? reader.GetDateTime(ordCreationDate) : (DateTime?)null
+                        };
+                        result.Add(item);
+                    }
+                }
+                 if (mode.Equals("MandateLogs", StringComparison.OrdinalIgnoreCase))
+                {
+                    
+                    int ordSmCode = reader.GetOrdinal("SmCode");
+                    int ordPayerAmount = reader.GetOrdinal("PayerAmount");
+                    int ordTxnStatus = reader.GetOrdinal("TxnStatus");
+                    int ordCreationOn = reader.GetOrdinal("CreationDate");
+
+                    while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        var item = new QRMandateReportsVM
+                        {
+                            SmCode = !reader.IsDBNull(ordSmCode) ? reader.GetString(ordSmCode) : string.Empty,
+                            amount = !reader.IsDBNull(ordPayerAmount) ? reader.GetDecimal(ordPayerAmount) : 0m,
+                            TxnStatus = !reader.IsDBNull(ordTxnStatus) ? reader.GetString(ordTxnStatus) : string.Empty,
+                            CreationDate = !reader.IsDBNull(ordCreationOn) ? reader.GetDateTime(ordCreationOn) : (DateTime?)null
+                        };
+                        result.Add(item);
+                    }
+                }
+                
+            }
+            catch (Exception ex)
+            {
+              Console.WriteLine(ex);
+            }
+           
+
+            return result;
+        }
+
+
+    }
 }
+
+
+
+
+
 
