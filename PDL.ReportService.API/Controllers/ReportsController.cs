@@ -1,4 +1,6 @@
-﻿using ClosedXML.Excel;
+﻿using Azure;
+using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -618,6 +620,7 @@ namespace PDL.ReportService.API.Controllers
 
         }
 
+
         [HttpGet]
         public async Task<IActionResult> GetQRMendateReports(string SmCode,string Mode, DateTime fromdate, DateTime Todate)
         {
@@ -668,61 +671,132 @@ namespace PDL.ReportService.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        #region CibilReport
+        [HttpGet]
+        public IActionResult GetCibilReport(string searchDate)
+        {
+            string dbName = GetDBName();
+            bool isLive = GetIslive();
+            try
+            {
+                var response = _reports.GetCibilReport(searchDate,dbName,isLive);
+
+                if (response.Count>0)
+                {
+                    return Ok(new
+                    {
+                        message = (resourceManager.GetString("GETSUCCESS")),
+                        data = response
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("NORECORD"),
+                        data=""
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration,GetIslive(), "GetCibilReport_Reports");
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
+        #endregion
+
+        #region Insurance Data
+        [HttpGet]
+        public IActionResult GetInsuranceReport(string fromDate,string toDate)
+        {
+            string dbName = GetDBName();
+            bool isLive = GetIslive();
+            try
+            {
+                var response = _reports.GetInsuranceReport(fromDate,toDate, dbName, isLive);
+
+                if (response.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        message = (resourceManager.GetString("GETSUCCESS")),
+                        data = response
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("NORECORD"),
+                        data = ""
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetInsuranceReport_Reports");
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
+        #endregion
+
     }
 }
 
 
-        //[HttpGet]
-        //public async Task<IActionResult> GetOverdueRecords(
-        //        [FromQuery] int pageNumber = 1,
-        //        [FromQuery] int pageSize = 10,
-        //        [FromQuery] string searchTerm = "",
-        //        [FromQuery] int? minOverdueDays = null,
-        //        [FromQuery] string sortBy = "OverDueDays",
-        //        [FromQuery] string sortOrder = "DESC")
-        //{
-        //    try
-        //    {
-        //        // Validation
-        //        if (pageNumber < 1)
-        //        {
-        //            return BadRequest(new { message = "Page number must be greater than 0" });
-        //        }
+    //[HttpGet]
+    //public async Task<IActionResult> GetOverdueRecords(
+    //        [FromQuery] int pageNumber = 1,
+    //        [FromQuery] int pageSize = 10,
+    //        [FromQuery] string searchTerm = "",
+    //        [FromQuery] int? minOverdueDays = null,
+    //        [FromQuery] string sortBy = "OverDueDays",
+    //        [FromQuery] string sortOrder = "DESC")
+    //{
+    //    try
+    //    {
+    //        // Validation
+    //        if (pageNumber < 1)
+    //        {
+    //            return BadRequest(new { message = "Page number must be greater than 0" });
+    //        }
 
-        //        if (pageSize < 1 || pageSize > 100)
-        //        {
-        //            return BadRequest(new { message = "Page size must be between 1 and 100" });
-        //        }
+    //        if (pageSize < 1 || pageSize > 100)
+    //        {
+    //            return BadRequest(new { message = "Page size must be between 1 and 100" });
+    //        }
 
-        //        var request = new PaginationRequest<OverduePenalties>
-        //        {
-        //            PageNumber = pageNumber,
-        //            PageSize = pageSize,
-        //            SearchTerm = searchTerm,
-        //            MinOverdueDays = minOverdueDays,
-        //            SortBy = sortBy,
-        //            SortOrder = sortOrder.ToUpper(),
-        //            data = new List<OverduePenalties>()
-        //        };
-
-
-
-        //        var response = await _overdueService.GetOverdueRecordsAsync(request);
-
-
-        //        return Ok(response);
-        //    }
-        //    catch (Exception ex)
-        //    {
-
-        //        return StatusCode(500, new { message = "An error occurred while fetching overdue records", error = ex.Message });
-        //    }
-        //}
+    //        var request = new PaginationRequest<OverduePenalties>
+    //        {
+    //            PageNumber = pageNumber,
+    //            PageSize = pageSize,
+    //            SearchTerm = searchTerm,
+    //            MinOverdueDays = minOverdueDays,
+    //            SortBy = sortBy,
+    //            SortOrder = sortOrder.ToUpper(),
+    //            data = new List<OverduePenalties>()
+    //        };
 
 
 
+    //        var response = await _overdueService.GetOverdueRecordsAsync(request);
 
 
+    //        return Ok(response);
+    //    }
+    //    catch (Exception ex)
+    //    {
+
+    //        return StatusCode(500, new { message = "An error occurred while fetching overdue records", error = ex.Message });
+    //    }
+    //}
 
 
-    

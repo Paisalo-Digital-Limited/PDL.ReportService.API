@@ -137,6 +137,7 @@ namespace PDL.ReportService.Repository.Repository
             }
         }
 
+
         public async Task<List<QRMandateReportsVM>> GetQRMandateReportsAsync(string SmCode, string mode, DateTime fromDate, DateTime toDate, string dbName, bool isLive)
         {
             using (AllReportsBLL bll = new AllReportsBLL(_configuration))
@@ -150,6 +151,22 @@ namespace PDL.ReportService.Repository.Repository
             using (AllReportsBLL bll = new AllReportsBLL(_configuration))
             {
                 return await bll.GetInstallmentCollectionReportsAsync(SmCode, dbName, isLive);
+             }
+        }
+
+        public List<CibilDataVM> GetCibilReport(string searchDate, string dbName, bool isLive)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.GetCibilReport(searchDate,dbName,isLive);
+            }
+        }
+        public List<InsuranceDataVM> GetInsuranceReport(string fromDate, string toDate, string dbName, bool isLive)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.GetInsuranceReport(fromDate,toDate, dbName, isLive);
+
             }
         }
     }

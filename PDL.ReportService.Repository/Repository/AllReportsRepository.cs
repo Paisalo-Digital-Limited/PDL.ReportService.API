@@ -31,7 +31,7 @@ namespace PDL.ReportService.Repository.Repository
         }
         public DataTable RcPostReportsList(int CreatorID, string? VDate, string? VNO, string? FromDate, string? ToDate, int? PageSize, int? PageNumber, string dbname, bool isLive)
         {
-            using (AllReportsBLL bll=new AllReportsBLL(_configuration))
+            using (AllReportsBLL bll = new AllReportsBLL(_configuration))
             {
                 return bll.RcPostReportsList(CreatorID, VDate, VNO, FromDate, ToDate, PageSize, PageNumber, dbname, isLive);
             }
@@ -44,11 +44,11 @@ namespace PDL.ReportService.Repository.Repository
                 return bll.GenerateLedgerExcel(data.Rows, data.Header);
             }
         }
-       public bool GetSmCode(string SmCode, string dbname, bool isLive)
+        public bool GetSmCode(string SmCode, string dbname, bool isLive)
         {
-            using (AllReportsBLL bll=new AllReportsBLL(_configuration))
+            using (AllReportsBLL bll = new AllReportsBLL(_configuration))
             {
-               return bll.GetSmCode(SmCode,dbname,isLive);
+                return bll.GetSmCode(SmCode, dbname, isLive);
             }
         }
         public DataTable GetICICIQrCallbackResponse(string? FromDate, string? ToDate, int? PageSize, int? PageNumber, string dbname, bool isLive)
@@ -67,7 +67,7 @@ namespace PDL.ReportService.Repository.Repository
             }
         }
 
-        public async Task<byte[]> GetTrailBalance(List<string> Ahead ,DateTime startdate,DateTime enddate, string dbname, bool isLive)
+        public async Task<byte[]> GetTrailBalance(List<string> Ahead, DateTime startdate, DateTime enddate, string dbname, bool isLive)
         {
             using (AllReportsBLL bll = new AllReportsBLL(_configuration))
             {
@@ -75,7 +75,7 @@ namespace PDL.ReportService.Repository.Repository
             }
         }
 
-        public async Task<List<RCdata>> GetAllAhead( string dbname, bool isLive)
+        public async Task<List<RCdata>> GetAllAhead(string dbname, bool isLive)
         {
             using (AllReportsBLL bll = new AllReportsBLL(_configuration))
             {
@@ -83,8 +83,42 @@ namespace PDL.ReportService.Repository.Repository
             }
         }
 
+        public DataTable GetNewCasesForAMonth(string? FromDate, string? ToDate, string dbname, bool isLive)
+        {
+            using (AllReportsBLL bll = new AllReportsBLL(_configuration))
+            {
+                return  bll.GetNewCasesForAMonth(FromDate, ToDate,dbname, isLive);
+            }
+        }
 
-        
     }
 
+
+        #region GetApplicationFormData
+        public List<ApplicationFormDataModel> GetAppFormData(int Fi_Id, string dbname, bool isLive)
+        {
+            using (AllReportsBLL AllRepBll = new AllReportsBLL(_configuration))
+            {
+
+                return AllRepBll.GetApplicationFormDatas(Fi_Id, dbname, isLive);
+            }
+
+        }
+        public List<HouseVisitReportModel> GenerateHomeVisitReports(int Fi_Id, string dbname, bool isLive)
+        {
+            using (AllReportsBLL allReportsBLL = new AllReportsBLL(_configuration))
+            {
+                return allReportsBLL.GenerateHomeVisitDataReports(Fi_Id, dbname, isLive);
+            }
+        }
+
+        public List<SecondEsignVM> GetSecondEsignReportData(int Fi_Id, string dbname, bool isLive)
+        {
+            using (AllReportsBLL allReportsBLL = new AllReportsBLL(_configuration))
+            {
+                return allReportsBLL.GetSecondEsignReportDatas(Fi_Id, dbname, isLive);
+            }
+        }
+        #endregion
+    }
 }
