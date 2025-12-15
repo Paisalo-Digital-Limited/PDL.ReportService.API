@@ -78,6 +78,11 @@ namespace PDL.ReportService.Logics.Helper
             return val;
         }
 
+        //public static bool islivedb(IConfiguration configuration)
+        //{
+        //    return Convert.ToBoolean(configuration["islive"]);
+        //}
+
         public static void EnsureDirectoryExists(SftpClient sftp, string path)
         {
             string[] directories = path.Split('/');

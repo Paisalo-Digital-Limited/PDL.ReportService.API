@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using PDL.FIService.Api.HealthCheck;
 using PDL.ReportService.API.Extensions;
+using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.Credentials;
 using PDL.ReportService.Logics.Helper;
+using PDL.ReportService.Repository.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -58,6 +60,8 @@ builder.Services.AddSwaggerGen(options =>
 #region Dependency
 builder.Services.RegisterRepository();
 #endregion
+//middleware
+builder.Services.AddScoped<IUserApiEndpointMappingRepository, UserApiEndpointMappingRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -76,6 +80,8 @@ app.UseCors(builder =>
 });
 app.UseAuthorization();
 
+//added
+app.UseMiddleware<PDL.ReportService.API.Middleware.UserApiEndpointMiddleware>();
 app.MapControllers();
 #region// Map health check endpoint
 app.MapHealthChecks("/health", new HealthCheckOptions
