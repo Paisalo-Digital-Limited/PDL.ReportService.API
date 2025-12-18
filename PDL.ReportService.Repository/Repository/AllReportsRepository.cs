@@ -90,10 +90,6 @@ namespace PDL.ReportService.Repository.Repository
                 return  bll.GetNewCasesForAMonth(FromDate, ToDate,dbname, isLive);
             }
         }
-
-    }
-
-
         #region GetApplicationFormData
         public List<ApplicationFormDataModel> GetAppFormData(int Fi_Id, string dbname, bool isLive)
         {
@@ -120,5 +116,12 @@ namespace PDL.ReportService.Repository.Repository
             }
         }
         #endregion
+        public DataTable GetAheadLeger(string? FromDate, string? ToDate,string Ahead, string dbname, bool isLive)
+        {
+            using (AllReportsBLL bll = new AllReportsBLL(_configuration))
+            {
+                return bll.GetAheadLeger(FromDate, ToDate, Ahead, dbname, isLive);
+            }
+        }
     }
 }

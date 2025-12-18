@@ -490,7 +490,7 @@ namespace PDL.ReportService.API.Controllers
         }
 
         #endregion
-
+        [HttpGet]
         public IActionResult GetNewCasesForAMonth(string? FromDate, string? ToDate)
         {
             string dbname = GetDBName();
@@ -523,6 +523,38 @@ namespace PDL.ReportService.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [HttpGet]
+        public IActionResult GetAheadLeger(string FromDate, string ToDate ,string Ahead)
+        {
+            string dbname = GetDBName();
+            bool isLive = GetIslive();
 
+            try
+            {
+                DataTable result = _allReportsService.GetAheadLeger(FromDate, ToDate, Ahead, dbname, isLive);
+                if (result.Rows.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        message = (resourceManager.GetString("GETSUCCESS")),
+                        data = JsonConvert.SerializeObject(result)
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("NORECORD"),
+                        data = JsonConvert.SerializeObject(result)
+
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetAheadLeger_AllReports");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }
