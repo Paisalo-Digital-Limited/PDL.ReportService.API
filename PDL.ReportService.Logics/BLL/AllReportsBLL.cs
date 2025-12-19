@@ -1653,13 +1653,9 @@ namespace PDL.ReportService.Logics.BLL
             return dt;
         }
 
-    
+        public async Task<InstallementCollectionStatusVM> GetInstallmentCollectionReportsAsync(string smcode, string dbname, bool isLive,
+        CancellationToken cancellationToken = default)
 
-
-
-
-    public async Task<InstallementCollectionStatusVM> GetInstallmentCollectionReportsAsync(string smcode, string dbname, bool isLive,
-    CancellationToken cancellationToken = default)
         {
             var result = new InstallementCollectionStatusVM
             {
@@ -1827,7 +1823,28 @@ namespace PDL.ReportService.Logics.BLL
             return result;
         }
 
+        public DataTable GetAheadLeger(string? FromDate, string? ToDate,string Ahead, string dbname, bool isLive)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection con = _credManager.getConnections(dbname, isLive))
+            {
+                using (SqlCommand cmd = new SqlCommand("Usp_GetAllReportsList", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Mode", "GetAheadLeger");
+                    cmd.Parameters.AddWithValue("@FromDate", FromDate);
+                    cmd.Parameters.AddWithValue("@ToDate", ToDate);
+                    cmd.Parameters.AddWithValue("@Ahead", Ahead);
+                    con.Open();
 
+                    using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
+                }
+            }
+            return dt;
+        }
     }
 }
 
