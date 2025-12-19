@@ -1502,7 +1502,7 @@ namespace PDL.ReportService.Logics.BLL
                 {
                     var vm = new SecondEsignVM
                     {
-             
+
                         F_Id = Fi_Id,
                         CustName = row["CustName"]?.ToString(),
                         Gaurdian = row["Gaurdian"]?.ToString(),
@@ -1513,14 +1513,14 @@ namespace PDL.ReportService.Logics.BLL
                         NOB = row["NOB"]?.ToString(),
                         Gender = row["Gender"]?.ToString(),
                         VoterId = row["Voter_id"]?.ToString(),
-                       // AadharId = row["AadharId"]?.ToString(),
+                        // AadharId = row["AadharId"]?.ToString(),
                         DrivingLicense = row["DL"]?.ToString(),
                         LoanReason = row["Loan_Reason"]?.ToString(),
                         Cast = row["Cast"]?.ToString(),
                         BranchCode = row["BranchCode"]?.ToString(),
                         BankAccountNo = row["BankAccountNo"]?.ToString(),
                         BankName = row["BankName"]?.ToString(),
-                    //    Telephone = row["TelephoneNo"]?.ToString(),
+                        //    Telephone = row["TelephoneNo"]?.ToString(),
                         BankAddress = row["BankAddress"]?.ToString(),
                         BankIFSC = row["Bank_IFCS"]?.ToString(),
                         ResidentialAddress = row["ResidentialAddress"]?.ToString(),
@@ -1538,11 +1538,11 @@ namespace PDL.ReportService.Logics.BLL
                         FutureIncome = decimal.TryParse(row["FutureIncome"]?.ToString(), out var fincome) ? fincome : (decimal?)null,
                         FamIncomeSource = row["Family_Income_Source"]?.ToString(),
                         FamMonthlyIncome = decimal.TryParse(row["FamMonthlyIncome"]?.ToString(), out var famInc) ? famInc : (decimal?)null,
-                    //    Education = row["Education"]?.ToString(),
+                        //    Education = row["Education"]?.ToString(),
                         EDUCATION_CODE = row["EDUCATION_CODE"]?.ToString(),
-                   //     StateName = row["StateName"]?.ToString(),
-                     //   RentalIncome = decimal.TryParse(row["RentalIncome"]?.ToString(), out var rentInc) ? rentInc : (decimal?)null,
-                  //      PensionIncome = decimal.TryParse(row["PensionIncome"]?.ToString(), out var penInc) ? penInc : (decimal?)null,
+                        //     StateName = row["StateName"]?.ToString(),
+                        //   RentalIncome = decimal.TryParse(row["RentalIncome"]?.ToString(), out var rentInc) ? rentInc : (decimal?)null,
+                        //      PensionIncome = decimal.TryParse(row["PensionIncome"]?.ToString(), out var penInc) ? penInc : (decimal?)null,
                         Picture = row["Picture"]?.ToString()
                     };
 
@@ -1653,12 +1653,12 @@ namespace PDL.ReportService.Logics.BLL
             return dt;
         }
 
-    }
+    
 
 
 
 
-    public async Task<InstallementCollectionStatusVM> GetInstallmentCollectionReportsAsync(string smcode,string dbname,bool isLive,
+    public async Task<InstallementCollectionStatusVM> GetInstallmentCollectionReportsAsync(string smcode, string dbname, bool isLive,
     CancellationToken cancellationToken = default)
         {
             var result = new InstallementCollectionStatusVM
@@ -1672,7 +1672,7 @@ namespace PDL.ReportService.Logics.BLL
 
             try
             {
-                
+
                 using (SqlConnection con = _credManager.getConnections(dbname, isLive))
                 using (var cmd = new SqlCommand("Usp_GetQrPaymentsLogs_Reports", con))
                 {
@@ -1682,10 +1682,10 @@ namespace PDL.ReportService.Logics.BLL
                     cmd.Parameters.Add("@Mode", SqlDbType.VarChar, 50).Value = "Installments";
                     await con.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-                    
+
                     using (var reader = await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection, cancellationToken).ConfigureAwait(false))
                     {
-                        
+
                         bool headerSet = false;
                         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                         {
@@ -1708,7 +1708,7 @@ namespace PDL.ReportService.Logics.BLL
 
                             var emi = new Emidata
                             {
-                                AMT = Convert.ToDecimal( !reader.IsDBNull(reader.GetOrdinal("AMT"))
+                                AMT = Convert.ToDecimal(!reader.IsDBNull(reader.GetOrdinal("AMT"))
                                     ? reader.GetDouble(reader.GetOrdinal("AMT"))
                                     : 0m),
                                 PVN_RCP_DT = !reader.IsDBNull(reader.GetOrdinal("PVN_RCP_DT"))
@@ -1724,7 +1724,7 @@ namespace PDL.ReportService.Logics.BLL
                             {
                                 var emiColl = new EmiCollectiondata
                                 {
-                                    CR = Convert.ToDecimal( !reader.IsDBNull(reader.GetOrdinal("CR"))
+                                    CR = Convert.ToDecimal(!reader.IsDBNull(reader.GetOrdinal("CR"))
                                         ? reader.GetDouble(reader.GetOrdinal("CR"))
                                         : 0m),
                                     VDATE = !reader.IsDBNull(reader.GetOrdinal("VDATE"))
@@ -1737,34 +1737,34 @@ namespace PDL.ReportService.Logics.BLL
                                 result.emiCollections.Add(emiColl);
                             }
                         }
-                    } 
+                    }
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-            }   
+            }
 
 
             return result;
         }
 
 
-        public async Task<List<QRMandateReportsVM>> GetQRMandateReportsAsync(string smCode,string mode,
-         DateTime? fromDate,DateTime? toDate,string dbname,bool isLive,CancellationToken cancellationToken = default)
+        public async Task<List<QRMandateReportsVM>> GetQRMandateReportsAsync(string smCode, string mode,
+         DateTime? fromDate, DateTime? toDate, string dbname, bool isLive, CancellationToken cancellationToken = default)
         {
             var result = new List<QRMandateReportsVM>();
 
             try
             {
-                using var con = _credManager.getConnections(dbname, isLive); 
+                using var con = _credManager.getConnections(dbname, isLive);
                 using var cmd = new SqlCommand("Usp_GetQrPaymentsLogs_Reports", con)
                 {
                     CommandType = CommandType.StoredProcedure,
                     CommandTimeout = 600
                 };
 
-                
+
                 cmd.Parameters.Add("@SmCode", SqlDbType.VarChar, 50).Value = smCode ?? string.Empty;
                 cmd.Parameters.Add("@Mode", SqlDbType.VarChar, 50).Value = mode ?? string.Empty;
                 cmd.Parameters.Add("@Fromdate", SqlDbType.DateTime).Value = (object?)fromDate ?? DBNull.Value;
@@ -1772,13 +1772,13 @@ namespace PDL.ReportService.Logics.BLL
 
                 await con.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-                
+
                 using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection, cancellationToken).ConfigureAwait(false);
 
-               
+
                 if (mode.Equals("QrPaymentsLogs", StringComparison.OrdinalIgnoreCase))
                 {
-                    
+
                     int ordSmCode = reader.GetOrdinal("SmCode");
                     int ordAmount = reader.GetOrdinal("PayerAmount");
                     int ordTxnId = reader.GetOrdinal("TxnStatus");
@@ -1791,14 +1791,14 @@ namespace PDL.ReportService.Logics.BLL
                             SmCode = !reader.IsDBNull(ordSmCode) ? reader.GetString(ordSmCode) : string.Empty,
                             amount = !reader.IsDBNull(ordAmount) ? reader.GetDecimal(ordAmount) : 0m,
                             txnId = !reader.IsDBNull(ordTxnId) ? reader.GetString(ordTxnId) : string.Empty,
-                            CreationDate =  !reader.IsDBNull(ordCreationDate) ? reader.GetDateTime(ordCreationDate) : (DateTime?)null
+                            CreationDate = !reader.IsDBNull(ordCreationDate) ? reader.GetDateTime(ordCreationDate) : (DateTime?)null
                         };
                         result.Add(item);
                     }
                 }
-                 if (mode.Equals("MandateLogs", StringComparison.OrdinalIgnoreCase))
+                if (mode.Equals("MandateLogs", StringComparison.OrdinalIgnoreCase))
                 {
-                    
+
                     int ordSmCode = reader.GetOrdinal("SmCode");
                     int ordPayerAmount = reader.GetOrdinal("PayerAmount");
                     int ordTxnStatus = reader.GetOrdinal("TxnStatus");
@@ -1816,13 +1816,13 @@ namespace PDL.ReportService.Logics.BLL
                         result.Add(item);
                     }
                 }
-                
+
             }
             catch (Exception ex)
             {
-              Console.WriteLine(ex);
+                Console.WriteLine(ex);
             }
-           
+
 
             return result;
         }
