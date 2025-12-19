@@ -489,7 +489,7 @@ namespace PDL.ReportService.API.Controllers
             }
         }
 
-        #endregion
+}
         [HttpGet]
         public IActionResult GetNewCasesForAMonth(string? FromDate, string? ToDate)
         {

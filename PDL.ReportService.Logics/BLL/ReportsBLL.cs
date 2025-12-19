@@ -1,16 +1,16 @@
 ﻿using ClosedXML.Excel;
-using DocumentFormat.OpenXml.ExtendedProperties;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NPOI.SS.UserModel;
-using OfficeOpenXml;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Entites.VM.ReportVM;
 using PDL.ReportService.Logics.Credentials;
 using System.Data;
+using System.Diagnostics;
+using System.Globalization;
+using System.Net.Http.Headers;
+using System.Text;
 
 
 namespace PDL.ReportService.Logics.BLL
@@ -927,7 +927,7 @@ namespace PDL.ReportService.Logics.BLL
                                 ConsumerName = reader["Consumer Name"] == DBNull.Value ? null : reader["Consumer Name"].ToString().Trim(),
                                 DOB = reader["Date Of Birth"] == DBNull.Value ? null : reader["Date Of Birth"].ToString().Trim(),
                                 Gender = reader["Gender"] == DBNull.Value ? null : reader["Gender"].ToString().Trim(),
-                                IncomeTaxId = reader["Income Tax ID Number"] == DBNull.Value ? null : Helper.Helper.Decrypt(reader["Income Tax ID Number"].ToString(), _configuration["encryptSalts:pan"]),                        
+                                IncomeTaxId = reader["Income Tax ID Number"] == DBNull.Value ? null : Helper.Helper.Decrypt(reader["Income Tax ID Number"].ToString(), _configuration["encryptSalts:pan"]),
 
                                 PassportNumber = reader["Passport Number"] == DBNull.Value ? null : reader["Passport Number"].ToString().Trim(),
                                 PassportIssueDate = reader["Passport Issue Date"] == DBNull.Value ? null : reader["Passport Issue Date"].ToString().Trim(),
@@ -1028,8 +1028,7 @@ namespace PDL.ReportService.Logics.BLL
             }
             return result;
         }
-
-        public List<InsuranceDataVM> GetInsuranceReport(string fromDate,string toDate,string dbName, bool isLive)
+        public List<InsuranceDataVM> GetInsuranceReport(string fromDate, string toDate, string dbName, bool isLive)
         {
             List<InsuranceDataVM> result = new List<InsuranceDataVM>();
 
@@ -1057,8 +1056,8 @@ namespace PDL.ReportService.Logics.BLL
                                 LoanAppliRecDt = reader["LoanAppliRecDt"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["LoanAppliRecDt"]),
 
                                 LoanAcctNo = reader["LoanAcctNo"]?.ToString(),
-                                LoanAmount = reader["LoanAmount"] == DBNull.Value ? null: (double?)Convert.ToDouble(reader["LoanAmount"]),
-                                LoanTenure = reader["LoanTenure"] == DBNull.Value? null: (double?)Convert.ToDouble(reader["LoanTenure"]),
+                                LoanAmount = reader["LoanAmount"] == DBNull.Value ? null : (double?)Convert.ToDouble(reader["LoanAmount"]),
+                                LoanTenure = reader["LoanTenure"] == DBNull.Value ? null : (double?)Convert.ToDouble(reader["LoanTenure"]),
                                 LoanType = reader["LoanType"]?.ToString(),
 
                                 Title = reader["Title"]?.ToString(),
@@ -1088,9 +1087,9 @@ namespace PDL.ReportService.Logics.BLL
                                 NomineeDOB = reader["NomineeDOB"]?.ToString(),
                                 Relation = reader["Relation"]?.ToString(),
 
-                                SumAssured = reader["SumAssured"] == DBNull.Value? null : (double?)Convert.ToDouble(reader["SumAssured"]),
-                                TransactionAmount = reader["TransactionAmount"] == DBNull.Value? null: (double?)Convert.ToDouble(reader["TransactionAmount"]),
-                                TransactionDate = reader["TransactionDate"]?.ToString(),           
+                                SumAssured = reader["SumAssured"] == DBNull.Value ? null : (double?)Convert.ToDouble(reader["SumAssured"]),
+                                TransactionAmount = reader["TransactionAmount"] == DBNull.Value ? null : (double?)Convert.ToDouble(reader["TransactionAmount"]),
+                                TransactionDate = reader["TransactionDate"]?.ToString(),
                                 TransactionDetails_UTR = reader["TransactionDetails_UTR"]?.ToString()
                             };
 
@@ -1107,5 +1106,358 @@ namespace PDL.ReportService.Logics.BLL
             return result;
         }
 
+        #region QR Payment Logs
+        public List<QrPaymentLogsVM> GetQrPaymentsLogs(string fromDate, string toDate, string? paymentMode, string activeUser, string dbName, bool isLive)
+        {
+            List<QrPaymentLogsVM> list = new List<QrPaymentLogsVM>();
+
+            int activeUserId = Convert.ToInt32(activeUser);
+
+            try
+            {
+                using (SqlConnection con = _credManager.getConnections(dbName, isLive))
+                {
+                    using (SqlCommand cmd = new SqlCommand("Usp_GetQRPaymentLogs", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.CommandTimeout = 0;
+
+                        cmd.Parameters.Add("@ActiveUser", SqlDbType.Int).Value = activeUserId;
+                        cmd.Parameters.Add("@FromDate", SqlDbType.DateTime).Value = fromDate;
+                        cmd.Parameters.Add("@ToDate", SqlDbType.DateTime).Value = toDate;
+                        cmd.Parameters.Add("@PaymentMode", SqlDbType.VarChar, 10).Value = string.IsNullOrEmpty(paymentMode) ? DBNull.Value : paymentMode;
+
+                        con.Open();
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                QrPaymentLogsVM vm = new QrPaymentLogsVM
+                                {
+                                    TxnId = reader["txnId"]?.ToString(),
+                                    VNO = reader["VNO"]?.ToString(),
+                                    CustRef = reader["custRef"]?.ToString(),
+                                    Amount = reader["amount"] != DBNull.Value ? Convert.ToDecimal(reader["amount"]) : 0,
+                                    TxnStatus = reader["txnStatus"]?.ToString(),
+                                    PayerVpa = reader["payerVpa"]?.ToString(),
+                                    PayeeVpa = reader["payeeVpa"]?.ToString(),
+                                    TxnDateTime = reader["txnDateTime"] != DBNull.Value ? Convert.ToDateTime(reader["txnDateTime"]) : (DateTime?)null,
+                                    VirtualVpa = reader["virtualVpa"]?.ToString(),
+                                    Fname = reader["Fname"]?.ToString(),
+                                    Branchname = reader["branchname"]?.ToString(),
+                                    GroupCode = reader["GroupCode"]?.ToString(),
+                                    FiSmCode = reader["FISMCODE"]?.ToString(),
+                                    QRSmCode = reader["QRSMCODE"]?.ToString(),
+                                    Creationdate = reader["creationdate"] != DBNull.Value ? Convert.ToDateTime(reader["creationdate"]) : (DateTime?)null,
+                                    Ahead = reader["AHEAD"]?.ToString(),
+                                    SmCodeStatus = reader["SmCodeStatus"]?.ToString(),
+                                    QrEntryFlag = reader["QrEntryFlag"]?.ToString(),
+                                    PaymentMode = reader["PaymentMode"]?.ToString()
+                                };
+
+                                list.Add(vm);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return list;
+        }
+        #endregion
+
+        #region ICICI Payment Logs
+        public bool CheckTransactionExists(string bankRRN, string merchantTranId, string dbName, bool isLive)
+        {
+            try
+            {
+                using (SqlConnection con = _credManager.getConnections(dbName, isLive))
+                {
+                    using (SqlCommand cmd = new SqlCommand("Usp_CheckExistsdata", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@Mode", "CheckExistsData");
+                        cmd.Parameters.AddWithValue("@BankRRN", bankRRN);
+                        cmd.Parameters.AddWithValue("@MerchantTranId", merchantTranId);
+
+                        con.Open();
+                        var result = cmd.ExecuteScalar();
+
+                        return result != null && Convert.ToInt32(result) == 1;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        public string GetPayerNameBySmCode(string smCode, string dbName, bool isLive)
+        {
+            try
+            {
+                using (SqlConnection con = _credManager.getConnections(dbName, isLive))
+                {
+                    using (SqlCommand cmd = new SqlCommand("Usp_CheckExistsdata", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@Mode", "GetfullNamebySm");
+                        cmd.Parameters.AddWithValue("@SmCode", smCode);
+
+                        con.Open();
+                        var result = cmd.ExecuteScalar();
+
+                        return result == null || result == DBNull.Value ? "Not Found" : result.ToString().Trim();
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        public int UploadIciciTransFile(IciciExcelFileVM row, string activeUser, string dbName, bool isLive)
+        {
+            try
+            {
+                //if (string.IsNullOrWhiteSpace(row.BankRRN) || string.IsNullOrWhiteSpace(row.MerchantTranId))
+                //    return -1;
+                //if (CheckTransactionExists(row.BankRRN, row.MerchantTranId, dbName, isLive))
+                //    return 0;
+             DateTime? txnDate = row.Date;
+                //if (txnDate == null)
+                //    return -2;
+
+               // string txnDateStr = txnDate.Value.ToString("yyyyMMddHHmmss");
+                string txnDateStr = txnDate?.ToString("yyyyMMddHHmmss");
+                DateTime? creationDate = txnDate.Value;
+
+               // string smCode = string.IsNullOrWhiteSpace(row.MerchantTranId) ? string.Empty : row.MerchantTranId.Length >= 16 ? row.MerchantTranId.Substring(row.MerchantTranId.Length - 16) : row.MerchantTranId;
+
+               // string payerName = GetPayerNameBySmCode(smCode, dbName, isLive);
+
+                string responseJson = JsonConvert.SerializeObject(new
+                {
+                    Id = "0",
+                    Entry = "Manual entry based on the MIS report"
+                });
+
+                ICICICallBackResponse data = new ICICICallBackResponse
+                {
+                    BankRRN = row.BankRRN,
+                    MerchantTranId = row.MerchantTranId,
+                    PayerVA = row.PayerVA,
+                    PayerAccountType = row.PayerAccountType,
+                    PayerAmount = row.PayerAmount,
+                    TerminalId = row.TerminalId,
+                    SubMerchantId = row.SubMerchantId,
+
+                    ResponseCode = "00",
+                    RespCodeDescription = "APPROVED OR COMPLETED SUCCESSFULLY",
+                    PayerMobile = "0",
+
+                    TxnInitDate = txnDate,
+                    TxnCompletionDate = txnDate,
+                    TxnStatus = "SUCCESS",
+
+                    PayeeVPA = "pdlIc00001@icici",
+                    MerchantId = row.SubMerchantId,
+
+                    CreationDate =DateTime.Now,
+                    UPIVersion = "UPI 1.0",
+                    ResponseJSON = responseJson,
+                    SequenceNum = row.SeqNo,
+                    PayerName=activeUser
+                };
+                int iciciId = InsertIciciCallback(data, activeUser, dbName, isLive);
+                if (iciciId <= 0)
+                    return -3;
+
+                //QrPaymentResultVM qr = InsertQrPayment(data, dbName, isLive);
+                //if (qr == null)
+                //    return -4;
+
+                //if (data.TxnStatus == "SUCCESS")
+                //{
+                //    RcManualVM rcVm = new RcManualVM();
+                //    rcVm.TxnId = qr.TxnId;
+                //    rcVm.TxnDate = qr.TxnDateTime;
+                //    rcVm.Amt = qr.Amount.ToString();
+                //    rcVm.SmCode = qr.VirtualVpa.Substring(qr.VirtualVpa.Length - 16);
+
+                //    ICICIRcPostManualVM rcPostVm = PrepareRcPostData(rcVm, dbName, isLive);
+                //    if (rcPostVm == null)
+                //        return -5;
+
+                //    if (rcPostVm != null)
+                //    {
+                //        APIResponseVM apiResp = Helper.Helper.SaveRcManualByExcel(rcPostVm, activeUser, allUrl, token);
+                //        if (!apiResp.IsSuccessStatusCode)
+                //        {
+                //            return -7;
+                //        }
+                //    }
+                //}
+                return 1;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        private int InsertIciciCallback(ICICICallBackResponse data, string activeUser, string dbName, bool isLive)
+        {
+            try
+            {
+                using SqlConnection con = _credManager.getConnections(dbName, isLive);
+                {
+                    using SqlCommand cmd = new("Usp_InsertIciciCallback", con);
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.AddWithValue("@BankRRN", data.BankRRN);
+                        cmd.Parameters.AddWithValue("@MerchantTranId", data.MerchantTranId);
+                        cmd.Parameters.AddWithValue("@PayerVA", data.PayerVA);
+                        cmd.Parameters.AddWithValue("@PayerAccountType", data.PayerAccountType);
+                        cmd.Parameters.AddWithValue("@PayerAmount", data.PayerAmount);
+                        cmd.Parameters.AddWithValue("@TerminalId", data.TerminalId);
+                        cmd.Parameters.AddWithValue("@SubMerchantId", data.SubMerchantId);
+                        cmd.Parameters.AddWithValue("@MerchantId", data.MerchantId);
+                        cmd.Parameters.AddWithValue("@TxnInitDate", data.TxnInitDate);
+                        cmd.Parameters.AddWithValue("@TxnCompletionDate", data.TxnCompletionDate);
+                        cmd.Parameters.AddWithValue("@TxnStatus", data.TxnStatus);
+                        cmd.Parameters.AddWithValue("@ResponseCode", data.ResponseCode);
+                        cmd.Parameters.AddWithValue("@RespCodeDescription", data.RespCodeDescription);
+                        cmd.Parameters.AddWithValue("@PayerName", data.PayerName);
+                        cmd.Parameters.AddWithValue("@PayerMobile", data.PayerMobile);
+                        cmd.Parameters.AddWithValue("@PayeeVPA", data.PayeeVPA);
+                        cmd.Parameters.AddWithValue("@UPIVersion", data.UPIVersion);
+                        cmd.Parameters.AddWithValue("@ResponseJSON", data.ResponseJSON);
+                        cmd.Parameters.AddWithValue("@SequenceNum", data.SequenceNum);
+                        cmd.Parameters.AddWithValue("@CreationDate", data.CreationDate);
+                        cmd.Parameters.AddWithValue("@CreatedBy", activeUser);
+
+                        con.Open();
+                        return Convert.ToInt32(cmd.ExecuteScalar());
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        private QrPaymentResultVM InsertQrPayment(ICICICallBackResponse model, string dbName, bool isLive)
+        {
+            try
+            {
+                using SqlConnection con = _credManager.getConnections(dbName, isLive);
+                {
+                    using SqlCommand cmd = new("Usp_InsertQrPayment", con);
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                       // DateTime txnDate = DateTime.ParseExact(model.TxnInitDate, "yyyyMMddHHmmss", CultureInfo.InvariantCulture);
+                        //DateTime txnDate = model.TxnInitDate.Value;
+                        DateTime? txnDate = model.TxnInitDate;
+
+                        cmd.Parameters.AddWithValue("@TxnId", model.BankRRN);
+                        cmd.Parameters.AddWithValue("@VirtualVpa", model.MerchantTranId);
+                        cmd.Parameters.AddWithValue("@Amount", Convert.ToDecimal(model.PayerAmount));
+                        cmd.Parameters.AddWithValue("@TxnStatus", model.TxnStatus);
+                        cmd.Parameters.AddWithValue("@TxnDateTime", txnDate);
+                        cmd.Parameters.AddWithValue("@MrchId", model.MerchantId);
+                        cmd.Parameters.AddWithValue("@PayeeVpa", model.PayeeVPA);
+                        cmd.Parameters.AddWithValue("@PayerVpa", model.PayerVA);
+                        cmd.Parameters.AddWithValue("@PayerAccountType", model.PayerAccountType);
+                        cmd.Parameters.AddWithValue("@PayerMobile", model.PayerMobile);
+                        cmd.Parameters.AddWithValue("@PayerVerifiedName", model.PayerName);
+
+                        con.Open();
+                        int affected = Convert.ToInt32(cmd.ExecuteScalar());
+
+                        if (affected <= 0)
+                            return null;
+
+                        return new QrPaymentResultVM
+                        {
+                            TxnId = model.BankRRN,
+                            TxnDateTime = txnDate,
+                            Amount = Convert.ToDecimal(model.PayerAmount),
+                            VirtualVpa = model.MerchantTranId
+                        };
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        public ICICIRcPostManualVM PrepareRcPostData(RcManualVM rcManualVM, string dbName, bool isLive)
+        {
+            ICICIRcPostManualVM objVM = null;
+
+            try
+            {
+                using SqlConnection con = _credManager.getConnections(dbName, isLive);
+                {
+                    using SqlCommand cmd = new("Usp_RcPostManual", con);
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Add("@SmCode", SqlDbType.VarChar, 16).Value = rcManualVM.SmCode.Trim();
+                        cmd.Parameters.Add("@CollDt", SqlDbType.VarChar, 20).Value = rcManualVM.TxnDate.HasValue ? rcManualVM.TxnDate.Value.ToString("dd-MMM-yyyy") : DBNull.Value;
+                        cmd.Parameters.Add("@TxnId", SqlDbType.VarChar, 30).Value = rcManualVM.TxnId.Trim();
+                        cmd.Parameters.Add("@Amt", SqlDbType.Decimal).Value = Convert.ToDecimal(rcManualVM.Amt);
+
+                        if (con.State == ConnectionState.Closed)
+                            con.Open();
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    objVM = new ICICIRcPostManualVM();
+                                    objVM.InstRcvID = Convert.ToInt64(reader["InstRcvID"]);
+                                    objVM.IMEI = Convert.ToInt64(reader["IMEI"]);
+                                    objVM.CaseCode = reader["CaseCode"].ToString();
+                                    objVM.RcptNo = Convert.ToInt32(reader["RcptNo"]);
+                                    objVM.InstRcvAmt = Convert.ToInt32(Convert.ToDouble(rcManualVM.Amt));
+                                    objVM.InstRcvDateTimeUTC = rcManualVM.TxnDate.ToString();
+                                    objVM.Flag = reader["Flag"].ToString();
+                                    objVM.BatchNo = 0;
+                                    objVM.FoCode = reader["FoCode"].ToString();
+                                    objVM.DataBaseName = reader["DataBaseName"].ToString();
+                                    objVM.Creator = reader["CreatorName"].ToString();
+                                    objVM.CustName = reader["CustName"].ToString();
+                                    objVM.PartyCd = reader["PartyCd"].ToString();
+                                    objVM.PayFlag = reader["PayFlag"].ToString();
+                                    objVM.SmsMobNo = reader["SmsMobNo"].ToString();
+                                    objVM.InterestAmt = Convert.ToInt32(reader["InterestAmt"]);
+                                    objVM.CollPoint = reader["CollPoint"].ToString();
+                                    objVM.PaymentMode = "QR";
+                                    objVM.CollBranchCode = reader["collBranchCode"].ToString();
+                                    objVM.TxnId = rcManualVM.TxnId;
+                                    objVM.CSOID = reader["CSOID"].ToString();
+                                    objVM.VDATE = DateTime.Now;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return objVM;
+        }
+        #endregion
     }
 }
