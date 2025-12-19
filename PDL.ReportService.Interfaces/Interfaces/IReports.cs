@@ -33,6 +33,9 @@ namespace PDL.ReportService.Interfaces.Interfaces
 
         List<CibilDataVM> GetCibilReport(string searchDate, string dbName, bool isLive);
         List<InsuranceDataVM> GetInsuranceReport(string fromDate, string toDate,string dbName, bool isLive);
-
+        List<QrPaymentLogsVM> GetQrPaymentsLogs(string fromDate, string toDate, string paymentMode,string activeUser,string dbName, bool isLive);
+        bool CheckTransactionExists(string bankRRN, string merchantTranId, string dbName, bool isLive);
+        string GetPayerNameBySmCode(string smCode, string dbName, bool isLive);
+        int UploadIciciTransFile(IciciExcelFileVM data, string activeUser, string dbName, bool isLive);
     }
 }
