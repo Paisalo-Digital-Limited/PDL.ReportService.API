@@ -25,6 +25,7 @@ namespace PDL.ReportService.Interfaces.Interfaces
         List<HouseVisitReportModel> GenerateHomeVisitReports(int Fi_Id, string dbname, bool isLive);
         List<SecondEsignVM> GetSecondEsignReportData(int Fi_Id, string dbname, bool isLive);
         DataTable GetNewCasesForAMonth(string? FromDate, string? ToDate, string dbname, bool isLive);
+        DataTable GetAheadLeger(string? FromDate, string? ToDate,string Ahead, string dbname, bool isLive);
 
     }
 }
