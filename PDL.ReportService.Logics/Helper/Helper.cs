@@ -20,6 +20,7 @@ namespace PDL.ReportService.Logics.Helper
 {
     public class Helper
     {
+        private static readonly HttpClient _client = new HttpClient();
 
         public static string Encrypt(string clearText, string key)
         {
@@ -154,7 +155,7 @@ namespace PDL.ReportService.Logics.Helper
 
             return smCodes;
         }
-        public static APIResponseVM SaveRcManualByExcel(ICICIRcPostManualVM postData, string activeUser, Dictionary<string, string> allUrl, string token)
+        public static async Task<APIResponseVM> SaveRcManualByExcel(ICICIRcPostManualVM postData, string activeUser, Dictionary<string, string> allUrl, string token)
         {
             APIResponseVM apiResponse = new APIResponseVM();
             try
@@ -175,16 +176,14 @@ namespace PDL.ReportService.Logics.Helper
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                     string json = JsonConvert.SerializeObject(postData);
+                    using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                    using (StringContent content = new StringContent(json, Encoding.UTF8, "application/json"))
-                    {
-                        HttpResponseMessage response = client.PostAsync(collCashUrl, content).Result;
+                    HttpResponseMessage response = await _client.PostAsync(collCashUrl, content);
+                    apiResponse.StatusCode = response.StatusCode;
+                    apiResponse.IsSuccessStatusCode = response.IsSuccessStatusCode;
+                    apiResponse.ReasonPhase = response.ReasonPhrase;
+                    apiResponse.ResponseContent =await response.Content.ReadAsStringAsync();
 
-                        apiResponse.StatusCode = response.StatusCode;
-                        apiResponse.IsSuccessStatusCode = response.IsSuccessStatusCode;
-                        apiResponse.ReasonPhase = response.ReasonPhrase;
-                        apiResponse.ResponseContent = response.Content.ReadAsStringAsync().Result;
-                    }
                 }
             }
             catch (Exception ex)
