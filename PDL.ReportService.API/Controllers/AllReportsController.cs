@@ -489,7 +489,7 @@ namespace PDL.ReportService.API.Controllers
             }
         }
 
-}
+
         [HttpGet]
         public IActionResult GetNewCasesForAMonth(string? FromDate, string? ToDate)
         {
@@ -556,5 +556,6 @@ namespace PDL.ReportService.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        #endregion
     }
 }

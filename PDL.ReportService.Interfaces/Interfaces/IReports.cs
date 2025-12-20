@@ -36,6 +36,6 @@ namespace PDL.ReportService.Interfaces.Interfaces
         List<QrPaymentLogsVM> GetQrPaymentsLogs(string fromDate, string toDate, string paymentMode,string activeUser,string dbName, bool isLive);
         bool CheckTransactionExists(string bankRRN, string merchantTranId, string dbName, bool isLive);
         string GetPayerNameBySmCode(string smCode, string dbName, bool isLive);
-        int UploadIciciTransFile(IciciExcelFileVM data, string activeUser, string dbName, bool isLive);
+        Task<int> UploadIciciTransFile(IciciExcelFileVM data, string activeUser, string dbName, bool isLive, Dictionary<string, string> allUrl, string token);
     }
 }
