@@ -915,6 +915,7 @@ namespace PDL.ReportService.Logics.BLL
                 using (SqlCommand cmd = new SqlCommand(spName, con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandTimeout = 0;
                     cmd.Parameters.Add("@reportDate", SqlDbType.SmallDateTime).Value = searchDate;
 
                     if (con.State == ConnectionState.Closed)

@@ -556,6 +556,39 @@ namespace PDL.ReportService.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [HttpGet]
+        public IActionResult GetCrifDataJLG(string ReportDate, string? StartDate, string? EndDate)
+        {
+            string dbname = GetDBName();
+            bool isLive = GetIslive();
+
+            try
+            {
+                List<CrifDataJLGVM> result = _allReportsService.GetCrifDataJLG(ReportDate, StartDate, EndDate, dbname, isLive);
+                if (result.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        message = (resourceManager.GetString("GETSUCCESS")),
+                        data = result
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("NORECORD"),
+                        data = result
+
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetCrifDataJLG_AllReports");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
         #endregion
     }
 }
