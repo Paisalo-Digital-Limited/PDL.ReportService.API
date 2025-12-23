@@ -857,6 +857,7 @@ namespace PDL.ReportService.API.Controllers
                 bool isLive = GetIslive();
                 string token = null;
                 string activeUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
               
                 if (Request.Headers.ContainsKey("Authorization"))
                 {
@@ -886,7 +887,7 @@ namespace PDL.ReportService.API.Controllers
 
                 List<IciciExcelFileVM> rows = Helper.ReadIciciExcelFile(fullPath);
 
-                rows = rows.Where(r =>!string.IsNullOrWhiteSpace(r.BankRRN) || r.PayerAmount > 0).ToList();
+                rows = rows.Where(r =>!string.IsNullOrWhiteSpace(r.BankRRN)).ToList();
 
 
                 var semaphore = new SemaphoreSlim(5);
