@@ -1,5 +1,6 @@
 ﻿using ClosedXML.Excel;
 using DocumentFormat.OpenXml.EMMA;
+using DocumentFormat.OpenXml.Office.Word;
 using DocumentFormat.OpenXml.Office2010.PowerPoint;
 using DocumentFormat.OpenXml.Office2016.Drawing;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -12,6 +13,7 @@ using NPOI.SS.Formula.Functions;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Entites.VM.ReportVM;
 using PDL.ReportService.Logics.Credentials;
+using PDL.ReportService.Logics.Helper;
 using Renci.SshNet;
 using System;
 using System.Collections.Generic;
@@ -1821,7 +1823,7 @@ namespace PDL.ReportService.Logics.BLL
             return result;
         }
 
-        public DataTable GetAheadLeger(string? FromDate, string? ToDate,string Ahead, string dbname, bool isLive)
+        public DataTable GetAheadLeger(string? FromDate, string? ToDate, string Ahead, string dbname, bool isLive)
         {
             DataTable dt = new DataTable();
             using (SqlConnection con = _credManager.getConnections(dbname, isLive))
@@ -1843,6 +1845,149 @@ namespace PDL.ReportService.Logics.BLL
             }
             return dt;
         }
+        
+        public List<CrifDataJLGVM> GetCrifDataJLG(string ReportDate, string? StartDate, string? EndDate, string dbname, bool isLive)
+        {
+            List<CrifDataJLGVM> list = new List<CrifDataJLGVM>();
+            try { 
+            using (SqlConnection con = _credManager.getConnections(dbname, isLive))
+            {
+                using (SqlCommand cmd = new SqlCommand("Usp_getCrifData_JLG", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandTimeout = 0;
+                    cmd.Parameters.AddWithValue("@reportDate", ReportDate);
+                    cmd.Parameters.AddWithValue("@moratoriumStart", StartDate);
+                    cmd.Parameters.AddWithValue("@moratoriumEnd", EndDate);
+
+                    if (con.State == ConnectionState.Closed)
+                        con.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var item = new CrifDataJLGVM
+                            {
+                                SegmentDat = reader["SegmentDat"] == DBNull.Value ? null : reader["SegmentDat"].ToString().Trim(),
+                                MemberIdentifier = reader["MemberIdentifier"] == DBNull.Value ? null : reader["MemberIdentifier"].ToString().Trim(),
+                                BranchIdentifier = reader["BranchIdentifier"] == DBNull.Value ? null : reader["BranchIdentifier"].ToString().Trim(),
+                                Kendra_Centre_Identifier = reader["Kendra_Centre_Identifier"] == DBNull.Value ? null : reader["Kendra_Centre_Identifier"].ToString().Trim(),
+                                GroupIdentifier = reader["GroupIdentifier"] == DBNull.Value ? null : reader["GroupIdentifier"].ToString().Trim(),
+                                MemberName1 = reader["MemberName1"] == DBNull.Value ? null : reader["MemberName1"].ToString().Trim(),
+                                MemberName2 = reader["MemberName2"] == DBNull.Value ? null : reader["MemberName2"].ToString().Trim(),
+                                MemberName3 = reader["MemberName3"] == DBNull.Value ? null : reader["MemberName3"].ToString().Trim(),
+                                AlternateNameofMember = reader["AlternateNameofMember"] == DBNull.Value ? null : reader["AlternateNameofMember"].ToString().Trim(),
+                                MemberBirthDate = reader["MemberBirthDate"] == DBNull.Value ? null : reader["MemberBirthDate"].ToString().Trim(),
+                                MemberAge = reader["MemberAge"] == DBNull.Value ? null : reader["MemberAge"].ToString().Trim(),
+                                MemberAgeAsOnDate = reader["MemberAgeAsOnDate"] == DBNull.Value ? null : reader["MemberAgeAsOnDate"].ToString().Trim(),
+                                MemberGenderType = reader["MemberGenderType"] == DBNull.Value ? null : reader["MemberGenderType"].ToString().Trim(),
+                                MaritalStatusType = reader["MaritalStatusType"] == DBNull.Value ? null : reader["MaritalStatusType"].ToString().Trim(),
+                                KeyPersonsName = reader["KeyPersonsName"] == DBNull.Value ? null : reader["KeyPersonsName"].ToString().Trim(),
+                                KeyPersonsRelationship = reader["KeyPersonsRelationship"] == DBNull.Value ? null : reader["KeyPersonsRelationship"].ToString().Trim(),
+                                MemberRelationshipName1 = reader["MemberRelationshipName1"] == DBNull.Value ? null : reader["MemberRelationshipName1"].ToString().Trim(),
+                                MemberrelationshipType1 = reader["MemberrelationshipType1"] == DBNull.Value ? null : reader["MemberrelationshipType1"].ToString().Trim(),
+                                MemberRelationshipName2 = reader["MemberRelationshipName2"] == DBNull.Value ? null : reader["MemberRelationshipName2"].ToString().Trim(),
+                                MemberrelationshipType2 = reader["MemberrelationshipType2"] == DBNull.Value ? null : reader["MemberrelationshipType2"].ToString().Trim(),
+                                MemberRelationshipName3 = reader["MemberRelationshipName3"] == DBNull.Value ? null : reader["MemberRelationshipName3"].ToString().Trim(),
+                                MemberrelationshipType3 = reader["MemberrelationshipType3"] == DBNull.Value ? null : reader["MemberrelationshipType3"].ToString().Trim(),
+                                MemberRelationshipName4 = reader["MemberRelationshipName4"] == DBNull.Value ? null : reader["MemberRelationshipName4"].ToString().Trim(),
+                                MemberrelationshipType4 = reader["MemberrelationshipType4"] == DBNull.Value ? null : reader["MemberrelationshipType4"].ToString().Trim(),
+                                NomineeName = reader["NomineeName"] == DBNull.Value ? null : reader["NomineeName"].ToString().Trim(),
+                                NomineeRelationship = reader["NomineeRelationship"] == DBNull.Value ? null : reader["NomineeRelationship"].ToString().Trim(),
+                                NomineeAge = reader["NomineeAge"] == DBNull.Value ? null : reader["NomineeAge"].ToString().Trim(),
+                                VotersID = reader["VotersID"] == DBNull.Value ? null : Helper.Helper.Decrypt(reader["VotersID"].ToString().Trim(),_configuration["encryptSalts:voterid"]),
+                                UID = reader["UID"] == DBNull.Value ? null : reader["UID"].ToString().Trim(),
+                                PAN = reader["PAN"] == DBNull.Value ? null : Helper.Helper.Decrypt(reader["PAN"].ToString().Trim(), _configuration["encryptSalts:pan"]),
+                                RationCard = reader["RationCard"] == DBNull.Value ? null : reader["RationCard"].ToString().Trim(),
+                                MemberOtherID1_TypeDescription = reader["MemberOtherID1_TypeDescription"] == DBNull.Value ? null : reader["MemberOtherID1_TypeDescription"].ToString().Trim(),
+                                MemberOtherID1 = reader["MemberOtherID1"] == DBNull.Value ? null : reader["MemberOtherID1"].ToString().Trim(),
+                                MemberOtherID2_TypeDescription = reader["MemberOtherID2_TypeDescription"] == DBNull.Value ? null : reader["MemberOtherID2_TypeDescription"].ToString().Trim(),
+                                MemberOtherID2 = reader["MemberOtherID2"] == DBNull.Value ? null : reader["MemberOtherID2"].ToString().Trim(),
+                                OtherID3_Type = reader["OtherID3_Type"] == DBNull.Value ? null : reader["OtherID3_Type"].ToString().Trim(),
+                                OtherID3_Value = reader["OtherID3_Value"] == DBNull.Value ? null : reader["OtherID3_Value"].ToString().Trim(),
+                                TelephoneNumber1_typeIndicator = reader["TelephoneNumber1_typeIndicator"] == DBNull.Value ? null : reader["TelephoneNumber1_typeIndicator"].ToString().Trim(),
+                                MemberTelephoneNumber1 = reader["MemberTelephoneNumber1"] == DBNull.Value ? null : reader["MemberTelephoneNumber1"].ToString().Trim(),
+                                TelephoneNumber2_typeIndicator = reader["TelephoneNumber2_typeIndicator"] == DBNull.Value ? null : reader["TelephoneNumber2_typeIndicator"].ToString().Trim(),
+                                MemberTelephoneNumber2 = reader["MemberTelephoneNumber2"] == DBNull.Value ? null : reader["MemberTelephoneNumber2"].ToString().Trim(),
+                                MembersEducationalQualification = reader["MembersEducationalQualification"] == DBNull.Value ? null : reader["MembersEducationalQualification"].ToString().Trim(),
+                                AssetOwnershipindicator_PovertyIndex = reader["AssetOwnershipindicator_PovertyIndex"] == DBNull.Value ? null : reader["AssetOwnershipindicator_PovertyIndex"].ToString().Trim(),
+                                NumberOfDependents = reader["NumberOfDependents"] == DBNull.Value ? null : reader["NumberOfDependents"].ToString().Trim(),
+                                BankAccount_BankName = reader["BankAccount_BankName"] == DBNull.Value ? null : reader["BankAccount_BankName"].ToString().Trim(),
+                                BankAccount_BranchName = reader["BankAccount_BranchName"] == DBNull.Value ? null : reader["BankAccount_BranchName"].ToString().Trim(),
+                                BankAccount_AccountNumber = reader["BankAccount_AccountNumber"] == DBNull.Value ? null : reader["BankAccount_AccountNumber"].ToString().Trim(),
+                                Occupation = reader["Occupation"] == DBNull.Value ? null : reader["Occupation"].ToString().Trim(),
+                                TotalMonthlyFamilyIncome = reader["TotalMonthlyFamilyIncome"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["TotalMonthlyFamilyIncome"]),
+                                MonthlyFamilyExpenses = reader["MonthlyFamilyExpenses"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["MonthlyFamilyExpenses"]),
+                                MembersReligion = reader["MembersReligion"] == DBNull.Value ? null : reader["MembersReligion"].ToString().Trim(),
+                                MembersCaste_SocialStrata = reader["MembersCaste_SocialStrata"] == DBNull.Value ? null : reader["MembersCaste_SocialStrata"].ToString().Trim(),
+                                MembersRole = reader["MembersRole"] == DBNull.Value ? null : reader["MembersRole"].ToString().Trim(),
+                                CenterLeaderindicator = reader["CenterLeaderindicator"] == DBNull.Value ? null : reader["CenterLeaderindicator"].ToString().Trim(),
+                                MembersStatus = reader["MembersStatus"] == DBNull.Value ? null : reader["MembersStatus"].ToString().Trim(),
+                                AddressSegment = reader["AddressSegment"] == DBNull.Value ? null : reader["AddressSegment"].ToString().Trim(),
+                                MembersPermanentAddress = reader["MembersPermanentAddress"] == DBNull.Value ? null : reader["MembersPermanentAddress"].ToString().Trim(),
+                                StateCode_PermanentAddress = reader["StateCode_PermanentAddress"] == DBNull.Value ? null : reader["StateCode_PermanentAddress"].ToString().Trim(),
+                                PinCode_PermanentAddress = reader["PinCode_PermanentAddress"] == DBNull.Value ? null : reader["PinCode_PermanentAddress"].ToString().Trim(),
+                                CurrenttAddress = reader["CurrenttAddress"] == DBNull.Value ? null : reader["CurrenttAddress"].ToString().Trim(),
+                                StateCode_CurrentAddress = reader["StateCode_CurrentAddress"] == DBNull.Value ? null : reader["StateCode_CurrentAddress"].ToString().Trim(),
+                                PinCode_CurrentAddress = reader["PinCode_CurrentAddress"] == DBNull.Value ? null : reader["PinCode_CurrentAddress"].ToString().Trim(),
+                                DummyAddrSeg = reader["DummyAddrSeg"] == DBNull.Value ? null : reader["DummyAddrSeg"].ToString().Trim(),
+                                AccountSegment = reader["AccountSegment"] == DBNull.Value ? null : reader["AccountSegment"].ToString().Trim(),
+                                UniqueAccountReferencenumber = reader["UniqueAccountReferencenumber"] == DBNull.Value ? null : reader["UniqueAccountReferencenumber"].ToString().Trim(),
+                                AccountNumber = reader["AccountNumber"] == DBNull.Value ? null : reader["AccountNumber"].ToString().Trim(),
+                                BranchIdentifierAcctSeg = reader["BranchIdentifierAcctSeg"] == DBNull.Value ? null : reader["BranchIdentifierAcctSeg"].ToString().Trim(),
+                                Kendra_CentreIdentifier = reader["Kendra_CentreIdentifier"] == DBNull.Value ? null : reader["Kendra_CentreIdentifier"].ToString().Trim(),
+                                LoanOfficerOriginatingTheLoan = reader["LoanOfficerOriginatingTheLoan"] == DBNull.Value ? null : reader["LoanOfficerOriginatingTheLoan"].ToString().Trim(),
+                                DateofAccountInformation = reader["DateofAccountInformation"] == DBNull.Value ? null : reader["DateofAccountInformation"].ToString().Trim(),
+                                LoanCategory = reader["LoanCategory"] == DBNull.Value ? null : reader["LoanCategory"].ToString().Trim(),
+                                GroupIdentifierAcctSeg = reader["GroupIdentifierAcctSeg"] == DBNull.Value ? null : reader["GroupIdentifierAcctSeg"].ToString().Trim(),
+                                LoanCycleId = reader["LoanCycleId"] == DBNull.Value ? null : reader["LoanCycleId"].ToString().Trim(),
+                                LoanPurpose = reader["LoanPurpose"] == DBNull.Value ? null : reader["LoanPurpose"].ToString().Trim(),
+                                AccountStatus = reader["AccountStatus"] == DBNull.Value ? null : reader["AccountStatus"].ToString().Trim(),
+                                ApplicationDate = reader["ApplicationDate"] == DBNull.Value ? null : reader["ApplicationDate"].ToString().Trim(),
+                                SanctionedDate = reader["SanctionedDate"] == DBNull.Value ? null : reader["SanctionedDate"].ToString().Trim(),
+                                DateOpened_Disbursed = reader["DateOpened_Disbursed"] == DBNull.Value ? null : reader["DateOpened_Disbursed"].ToString().Trim(),
+                                DateClosed = reader["DateClosed"] == DBNull.Value ? null : reader["DateClosed"].ToString().Trim(),
+                                DateOfLastPayment = reader["DateOfLastPayment"] == DBNull.Value ? null : reader["DateOfLastPayment"].ToString().Trim(),
+                                AppliedForamount = reader["AppliedForamount"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["AppliedForamount"]),
+                                LoanAmountSanctioned = reader["LoanAmountSanctioned"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["LoanAmountSanctioned"]),
+                                TotalAmountDisbursed = reader["TotalAmountDisbursed"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["TotalAmountDisbursed"]),
+                                NumberofInstallments = reader["NumberofInstallments"] == DBNull.Value ? null : (int?)Convert.ToInt32(reader["NumberofInstallments"]),
+                                RepaymentFrequency = reader["RepaymentFrequency"] == DBNull.Value ? null : reader["RepaymentFrequency"].ToString().Trim(),
+                                MinimumAmountDue_InstalmentAmount = reader["MinimumAmountDue_InstalmentAmount"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["MinimumAmountDue_InstalmentAmount"]),
+                                CurrentBalance = reader["CurrentBalance"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["CurrentBalance"]),
+                                AmountOverdue = reader["AmountOverdue"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["AmountOverdue"]),
+                                DPD = reader["DPD"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["DPD"]),
+                                WriteOffAmount = reader["WriteOffAmount"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["WriteOffAmount"]),
+                                DateWriteOff = reader["DateWriteOff"] == DBNull.Value ? null : reader["DateWriteOff"].ToString().Trim(),
+                                WriteOffReason = reader["WriteOffReason"] == DBNull.Value ? null : reader["WriteOffReason"].ToString().Trim(),
+
+                                NoOfMeetingsHeld = reader["NoOfMeetingsHeld"] == DBNull.Value ? null :reader["NoOfMeetingsHeld"].ToString().Trim(),
+
+                                NoOfMeetingsMissed = reader["NoOfMeetingsMissed"] == DBNull.Value ? null : reader["NoOfMeetingsMissed"].ToString().Trim(),
+                                InsuranceIndicator = reader["InsuranceIndicator"] == DBNull.Value ? null : reader["InsuranceIndicator"].ToString().Trim(),
+
+                                TypeofInsurance = reader["TypeofInsurance"] == DBNull.Value ? null : reader["TypeofInsurance"].ToString().Trim(),
+                                SumAssured_Coverage = reader["SumAssured_Coverage"] == DBNull.Value ? null : reader["SumAssured_Coverage"].ToString().Trim(),
+                                AgreedmeetingDayoftheweek = reader["AgreedmeetingDayoftheweek"] == DBNull.Value ? null : reader["AgreedmeetingDayoftheweek"].ToString().Trim(),
+                                AgreedMeetingTimeOfTheDay = reader["AgreedMeetingTimeOfTheDay"] == DBNull.Value ? null : reader["AgreedMeetingTimeOfTheDay"].ToString().Trim(),
+                                DummyAcctSeg = reader["DummyAcctSeg"] == DBNull.Value ? null : reader["DummyAcctSeg"].ToString().Trim()
+                            };
+
+                            list.Add(item);
+                        }
+                    }
+                }
+            }
+
+            return list;
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("Error in GetCrifDataJLG", ex);
+            }
+        }
+
     }
 }
 
