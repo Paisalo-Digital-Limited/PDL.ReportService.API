@@ -1,16 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
+using OfficeOpenXml.FormulaParsing.LexicalAnalysis;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Entites.VM.ReportVM;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.BLL;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace PDL.ReportService.Repository.Repository
 {
@@ -166,6 +161,38 @@ namespace PDL.ReportService.Repository.Repository
             using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
             {
                 return reportsBLL.GetInsuranceReport(fromDate,toDate, dbName, isLive);
+
+            }
+        }
+        public List<QrPaymentLogsVM> GetQrPaymentsLogs(string fromDate, string toDate,string paymentMode,string activeUser,string dbName, bool isLive)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.GetQrPaymentsLogs(fromDate, toDate, paymentMode,activeUser,dbName, isLive);
+
+            }
+        }
+        public bool CheckTransactionExists(string bankRRN, string merchantTranId, string dbName, bool isLive)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.CheckTransactionExists(bankRRN, merchantTranId,dbName, isLive);
+
+            }
+        }
+        public string GetPayerNameBySmCode(string smCode, string dbName, bool isLive)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return reportsBLL.GetPayerNameBySmCode(smCode,dbName, isLive);
+
+            }
+        }
+        public async Task<int> UploadIciciTransFile(IciciExcelFileVM data, string activeUser,string dbName, bool isLive,Dictionary<string, string> allUrl, string token)
+        {
+            using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
+            {
+                return await reportsBLL.UploadIciciTransFile(data, activeUser, dbName, isLive, allUrl, token);
 
             }
         }

@@ -1654,8 +1654,10 @@ namespace PDL.ReportService.Logics.BLL
             }
             return dt;
         }
+
         public async Task<InstallementCollectionStatusVM> GetInstallmentCollectionReportsAsync(string smcode, string dbname, bool isLive,
         CancellationToken cancellationToken = default)
+
         {
             var result = new InstallementCollectionStatusVM
             {

@@ -192,4 +192,10 @@
   <data name="SMCODENOTFOUND" xml:space="preserve">
     <value>Record not exist for this SmCode !!!</value>
   </data>
+  <data name="FILEUPLOAD" xml:space="preserve">
+    <value>File Upload Successfully!!</value>
+  </data>
+  <data name="UNAUTHORIZED" xml:space="preserve">
+    <value>Authorization token is missing or invalid.</value>
+  </data>
 </root>

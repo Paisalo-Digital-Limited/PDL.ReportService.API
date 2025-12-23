@@ -5,14 +5,16 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using NPOI.HSSF.Record;
+using OfficeOpenXml;
+using OfficeOpenXml.FormulaParsing.LexicalAnalysis;
 using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Entites.VM.ReportVM;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.Helper;
 using Renci.SshNet.Messages;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Security.Claims;
-using System.Xml.Linq;
 
 namespace PDL.ReportService.API.Controllers
 {
@@ -510,8 +512,6 @@ namespace PDL.ReportService.API.Controllers
         }
 
 
-
-
         [HttpGet]
         public async Task<IActionResult> ExportOverdueExcel(string creatorId, string branchCode, string groupCode, string startDate, string endDate)
         {
@@ -622,7 +622,7 @@ namespace PDL.ReportService.API.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetQRMendateReports(string SmCode,string Mode, DateTime fromdate, DateTime Todate)
+        public async Task<IActionResult> GetQRMendateReports(string SmCode, string Mode, DateTime fromdate, DateTime Todate)
         {
             try
             {
@@ -680,9 +680,9 @@ namespace PDL.ReportService.API.Controllers
             bool isLive = GetIslive();
             try
             {
-                var response = _reports.GetCibilReport(searchDate,dbName,isLive);
+                var response = _reports.GetCibilReport(searchDate, dbName, isLive);
 
-                if (response.Count>0)
+                if (response.Count > 0)
                 {
                     return Ok(new
                     {
@@ -695,13 +695,13 @@ namespace PDL.ReportService.API.Controllers
                     return Ok(new
                     {
                         message = resourceManager.GetString("NORECORD"),
-                        data=""
+                        data = ""
                     });
                 }
             }
             catch (Exception ex)
             {
-                ExceptionLog.InsertLogException(ex, _configuration,GetIslive(), "GetCibilReport_Reports");
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetCibilReport_Reports");
                 return BadRequest(new
                 {
                     message = ex.Message
@@ -712,13 +712,13 @@ namespace PDL.ReportService.API.Controllers
 
         #region Insurance Data
         [HttpGet]
-        public IActionResult GetInsuranceReport(string fromDate,string toDate)
+        public IActionResult GetInsuranceReport(string fromDate, string toDate)
         {
             string dbName = GetDBName();
             bool isLive = GetIslive();
             try
             {
-                var response = _reports.GetInsuranceReport(fromDate,toDate, dbName, isLive);
+                var response = _reports.GetInsuranceReport(fromDate, toDate, dbName, isLive);
 
                 if (response.Count > 0)
                 {
@@ -748,55 +748,245 @@ namespace PDL.ReportService.API.Controllers
         }
         #endregion
 
+        #region Qr Payment Logs
+        [HttpGet]
+        public IActionResult GetQrPaymentsLogs(string fromDate, string toDate, string? mode)
+        {
+            string dbName = GetDBName();
+            bool isLive = GetIslive();
+            string activeUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            try
+            {
+                var data = _reports.GetQrPaymentsLogs(fromDate, toDate, mode, activeUser, dbName, isLive);
+
+                if (data == null || data.Count == 0)
+                    return NoContent();
+
+                using var workbook = new XLWorkbook();
+                var worksheet = workbook.Worksheets.Add("QR_Payment_Logs");
+
+                var table = worksheet.Cell(1, 1).InsertTable(data);
+
+                foreach (var column in table.Columns())
+                {
+                    var firstDataCell = column.Cells().Skip(1).FirstOrDefault();
+
+                    if (firstDataCell != null && firstDataCell.DataType == XLDataType.DateTime)
+                    {
+                        column.Cells().Style.DateFormat.Format = "dd-MM-yyyy HH:mm:ss";
+                    }
+                }
+
+                worksheet.Columns().AdjustToContents();
+                worksheet.SheetView.FreezeRows(1);
+                using var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+
+                return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"QrPayments_{DateTime.Now:yyyyMMddHHmmss}.xlsx");
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetQrPaymentsLogs_Reports");
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
+        #endregion
+
+        #region Icici Transaction Upload Excel file
+        [HttpPost]
+        //public IActionResult UploadIciciTransFile(IFormFile file)
+        //{
+        //    try
+        //    {
+        //        string dbName = GetDBName();
+        //        bool isLive = GetIslive();
+        //        int result = 0;
+        //        string activeUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //        // activeUser = "11399";
+
+        //        string path = _configuration.GetValue<string>("filePath");
+
+        //        if (!Directory.Exists(path))
+        //            Directory.CreateDirectory(path);
+
+        //        string fullPath = Path.Combine(path, file.FileName);
+
+        //        using (FileStream fs = new(fullPath, FileMode.Create))
+        //            file.CopyTo(fs);
+
+        //        List<IciciExcelFileVM> rows = Helper.ReadIciciExcelFile(fullPath);
+
+        //        foreach (var row in rows)
+        //        {
+        //            result = _reports.UploadIciciTransFile(row, activeUser, dbName, isLive);
+
+        //            if (result != 1)
+        //            {
+        //                return BadRequest(new
+        //                {
+        //                    message = Helper.GetErrorMessage(result),
+        //                    data = ""
+        //                });
+        //            }
+        //        }
+
+        //        return Ok(new
+        //        {
+        //            message = (resourceManager.GetString("FILEUPLOAD")),
+        //            data = result
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "UploadIciciTransFile_Reports");
+        //        return BadRequest(new
+        //        {
+        //            message = ex.Message
+        //        });
+        //    }
+        //}
+        public async Task<IActionResult> UploadIciciTransFile(IFormFile file)
+        {
+            try
+            {
+                string dbName = GetDBName();
+                bool isLive = GetIslive();
+                string token = null;
+                string activeUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+              
+                if (Request.Headers.ContainsKey("Authorization"))
+                {
+                    var authHeader = Request.Headers["Authorization"].ToString();
+                    if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                    {
+                        token = authHeader.Substring("Bearer ".Length).Trim();
+                    }
+                }
+                if (string.IsNullOrEmpty(token))
+                {
+                    return Unauthorized(new { message = (resourceManager.GetString("UNAUTHORIZED")) });
+                }
+
+                Dictionary<string, string> allUrl = null;
+                allUrl = _configuration.GetSection("betacollUrl").GetChildren().ToDictionary(x => x.Key, x => x.Value);
+
+                string path = _configuration.GetValue<string>("filePath");
+
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+
+                string fullPath = Path.Combine(path, file.FileName);
+
+                using (FileStream fs = new(fullPath, FileMode.Create))
+                    file.CopyTo(fs);
+
+                List<IciciExcelFileVM> rows = Helper.ReadIciciExcelFile(fullPath);
+
+                rows = rows.Where(r =>!string.IsNullOrWhiteSpace(r.BankRRN)).ToList();
+
+
+                var semaphore = new SemaphoreSlim(5);
+                var tasks = new List<Task>();
+                var errors = new ConcurrentBag<string>();
+
+                foreach (var row in rows)
+                {
+                    await semaphore.WaitAsync();
+
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        try
+                        {
+                            int result = await _reports.UploadIciciTransFile(row, activeUser, dbName, isLive, allUrl, token);
+
+                            if (result != 1)
+                                errors.Add($"SeqNo {row.SeqNo} failed: {Helper.GetErrorMessage(result)}");
+                        }
+                        catch (Exception ex)
+                        {
+                            errors.Add($"SeqNo {row.SeqNo} error: {ex.Message}");
+                        }
+                        finally
+                        {
+                            semaphore.Release();
+                        }
+                    }));
+                }
+                await Task.WhenAll(tasks);
+                return Ok(new
+                {
+                    message = (resourceManager.GetString("FILEUPLOAD")),
+                    Total = rows.Count,
+                    Success = rows.Count - errors.Count,
+                    Failed = errors.Count,
+                    Errors = errors
+                });
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "UploadIciciTransFile_Reports");
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
+        #endregion
     }
 }
 
 
-    //[HttpGet]
-    //public async Task<IActionResult> GetOverdueRecords(
-    //        [FromQuery] int pageNumber = 1,
-    //        [FromQuery] int pageSize = 10,
-    //        [FromQuery] string searchTerm = "",
-    //        [FromQuery] int? minOverdueDays = null,
-    //        [FromQuery] string sortBy = "OverDueDays",
-    //        [FromQuery] string sortOrder = "DESC")
-    //{
-    //    try
-    //    {
-    //        // Validation
-    //        if (pageNumber < 1)
-    //        {
-    //            return BadRequest(new { message = "Page number must be greater than 0" });
-    //        }
 
-    //        if (pageSize < 1 || pageSize > 100)
-    //        {
-    //            return BadRequest(new { message = "Page size must be between 1 and 100" });
-    //        }
+//[HttpGet]
+//public async Task<IActionResult> GetOverdueRecords(
+//        [FromQuery] int pageNumber = 1,
+//        [FromQuery] int pageSize = 10,
+//        [FromQuery] string searchTerm = "",
+//        [FromQuery] int? minOverdueDays = null,
+//        [FromQuery] string sortBy = "OverDueDays",
+//        [FromQuery] string sortOrder = "DESC")
+//{
+//    try
+//    {
+//        // Validation
+//        if (pageNumber < 1)
+//        {
+//            return BadRequest(new { message = "Page number must be greater than 0" });
+//        }
 
-    //        var request = new PaginationRequest<OverduePenalties>
-    //        {
-    //            PageNumber = pageNumber,
-    //            PageSize = pageSize,
-    //            SearchTerm = searchTerm,
-    //            MinOverdueDays = minOverdueDays,
-    //            SortBy = sortBy,
-    //            SortOrder = sortOrder.ToUpper(),
-    //            data = new List<OverduePenalties>()
-    //        };
+//        if (pageSize < 1 || pageSize > 100)
+//        {
+//            return BadRequest(new { message = "Page size must be between 1 and 100" });
+//        }
 
-
-
-    //        var response = await _overdueService.GetOverdueRecordsAsync(request);
+//        var request = new PaginationRequest<OverduePenalties>
+//        {
+//            PageNumber = pageNumber,
+//            PageSize = pageSize,
+//            SearchTerm = searchTerm,
+//            MinOverdueDays = minOverdueDays,
+//            SortBy = sortBy,
+//            SortOrder = sortOrder.ToUpper(),
+//            data = new List<OverduePenalties>()
+//        };
 
 
-    //        return Ok(response);
-    //    }
-    //    catch (Exception ex)
-    //    {
 
-    //        return StatusCode(500, new { message = "An error occurred while fetching overdue records", error = ex.Message });
-    //    }
-    //}
+//        var response = await _overdueService.GetOverdueRecordsAsync(request);
+
+
+//        return Ok(response);
+//    }
+//    catch (Exception ex)
+//    {
+
+//        return StatusCode(500, new { message = "An error occurred while fetching overdue records", error = ex.Message });
+//    }
+//}
 
 
