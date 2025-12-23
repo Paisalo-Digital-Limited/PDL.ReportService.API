@@ -857,7 +857,7 @@ namespace PDL.ReportService.API.Controllers
                 bool isLive = GetIslive();
                 string token = null;
                 string activeUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
+              
                 if (Request.Headers.ContainsKey("Authorization"))
                 {
                     var authHeader = Request.Headers["Authorization"].ToString();
@@ -885,6 +885,10 @@ namespace PDL.ReportService.API.Controllers
                     file.CopyTo(fs);
 
                 List<IciciExcelFileVM> rows = Helper.ReadIciciExcelFile(fullPath);
+
+                rows = rows.Where(r =>!string.IsNullOrWhiteSpace(r.BankRRN) && r.PayerAmount > 0).ToList();
+
+
                 var semaphore = new SemaphoreSlim(5);
                 var tasks = new List<Task>();
                 var errors = new ConcurrentBag<string>();
