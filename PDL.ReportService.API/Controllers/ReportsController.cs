@@ -512,8 +512,6 @@ namespace PDL.ReportService.API.Controllers
         }
 
 
-
-
         [HttpGet]
         public async Task<IActionResult> ExportOverdueExcel(string creatorId, string branchCode, string groupCode, string startDate, string endDate)
         {
@@ -860,6 +858,7 @@ namespace PDL.ReportService.API.Controllers
                 string token = null;
                 string activeUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+              
                 if (Request.Headers.ContainsKey("Authorization"))
                 {
                     var authHeader = Request.Headers["Authorization"].ToString();
@@ -887,6 +886,10 @@ namespace PDL.ReportService.API.Controllers
                     file.CopyTo(fs);
 
                 List<IciciExcelFileVM> rows = Helper.ReadIciciExcelFile(fullPath);
+
+                rows = rows.Where(r =>!string.IsNullOrWhiteSpace(r.BankRRN)).ToList();
+
+
                 var semaphore = new SemaphoreSlim(5);
                 var tasks = new List<Task>();
                 var errors = new ConcurrentBag<string>();
@@ -906,13 +909,13 @@ namespace PDL.ReportService.API.Controllers
                         }
                         catch (Exception ex)
                         {
-                            errors.Add($"SeqNo {row.SeqNo} error: {ex.Message}");                         
+                            errors.Add($"SeqNo {row.SeqNo} error: {ex.Message}");
                         }
                         finally
                         {
                             semaphore.Release();
                         }
-                    }));                   
+                    }));
                 }
                 await Task.WhenAll(tasks);
                 return Ok(new
@@ -922,7 +925,7 @@ namespace PDL.ReportService.API.Controllers
                     Success = rows.Count - errors.Count,
                     Failed = errors.Count,
                     Errors = errors
-                });             
+                });
             }
             catch (Exception ex)
             {
