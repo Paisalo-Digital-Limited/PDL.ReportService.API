@@ -8,7 +8,8 @@
     public string? TxnStatus { get; set; }
 
     // 🔹 VPA Details
-    public string? PayerVpa { get; set; }
+    //public string? PayerVpa { get; set; }
+    public string? PayerVA { get; set; }
     public string? PayeeVpa { get; set; }
     public string? VirtualVpa { get; set; }
 
@@ -18,7 +19,7 @@
 
     // 🔹 FI / Branch Info
     public string? Fname { get; set; }
-    public string? Branchname { get; set; }
+    public string? BranchName { get; set; }
     public string? GroupCode { get; set; }
     public string? FiSmCode { get; set; }
     public string? QRSmCode { get; set; }

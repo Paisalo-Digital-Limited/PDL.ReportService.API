@@ -35,5 +35,6 @@ namespace PDL.ReportService.Entites.VM
         public string? UserId { get; set; }
         public DateTime? VDATE { get; set; }
         public string? CSOID { get; set; }
+        public string? BankRRN { get; set; }
     }
 }

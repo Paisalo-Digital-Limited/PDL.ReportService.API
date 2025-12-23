@@ -1137,21 +1137,20 @@ namespace PDL.ReportService.Logics.BLL
                             {
                                 QrPaymentLogsVM vm = new QrPaymentLogsVM
                                 {
-                                    TxnId = reader["txnId"]?.ToString(),
-                                    VNO = reader["VNO"]?.ToString(),
-                                    CustRef = reader["custRef"]?.ToString(),
-                                    Amount = reader["amount"] != DBNull.Value ? Convert.ToDecimal(reader["amount"]) : 0,
-                                    TxnStatus = reader["txnStatus"]?.ToString(),
-                                    PayerVpa = reader["payerVpa"]?.ToString(),
-                                    PayeeVpa = reader["payeeVpa"]?.ToString(),
-                                    TxnDateTime = reader["txnDateTime"] != DBNull.Value ? Convert.ToDateTime(reader["txnDateTime"]) : (DateTime?)null,
-                                    VirtualVpa = reader["virtualVpa"]?.ToString(),
+                                    TxnId = reader["TxnId"]?.ToString(),
+                                    VNO = reader["VNO"]?.ToString(),                               
+                                    Amount = reader["Amount"] != DBNull.Value ? Convert.ToDecimal(reader["Amount"]) : 0,
+                                    TxnStatus = reader["TxnStatus"]?.ToString(),
+                                    PayerVA = reader["PayerVA"]?.ToString(),
+                                    PayeeVpa = reader["PayeeVPA"]?.ToString(),
+                                    TxnDateTime = reader["TxnDateTime"] != DBNull.Value ? Convert.ToDateTime(reader["TxnDateTime"]) : (DateTime?)null,
+                                    VirtualVpa = reader["VirtualVpa"]?.ToString(),
                                     Fname = reader["Fname"]?.ToString(),
-                                    Branchname = reader["branchname"]?.ToString(),
+                                    BranchName = reader["BranchName"]?.ToString(),
                                     GroupCode = reader["GroupCode"]?.ToString(),
                                     FiSmCode = reader["FISMCODE"]?.ToString(),
                                     QRSmCode = reader["QRSMCODE"]?.ToString(),
-                                    Creationdate = reader["creationdate"] != DBNull.Value ? Convert.ToDateTime(reader["creationdate"]) : (DateTime?)null,
+                                    Creationdate = reader["CreationDate"] != DBNull.Value ? Convert.ToDateTime(reader["CreationDate"]) : (DateTime?)null,
                                     Ahead = reader["AHEAD"]?.ToString(),
                                     SmCodeStatus = reader["SmCodeStatus"]?.ToString(),
                                     QrEntryFlag = reader["QrEntryFlag"]?.ToString(),
@@ -1449,11 +1448,12 @@ namespace PDL.ReportService.Logics.BLL
                                     objVM.SmsMobNo = reader["SmsMobNo"].ToString();
                                     objVM.InterestAmt = Convert.ToInt32(reader["InterestAmt"]);
                                     objVM.CollPoint = reader["CollPoint"].ToString();
-                                    objVM.PaymentMode = "IC_QR";
+                                    objVM.PaymentMode = reader["PaymentMode"].ToString();
                                     objVM.CollBranchCode = reader["collBranchCode"].ToString();
                                     objVM.TxnId = rcManualVM.TxnId;
                                     objVM.CSOID = reader["CSOID"].ToString();
                                     objVM.VDATE = DateTime.Now;
+                                    objVM.BankRRN =rcManualVM.TxnId;
                                 }
                             }
                         }
