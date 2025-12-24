@@ -641,7 +641,7 @@ namespace PDL.ReportService.API.Controllers
             }
             catch (Exception ex)
             {
-                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetInstallmentCollectionReports_Reports");
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetQRMendateReports_Reports");
                 return BadRequest(ex.Message);
             }
         }
@@ -658,7 +658,7 @@ namespace PDL.ReportService.API.Controllers
                 {
                     return BadRequest(new { message = resourceManager.GetString("NULLDBNAME") });
                 }
-                var result = _reports.GetInstallmentCollectionReportsAsync(SmCode, dbName, isLive);
+                var result = await _reports.GetInstallmentCollectionReportsAsync(SmCode, dbName, isLive);
                 return Ok(new
                 {
                     message = resourceManager.GetString("GETSUCCESS"),
@@ -858,7 +858,7 @@ namespace PDL.ReportService.API.Controllers
                 string token = null;
                 string activeUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-              
+         
                 if (Request.Headers.ContainsKey("Authorization"))
                 {
                     var authHeader = Request.Headers["Authorization"].ToString();
@@ -895,7 +895,7 @@ namespace PDL.ReportService.API.Controllers
                 var errors = new ConcurrentBag<string>();
 
                 foreach (var row in rows)
-                {
+                {                                                                                                                                                                                               
                     await semaphore.WaitAsync();
 
                     tasks.Add(Task.Run(async () =>

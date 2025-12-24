@@ -1732,15 +1732,15 @@ namespace PDL.ReportService.Logics.BLL
                                 };
                                 result.emiCollections.Add(emiColl);
                             }
-                        }
+                        }                 
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine(ex);
+                throw;
             }
-
+            result.TotalCRAmount = result.emiCollections.Sum(x => x.CR);
 
             return result;
         }

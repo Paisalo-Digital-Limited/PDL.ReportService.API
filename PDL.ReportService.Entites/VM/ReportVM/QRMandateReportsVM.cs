@@ -23,6 +23,7 @@ namespace PDL.ReportService.Entites.VM.ReportVM
         public string LoanStatus { get; set; }
         public List<Emidata> emis { get; set; }
         public List<EmiCollectiondata> emiCollections { get; set; }
+        public decimal TotalCRAmount { get; set; }
     }
 
     public class Emidata
