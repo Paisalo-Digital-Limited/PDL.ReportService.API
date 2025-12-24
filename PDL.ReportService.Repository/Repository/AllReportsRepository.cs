@@ -123,5 +123,12 @@ namespace PDL.ReportService.Repository.Repository
                 return bll.GetAheadLeger(FromDate, ToDate, Ahead, dbname, isLive);
             }
         }
+        public List<CrifDataJLGVM> GetCrifDataJLG(string ReportDate, string? StartDate, string? EndDate, string dbname, bool isLive)
+        {
+            using (AllReportsBLL bll = new AllReportsBLL(_configuration))
+            {
+                return bll.GetCrifDataJLG(ReportDate, StartDate, EndDate, dbname, isLive);
+            }
+        }
     }
 }

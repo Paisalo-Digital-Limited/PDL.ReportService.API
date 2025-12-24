@@ -858,7 +858,6 @@ namespace PDL.ReportService.API.Controllers
                 string token = null;
                 string activeUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-         
                 if (Request.Headers.ContainsKey("Authorization"))
                 {
                     var authHeader = Request.Headers["Authorization"].ToString();
