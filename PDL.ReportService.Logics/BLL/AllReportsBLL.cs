@@ -6,6 +6,7 @@ using DocumentFormat.OpenXml.Office2016.Drawing;
 using DocumentFormat.OpenXml.Wordprocessing;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using NPOI.POIFS.Crypt.Dsig;
@@ -1987,6 +1988,72 @@ namespace PDL.ReportService.Logics.BLL
             catch (Exception ex)
             {
                 throw new ApplicationException("Error in GetCrifDataJLG", ex);
+            }
+        }
+        public PartyLedgerVMresponse PartyLedger(string SmCode, string dbname, bool isLive)
+        {
+            PartyLedgerVMresponse response = new PartyLedgerVMresponse
+            {
+                list = new List<PartyLedgerVM>() // initialize list
+            };
+
+            try
+            {
+                using (SqlConnection con = _credManager.getConnections(dbname, isLive))
+                using (SqlCommand cmd = new SqlCommand("Usp_GetAllReportsList", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandTimeout = 0;
+                    cmd.Parameters.AddWithValue("@Mode", "PartyLedger");
+                    cmd.Parameters.AddWithValue("@SmCode", SmCode);
+
+                    if (con.State == ConnectionState.Closed)
+                        con.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        // Check if the result set contains a StatusCode column
+                        bool hasStatusCode = Enumerable.Range(0, reader.FieldCount)
+                                                       .Any(i => reader.GetName(i).Equals("StatusCode", StringComparison.OrdinalIgnoreCase));
+
+                        if (hasStatusCode)
+                        {
+                            // Only status code returned
+                            while (reader.Read())
+                            {
+                                response.StatusCode = reader["StatusCode"] == DBNull.Value ? 0 : Convert.ToInt32(reader["StatusCode"]);
+                            }
+                        }
+                        else
+                        {
+                            // Ledger rows returned
+                            while (reader.Read())
+                            {
+                                var item = new PartyLedgerVM
+                                {
+                                    SmCode = reader["Code"] == DBNull.Value ? null : reader["Code"].ToString().Trim(),
+                                    VoucherDate = reader["VoucherDate"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(reader["VoucherDate"]),
+                                    EffectiveDt = reader["EffectiveDt"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(reader["EffectiveDt"]),
+                                    Vno = reader["Vno"] == DBNull.Value ? null : reader["Vno"].ToString().Trim(),
+                                    Dr = reader["Dr"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["Dr"]),
+                                    Cr = reader["Cr"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["Cr"]),
+                                    Ahead = reader["Ahead"] == DBNull.Value ? null : reader["Ahead"].ToString().Trim(),
+                                    Narr = reader["Narr"] == DBNull.Value ? null : reader["Narr"].ToString().Trim(),
+                                    OvDrDays = reader["OvDrDays"] == DBNull.Value ? null : reader["OvDrDays"].ToString().Trim(),
+                                    LateFeeIntt = reader["LateFeeIntt"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["LateFeeIntt"])
+                                };
+                                response.list.Add(item);
+                            }
+                            response.StatusCode = 1; // success
+                        }
+                    }
+                }
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("Error in PartyLedger", ex);
             }
         }
 

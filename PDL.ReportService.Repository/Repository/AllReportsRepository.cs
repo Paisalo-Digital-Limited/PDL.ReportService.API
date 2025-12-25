@@ -87,7 +87,7 @@ namespace PDL.ReportService.Repository.Repository
         {
             using (AllReportsBLL bll = new AllReportsBLL(_configuration))
             {
-                return  bll.GetNewCasesForAMonth(FromDate, ToDate,dbname, isLive);
+                return bll.GetNewCasesForAMonth(FromDate, ToDate, dbname, isLive);
             }
         }
         #region GetApplicationFormData
@@ -116,7 +116,7 @@ namespace PDL.ReportService.Repository.Repository
             }
         }
         #endregion
-        public DataTable GetAheadLeger(string? FromDate, string? ToDate,string Ahead, string dbname, bool isLive)
+        public DataTable GetAheadLeger(string? FromDate, string? ToDate, string Ahead, string dbname, bool isLive)
         {
             using (AllReportsBLL bll = new AllReportsBLL(_configuration))
             {
@@ -128,6 +128,13 @@ namespace PDL.ReportService.Repository.Repository
             using (AllReportsBLL bll = new AllReportsBLL(_configuration))
             {
                 return bll.GetCrifDataJLG(ReportDate, StartDate, EndDate, dbname, isLive);
+            }
+        }
+        public PartyLedgerVMresponse PartyLedger(string SmCode, string dbname, bool isLive)
+        {
+            using (AllReportsBLL bll = new AllReportsBLL(_configuration))
+            {
+                return bll.PartyLedger(SmCode, dbname, isLive);
             }
         }
     }

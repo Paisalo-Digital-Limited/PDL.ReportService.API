@@ -198,4 +198,7 @@
   <data name="UNAUTHORIZED" xml:space="preserve">
     <value>Authorization token is missing or invalid.</value>
   </data>
+  <data name="CASENOTEXIST" xml:space="preserve">
+    <value>this case not exist.</value>
+  </data>
 </root>
