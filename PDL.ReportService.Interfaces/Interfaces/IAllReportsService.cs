@@ -27,6 +27,6 @@ namespace PDL.ReportService.Interfaces.Interfaces
         DataTable GetNewCasesForAMonth(string? FromDate, string? ToDate, string dbname, bool isLive);
         DataTable GetAheadLeger(string? FromDate, string? ToDate,string Ahead, string dbname, bool isLive);
         List<CrifDataJLGVM> GetCrifDataJLG(string ReportDate, string? StartDate, string? EndDate, string dbname, bool isLive);
-
+        PartyLedgerVMresponse PartyLedger(string SmCode,string dbname,bool isLive);
     }
 }
