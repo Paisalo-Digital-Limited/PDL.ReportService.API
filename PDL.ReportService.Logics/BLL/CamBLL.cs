@@ -1433,12 +1433,13 @@ namespace PDL.ReportService.Logics.BLL
         bool isLive,
         out List<FIInfoVM> fiDetails)
         {
-            List<BranchTypeWiseReportVM> res = new List<BranchTypeWiseReportVM>();
-            fiDetails = new List<FIInfoVM>();
+            List<BranchTypeWiseReportVM> res = new();
+            fiDetails = new();
 
             using (SqlConnection con = _credManager.getConnections(dbName, isLive))
             {
                 con.Open();
+
                 using (SqlCommand cmd = new SqlCommand("USP_GetBranchByCreator_TypeWise", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
@@ -1461,34 +1462,37 @@ namespace PDL.ReportService.Logics.BLL
                                       .Any(i => reader.GetName(i)
                                       .Equals(columnName, StringComparison.InvariantCultureIgnoreCase));
 
-                        /* ===========================
+                        /* =========================
                            RESULT SET 1 → Branches
-                           =========================== */
+                           ========================= */
                         while (reader.Read())
                         {
                             res.Add(new BranchTypeWiseReportVM
                             {
                                 SearchMode = model.SearchMode,
                                 Type = model.Type,
+
                                 CreatorId = HasColumn("CreatorID") && reader["CreatorID"] != DBNull.Value
                                             ? Convert.ToInt32(reader["CreatorID"])
                                             : (int?)null,
+
                                 CreatorName = HasColumn("CreatorName")
                                               ? reader["CreatorName"]?.ToString()
                                               : null,
+
                                 BranchCode = HasColumn("BranchCode")
                                               ? reader["BranchCode"]?.ToString()
                                               : null,
+
                                 BranchName = HasColumn("BranchName")
                                               ? reader["BranchName"]?.ToString()
                                               : null
                             });
                         }
 
-                        /* ===========================
-                           RESULT SET 2 → FI Details
-                           (SOURCING / DISBURSED / ESIGN)
-                           =========================== */
+                        /* =========================
+                           RESULT SET 2 → FI DETAILS
+                           ========================= */
                         if (reader.NextResult())
                         {
                             bool HasFIColumn(string columnName) =>
@@ -1500,27 +1504,18 @@ namespace PDL.ReportService.Logics.BLL
                             {
                                 fiDetails.Add(new FIInfoVM
                                 {
-                                    // Fi_ID = HasFIColumn("Fi_Id") && reader["Fi_Id"] != DBNull.Value
-                                    //        ? Convert.ToInt64(reader["Fi_Id"])
-                                    //        : (long?)null,
-
-                                    Code = HasFIColumn("CODE")
-                                           ? reader["CODE"]?.ToString()
-                                           : null,          // from SM
-
                                     FICode = HasFIColumn("FICode")
                                              ? reader["FICode"]?.ToString()
                                              : null,
 
-                                    // ✅ New Name Fields
-                                    F_Name = HasFIColumn("F_Name")
-                                             ? reader["F_Name"]?.ToString()
-                                             : null,
-                                    M_Name = HasFIColumn("M_Name")
-                                             ? reader["M_Name"]?.ToString()
-                                             : null,
-                                    L_Name = HasFIColumn("L_Name")
-                                             ? reader["L_Name"]?.ToString()
+                                    // ✅ NEW (from SQL CONCAT)
+                                    Name = HasFIColumn("Name")
+                                           ? reader["Name"]?.ToString()
+                                           : null,
+
+                                    // ✅ DISBURSED only
+                                    SmCode = HasFIColumn("SmCode")
+                                             ? reader["SmCode"]?.ToString()
                                              : null,
 
                                     CreatorId = HasFIColumn("CreatorID") && reader["CreatorID"] != DBNull.Value
@@ -1539,7 +1534,7 @@ namespace PDL.ReportService.Logics.BLL
                                                  ? reader["BranchName"]?.ToString()
                                                  : null,
 
-                                    // ESIGN only (safe)
+                                    // ✅ ESIGN only
                                     EsignStatus = HasFIColumn("BorrSignStatus")
                                                   ? reader["BorrSignStatus"]?.ToString()
                                                   : null
