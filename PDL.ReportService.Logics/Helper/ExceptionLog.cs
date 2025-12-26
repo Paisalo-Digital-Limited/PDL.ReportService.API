@@ -7,6 +7,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace PDL.ReportService.Logics.Helper
 {
@@ -15,7 +16,7 @@ namespace PDL.ReportService.Logics.Helper
         public static void InsertLogException(Exception exc, IConfiguration configuration, bool islive, string source = null)
         {
             string connection = string.Empty;
-          
+
             string dbnames = Helper.GetDBName(configuration);
             string passwdKey = configuration["dbSalt"];
             string cipherText = configuration["pwencyped"];
@@ -23,10 +24,13 @@ namespace PDL.ReportService.Logics.Helper
             string userText = configuration["userNameEnc"];
             string password = Helper.Decrypt(cipherText, passwdKey);
             string username = Helper.Decrypt(userText, userkey);
-            if(islive)
-            connection = @"Data Source=192.168.1.78;Initial Catalog=" + dbnames + ";User Id="+ username + ";password=" + password + ";Trusted_Connection=False;MultipleActiveResultSets=True;Encrypt=false";
+
+            string DBIp = configuration["DB_IP"];
+
+            if (islive)
+                connection = @"Data Source=" + DBIp + ";Initial Catalog=" + dbnames + ";User Id=" + username + ";password=" + password + ";Trusted_Connection=False;MultipleActiveResultSets=True;Encrypt=false";
             else
-            connection = @"Data Source=192.168.10.2;Initial Catalog=" + dbnames + ";User Id=" + username + ";password=" + password + ";Trusted_Connection=False;MultipleActiveResultSets=True;Encrypt=false";
+                connection = @"Data Source=" + DBIp + ";Initial Catalog=" + dbnames + ";User Id=" + username + ";password=" + password + ";Trusted_Connection=False;MultipleActiveResultSets=True;Encrypt=false";
 
             ExceptionLogVM losCodeExceptionLog = new ExceptionLogVM();
             if (exc.InnerException != null)
