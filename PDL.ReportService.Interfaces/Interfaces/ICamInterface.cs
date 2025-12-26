@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PDL.ReportService.Entites.VM;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -13,5 +14,12 @@ namespace PDL.ReportService.Interfaces.Interfaces
     {
         string GetCamGeneration(string ficodes, int creatorId, string dbName, bool isLive);
         List<string> GetFiCodeByCreator(int CreatorId, string dbName, bool isLive);
+
+        List<BranchTypeWiseReportVM> GetBranchTypeWiseReport(
+        BranchTypeWiseReportVM model,
+        string dbName,
+        bool isLive,
+        out List<FIInfoVM> fiDetails
+    );
     }
 }

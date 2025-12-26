@@ -36,5 +36,13 @@ namespace PDL.ReportService.Repository.Repository
                 return camBLL.GetFiCodeByCreator(CreatorId, dbName, isLive);
             }
         }
+
+        public List<BranchTypeWiseReportVM> GetBranchTypeWiseReport(BranchTypeWiseReportVM model,string dbName, bool isLive,out List<FIInfoVM> fiDetails)
+        {
+            using (CamBLL camBLL = new CamBLL(_configuration))
+            {
+                return camBLL.GetBranchTypeWiseReport(model, dbName, isLive, out fiDetails);
+            }
+        }
     }
 }
