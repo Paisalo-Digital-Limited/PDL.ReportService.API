@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using PDL.ReportService.Entites.VM;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.Helper;
 using System.Security.Claims;
@@ -80,6 +81,61 @@ namespace PDL.ReportService.API.Controllers
                 return BadRequest(new { message = (resourceManager.GetString("BADREQUEST")), data = "" });
             }
         }
+        [HttpGet]
+        public IActionResult GetBranchTypeWiseReport([FromQuery] BranchTypeWiseReportVM model)
+        {
+            try
+            {
+                string dbname = GetDBName();
+                string activeuser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                // Declare the out parameter for FI details
+                List<FIInfoVM> fiDetails;
+
+                // Pass the VM object directly and get both branch and FI details
+                var result = _camInterface.GetBranchTypeWiseReport(model, dbname, GetIslive(), out fiDetails);
+
+                if ((result != null && result.Count > 0) || (fiDetails != null && fiDetails.Count > 0))
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("GETSUCCESS"),
+                        data = new
+                        {
+                            Branches = result,       // Branch/Dealer info
+                            FIDetails = fiDetails    // FI info
+                        }
+                    });
+                }
+
+                return Ok(new
+                {
+                    message = resourceManager.GetString("NORECORD"),
+                    data = new
+                    {
+                        Branches = result,
+                        FIDetails = fiDetails
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(
+                    ex,
+                    _configuration,
+                    GetIslive(),
+                    "GetBranchTypeWiseReport_CamController"
+                );
+
+                return BadRequest(new
+                {
+                    message = resourceManager.GetString("BADREQUEST"),
+                    data = ""
+                });
+            }
+        }
+
+
 
 
     }

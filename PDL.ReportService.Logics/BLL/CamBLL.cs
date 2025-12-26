@@ -1425,5 +1425,139 @@ namespace PDL.ReportService.Logics.BLL
             }
             return res;
         }
+
+
+        public List<BranchTypeWiseReportVM> GetBranchTypeWiseReport(
+        BranchTypeWiseReportVM model,
+        string dbName,
+        bool isLive,
+        out List<FIInfoVM> fiDetails)
+        {
+            List<BranchTypeWiseReportVM> res = new List<BranchTypeWiseReportVM>();
+            fiDetails = new List<FIInfoVM>();
+
+            using (SqlConnection con = _credManager.getConnections(dbName, isLive))
+            {
+                con.Open();
+                using (SqlCommand cmd = new SqlCommand("USP_GetBranchByCreator_TypeWise", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@SearchMode", model.SearchMode ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@CreatorID",
+                        model.CreatorId.HasValue ? (object)model.CreatorId.Value : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchCode",
+                        string.IsNullOrEmpty(model.BranchCode) ? DBNull.Value : model.BranchCode);
+                    cmd.Parameters.AddWithValue("@Type", model.Type ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@FromDate",
+                        model.FromDate.HasValue ? (object)model.FromDate.Value : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ToDate",
+                        model.ToDate.HasValue ? (object)model.ToDate.Value : DBNull.Value);
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        bool HasColumn(string columnName) =>
+                            Enumerable.Range(0, reader.FieldCount)
+                                      .Any(i => reader.GetName(i)
+                                      .Equals(columnName, StringComparison.InvariantCultureIgnoreCase));
+
+                        /* ===========================
+                           RESULT SET 1 → Branches
+                           =========================== */
+                        while (reader.Read())
+                        {
+                            res.Add(new BranchTypeWiseReportVM
+                            {
+                                SearchMode = model.SearchMode,
+                                Type = model.Type,
+                                CreatorId = HasColumn("CreatorID") && reader["CreatorID"] != DBNull.Value
+                                            ? Convert.ToInt32(reader["CreatorID"])
+                                            : (int?)null,
+                                CreatorName = HasColumn("CreatorName")
+                                              ? reader["CreatorName"]?.ToString()
+                                              : null,
+                                BranchCode = HasColumn("BranchCode")
+                                              ? reader["BranchCode"]?.ToString()
+                                              : null,
+                                BranchName = HasColumn("BranchName")
+                                              ? reader["BranchName"]?.ToString()
+                                              : null
+                            });
+                        }
+
+                        /* ===========================
+                           RESULT SET 2 → FI Details
+                           (SOURCING / DISBURSED / ESIGN)
+                           =========================== */
+                        if (reader.NextResult())
+                        {
+                            bool HasFIColumn(string columnName) =>
+                                Enumerable.Range(0, reader.FieldCount)
+                                          .Any(i => reader.GetName(i)
+                                          .Equals(columnName, StringComparison.InvariantCultureIgnoreCase));
+
+                            while (reader.Read())
+                            {
+                                fiDetails.Add(new FIInfoVM
+                                {
+                                    // Fi_ID = HasFIColumn("Fi_Id") && reader["Fi_Id"] != DBNull.Value
+                                    //        ? Convert.ToInt64(reader["Fi_Id"])
+                                    //        : (long?)null,
+
+                                    Code = HasFIColumn("CODE")
+                                           ? reader["CODE"]?.ToString()
+                                           : null,          // from SM
+
+                                    FICode = HasFIColumn("FICode")
+                                             ? reader["FICode"]?.ToString()
+                                             : null,
+
+                                    // ✅ New Name Fields
+                                    F_Name = HasFIColumn("F_Name")
+                                             ? reader["F_Name"]?.ToString()
+                                             : null,
+                                    M_Name = HasFIColumn("M_Name")
+                                             ? reader["M_Name"]?.ToString()
+                                             : null,
+                                    L_Name = HasFIColumn("L_Name")
+                                             ? reader["L_Name"]?.ToString()
+                                             : null,
+
+                                    CreatorId = HasFIColumn("CreatorID") && reader["CreatorID"] != DBNull.Value
+                                                ? Convert.ToInt32(reader["CreatorID"])
+                                                : (int?)null,
+
+                                    CreatorName = HasFIColumn("CreatorName")
+                                                  ? reader["CreatorName"]?.ToString()
+                                                  : null,
+
+                                    BranchCode = HasFIColumn("Branch_code")
+                                                 ? reader["Branch_code"]?.ToString()
+                                                 : null,
+
+                                    BranchName = HasFIColumn("BranchName")
+                                                 ? reader["BranchName"]?.ToString()
+                                                 : null,
+
+                                    // ESIGN only (safe)
+                                    EsignStatus = HasFIColumn("BorrSignStatus")
+                                                  ? reader["BorrSignStatus"]?.ToString()
+                                                  : null
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            return res;
+        }
+
+
+
+
+
+
+
     }
 }
