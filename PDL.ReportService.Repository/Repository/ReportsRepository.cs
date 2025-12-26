@@ -188,11 +188,11 @@ namespace PDL.ReportService.Repository.Repository
 
             }
         }
-        public int UploadIciciTransFile(IciciExcelFileVM data, string activeUser,string dbName, bool isLive)
+        public async Task<int> UploadIciciTransFile(IciciExcelFileVM data, string activeUser,string dbName, bool isLive,Dictionary<string, string> allUrl, string token)
         {
             using (ReportsBLL reportsBLL = new ReportsBLL(_configuration))
             {
-                return reportsBLL.UploadIciciTransFile(data,activeUser, dbName, isLive);
+                return await reportsBLL.UploadIciciTransFile(data, activeUser, dbName, isLive, allUrl, token);
 
             }
         }

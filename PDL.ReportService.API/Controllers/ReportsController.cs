@@ -12,6 +12,7 @@ using PDL.ReportService.Entites.VM.ReportVM;
 using PDL.ReportService.Interfaces.Interfaces;
 using PDL.ReportService.Logics.Helper;
 using Renci.SshNet.Messages;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Security.Claims;
 
@@ -511,8 +512,6 @@ namespace PDL.ReportService.API.Controllers
         }
 
 
-
-
         [HttpGet]
         public async Task<IActionResult> ExportOverdueExcel(string creatorId, string branchCode, string groupCode, string startDate, string endDate)
         {
@@ -642,7 +641,7 @@ namespace PDL.ReportService.API.Controllers
             }
             catch (Exception ex)
             {
-                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetInstallmentCollectionReports_Reports");
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetQRMendateReports_Reports");
                 return BadRequest(ex.Message);
             }
         }
@@ -659,7 +658,7 @@ namespace PDL.ReportService.API.Controllers
                 {
                     return BadRequest(new { message = resourceManager.GetString("NULLDBNAME") });
                 }
-                var result = _reports.GetInstallmentCollectionReportsAsync(SmCode, dbName, isLive);
+                var result = await _reports.GetInstallmentCollectionReportsAsync(SmCode, dbName, isLive);
                 return Ok(new
                 {
                     message = resourceManager.GetString("GETSUCCESS"),
@@ -799,16 +798,82 @@ namespace PDL.ReportService.API.Controllers
 
         #region Icici Transaction Upload Excel file
         [HttpPost]
-        public IActionResult UploadIciciTransFile(IFormFile file)
+        //public IActionResult UploadIciciTransFile(IFormFile file)
+        //{
+        //    try
+        //    {
+        //        string dbName = GetDBName();
+        //        bool isLive = GetIslive();
+        //        int result = 0;
+        //        string activeUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //        // activeUser = "11399";
+
+        //        string path = _configuration.GetValue<string>("filePath");
+
+        //        if (!Directory.Exists(path))
+        //            Directory.CreateDirectory(path);
+
+        //        string fullPath = Path.Combine(path, file.FileName);
+
+        //        using (FileStream fs = new(fullPath, FileMode.Create))
+        //            file.CopyTo(fs);
+
+        //        List<IciciExcelFileVM> rows = Helper.ReadIciciExcelFile(fullPath);
+
+        //        foreach (var row in rows)
+        //        {
+        //            result = _reports.UploadIciciTransFile(row, activeUser, dbName, isLive);
+
+        //            if (result != 1)
+        //            {
+        //                return BadRequest(new
+        //                {
+        //                    message = Helper.GetErrorMessage(result),
+        //                    data = ""
+        //                });
+        //            }
+        //        }
+
+        //        return Ok(new
+        //        {
+        //            message = (resourceManager.GetString("FILEUPLOAD")),
+        //            data = result
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "UploadIciciTransFile_Reports");
+        //        return BadRequest(new
+        //        {
+        //            message = ex.Message
+        //        });
+        //    }
+        //}
+        public async Task<IActionResult> UploadIciciTransFile(IFormFile file)
         {
             try
             {
                 string dbName = GetDBName();
                 bool isLive = GetIslive();
-                int result = 0;
+                string token = null;
                 string activeUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
-               // activeUser = "11399";
-               
+
+                if (Request.Headers.ContainsKey("Authorization"))
+                {
+                    var authHeader = Request.Headers["Authorization"].ToString();
+                    if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                    {
+                        token = authHeader.Substring("Bearer ".Length).Trim();
+                    }
+                }
+                if (string.IsNullOrEmpty(token))
+                {
+                    return Unauthorized(new { message = (resourceManager.GetString("UNAUTHORIZED")) });
+                }
+
+                Dictionary<string, string> allUrl = null;
+                allUrl = _configuration.GetSection("betacollUrl").GetChildren().ToDictionary(x => x.Key, x => x.Value);
+
                 string path = _configuration.GetValue<string>("filePath");
 
                 if (!Directory.Exists(path))
@@ -821,24 +886,44 @@ namespace PDL.ReportService.API.Controllers
 
                 List<IciciExcelFileVM> rows = Helper.ReadIciciExcelFile(fullPath);
 
+                rows = rows.Where(r =>!string.IsNullOrWhiteSpace(r.BankRRN)).ToList();
+
+
+                var semaphore = new SemaphoreSlim(5);
+                var tasks = new List<Task>();
+                var errors = new ConcurrentBag<string>();
+
                 foreach (var row in rows)
-                {
-                    result = _reports.UploadIciciTransFile(row, activeUser, dbName, isLive);
+                {                                                                                                                                                                                               
+                    await semaphore.WaitAsync();
 
-                    if (result != 1)
+                    tasks.Add(Task.Run(async () =>
                     {
-                        return BadRequest(new
+                        try
                         {
-                            message = Helper.GetErrorMessage(result),
-                            data = ""
-                        });
-                    }
-                }
+                            int result = await _reports.UploadIciciTransFile(row, activeUser, dbName, isLive, allUrl, token);
 
+                            if (result != 1)
+                                errors.Add($"SeqNo {row.SeqNo} failed: {Helper.GetErrorMessage(result)}");
+                        }
+                        catch (Exception ex)
+                        {
+                            errors.Add($"SeqNo {row.SeqNo} error: {ex.Message}");
+                        }
+                        finally
+                        {
+                            semaphore.Release();
+                        }
+                    }));
+                }
+                await Task.WhenAll(tasks);
                 return Ok(new
                 {
                     message = (resourceManager.GetString("FILEUPLOAD")),
-                    data = result
+                    Total = rows.Count,
+                    Success = rows.Count - errors.Count,
+                    Failed = errors.Count,
+                    Errors = errors
                 });
             }
             catch (Exception ex)
@@ -850,75 +935,8 @@ namespace PDL.ReportService.API.Controllers
                 });
             }
         }
+        #endregion
     }
-    //public IActionResult UploadIciciTransFile(IFormFile file)
-    //{
-    //    try
-    //    {
-    //        string dbName = GetDBName();
-    //        bool isLive = GetIslive();
-    //        string token = null;
-    //        int result = 0;
-    //        string activeUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
-    //        activeUser = "11399";
-    //        if (Request.Headers.ContainsKey("Authorization"))
-    //        {
-    //            var authHeader = Request.Headers["Authorization"].ToString();
-    //            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
-    //            {
-    //                token = authHeader.Substring("Bearer ".Length).Trim();
-    //            }
-    //        }
-    //        //if (string.IsNullOrEmpty(token))
-    //        //{
-    //        //    return Unauthorized(new { message = (resourceManager.GetString("UNAUTHORIZED")) });
-    //        //}
-
-    //        Dictionary<string, string> allUrl = null;
-    //        allUrl = _configuration.GetSection("betacollUrl").GetChildren().ToDictionary(x => x.Key, x => x.Value);
-
-    //        string path = _configuration.GetValue<string>("filePath");
-
-    //        if (!Directory.Exists(path))
-    //            Directory.CreateDirectory(path);
-
-    //        string fullPath = Path.Combine(path, file.FileName);
-
-    //        using (FileStream fs = new(fullPath, FileMode.Create))
-    //            file.CopyTo(fs);
-
-    //        List<IciciExcelFileVM> rows = Helper.ReadIciciExcelFile(fullPath);
-
-    //        foreach (var row in rows)
-    //        {
-    //             result = _reports.UploadIciciTransFile(row, activeUser, dbName, isLive, allUrl, token);
-
-    //            if (result != 1)
-    //            {
-    //                return BadRequest(new
-    //                {
-    //                    message =Helper.GetErrorMessage(result),
-    //                    data =""
-    //                });
-    //            }
-    //        }
-
-    //        return Ok(new
-    //        {
-    //            message = (resourceManager.GetString("FILEUPLOAD")),
-    //            data = result                 
-    //        });
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "UploadIciciTransFile_Reports");
-    //        return BadRequest(new
-    //        {
-    //            message = ex.Message
-    //        });
-    //    }
-    //}
-    #endregion
 }
 
 

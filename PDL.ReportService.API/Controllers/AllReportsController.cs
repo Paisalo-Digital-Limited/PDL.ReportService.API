@@ -489,7 +489,7 @@ namespace PDL.ReportService.API.Controllers
             }
         }
 
-}
+
         [HttpGet]
         public IActionResult GetNewCasesForAMonth(string? FromDate, string? ToDate)
         {
@@ -524,7 +524,7 @@ namespace PDL.ReportService.API.Controllers
             }
         }
         [HttpGet]
-        public IActionResult GetAheadLeger(string FromDate, string ToDate ,string Ahead)
+        public IActionResult GetAheadLeger(string FromDate, string ToDate, string Ahead)
         {
             string dbname = GetDBName();
             bool isLive = GetIslive();
@@ -553,6 +553,83 @@ namespace PDL.ReportService.API.Controllers
             catch (Exception ex)
             {
                 ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetAheadLeger_AllReports");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpGet]
+        public IActionResult GetCrifDataJLG(string ReportDate, string? StartDate, string? EndDate)
+        {
+            string dbname = GetDBName();
+            bool isLive = GetIslive();
+
+            try
+            {
+                List<CrifDataJLGVM> result = _allReportsService.GetCrifDataJLG(ReportDate, StartDate, EndDate, dbname, isLive);
+                if (result.Count > 0)
+                {
+                    return Ok(new
+                    {
+                        message = (resourceManager.GetString("GETSUCCESS")),
+                        data = result
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("NORECORD"),
+                        data = result
+
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "GetCrifDataJLG_AllReports");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        #endregion
+
+        [HttpGet]
+        public IActionResult PartyLedger(string SmCode)
+        {
+            string dbname = GetDBName();
+            bool isLive = GetIslive();
+
+            try
+            {
+                PartyLedgerVMresponse res = _allReportsService.PartyLedger(SmCode, dbname, isLive);
+                if (res.StatusCode >= 0)
+                {
+                    if (res.StatusCode == 0)
+                    {
+                        return Ok(new
+                        {
+                            message = resourceManager.GetString("NORECORD"),
+                            data = res
+
+                        });
+                    }
+                    return Ok(new
+                    {
+                        message = (resourceManager.GetString("GETSUCCESS")),
+                        data = res
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        message = resourceManager.GetString("CASENOTEXIST"),
+                        data = res
+
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLog.InsertLogException(ex, _configuration, GetIslive(), "PartyLedger_AllReports");
                 return BadRequest(new { message = ex.Message });
             }
         }

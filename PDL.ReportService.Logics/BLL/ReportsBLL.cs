@@ -1,4 +1,6 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.EMMA;
+using MathNet.Numerics.LinearAlgebra.Factorization;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -913,6 +915,7 @@ namespace PDL.ReportService.Logics.BLL
                 using (SqlCommand cmd = new SqlCommand(spName, con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandTimeout = 0;
                     cmd.Parameters.Add("@reportDate", SqlDbType.SmallDateTime).Value = searchDate;
 
                     if (con.State == ConnectionState.Closed)
@@ -1135,21 +1138,20 @@ namespace PDL.ReportService.Logics.BLL
                             {
                                 QrPaymentLogsVM vm = new QrPaymentLogsVM
                                 {
-                                    TxnId = reader["txnId"]?.ToString(),
-                                    VNO = reader["VNO"]?.ToString(),
-                                    CustRef = reader["custRef"]?.ToString(),
-                                    Amount = reader["amount"] != DBNull.Value ? Convert.ToDecimal(reader["amount"]) : 0,
-                                    TxnStatus = reader["txnStatus"]?.ToString(),
-                                    PayerVpa = reader["payerVpa"]?.ToString(),
-                                    PayeeVpa = reader["payeeVpa"]?.ToString(),
-                                    TxnDateTime = reader["txnDateTime"] != DBNull.Value ? Convert.ToDateTime(reader["txnDateTime"]) : (DateTime?)null,
-                                    VirtualVpa = reader["virtualVpa"]?.ToString(),
+                                    TxnId = reader["TxnId"]?.ToString(),
+                                    VNO = reader["VNO"]?.ToString(),                               
+                                    Amount = reader["Amount"] != DBNull.Value ? Convert.ToDecimal(reader["Amount"]) : 0,
+                                    TxnStatus = reader["TxnStatus"]?.ToString(),
+                                    PayerVA = reader["PayerVA"]?.ToString(),
+                                    PayeeVpa = reader["PayeeVPA"]?.ToString(),
+                                    TxnDateTime = reader["TxnDateTime"] != DBNull.Value ? Convert.ToDateTime(reader["TxnDateTime"]) : (DateTime?)null,
+                                    VirtualVpa = reader["VirtualVpa"]?.ToString(),
                                     Fname = reader["Fname"]?.ToString(),
-                                    Branchname = reader["branchname"]?.ToString(),
+                                    BranchName = reader["BranchName"]?.ToString(),
                                     GroupCode = reader["GroupCode"]?.ToString(),
                                     FiSmCode = reader["FISMCODE"]?.ToString(),
                                     QRSmCode = reader["QRSMCODE"]?.ToString(),
-                                    Creationdate = reader["creationdate"] != DBNull.Value ? Convert.ToDateTime(reader["creationdate"]) : (DateTime?)null,
+                                    Creationdate = reader["CreationDate"] != DBNull.Value ? Convert.ToDateTime(reader["CreationDate"]) : (DateTime?)null,
                                     Ahead = reader["AHEAD"]?.ToString(),
                                     SmCodeStatus = reader["SmCodeStatus"]?.ToString(),
                                     QrEntryFlag = reader["QrEntryFlag"]?.ToString(),
@@ -1220,7 +1222,7 @@ namespace PDL.ReportService.Logics.BLL
                 throw;
             }
         }
-        public int UploadIciciTransFile(IciciExcelFileVM row, string activeUser, string dbName, bool isLive)
+        public async Task<int> UploadIciciTransFile(IciciExcelFileVM row, string activeUser, string dbName, bool isLive, Dictionary<string, string> allUrl, string token)
         {
             try
             {
@@ -1281,27 +1283,33 @@ namespace PDL.ReportService.Logics.BLL
                 //if (qr == null)
                 //    return -4;
 
-                //if (data.TxnStatus == "SUCCESS")
-                //{
-                //    RcManualVM rcVm = new RcManualVM();
-                //    rcVm.TxnId = qr.TxnId;
-                //    rcVm.TxnDate = qr.TxnDateTime;
-                //    rcVm.Amt = qr.Amount.ToString();
-                //    rcVm.SmCode = qr.VirtualVpa.Substring(qr.VirtualVpa.Length - 16);
+                if (data.TxnStatus == "SUCCESS")
+                {
+                    RcManualVM rcVm = new RcManualVM();
 
-                //    ICICIRcPostManualVM rcPostVm = PrepareRcPostData(rcVm, dbName, isLive);
-                //    if (rcPostVm == null)
-                //        return -5;
+                    rcVm.TxnId = data.BankRRN;
+                    rcVm.TxnDate = data.TxnInitDate;
+                    rcVm.Amt = data.PayerAmount.ToString();
+                    rcVm.SmCode = data.MerchantTranId.Substring(data.MerchantTranId.Length-16);
 
-                //    if (rcPostVm != null)
-                //    {
-                //        APIResponseVM apiResp = Helper.Helper.SaveRcManualByExcel(rcPostVm, activeUser, allUrl, token);
-                //        if (!apiResp.IsSuccessStatusCode)
-                //        {
-                //            return -7;
-                //        }
-                //    }
-                //}
+                    //rcVm.TxnId = qr.TxnId;
+                    //  rcVm.TxnDate = qr.TxnDateTime;
+                   // rcVm.Amt = qr.Amount.ToString();
+                   //rcVm.SmCode = qr.VirtualVpa.Substring(qr.VirtualVpa.Length - 16);
+
+                    ICICIRcPostManualVM rcPostVm = PrepareRcPostData(rcVm, dbName, isLive);
+                    if (rcPostVm == null)
+                        return -5;
+
+                    if (rcPostVm != null)
+                    {
+                        APIResponseVM apiResp =await Helper.Helper.SaveRcManualByExcel(rcPostVm, activeUser, allUrl, token);
+                        if (!apiResp.IsSuccessStatusCode)
+                        {
+                            return -7;
+                        }
+                    }
+                }
                 return 1;
             }
             catch (Exception)
@@ -1441,11 +1449,12 @@ namespace PDL.ReportService.Logics.BLL
                                     objVM.SmsMobNo = reader["SmsMobNo"].ToString();
                                     objVM.InterestAmt = Convert.ToInt32(reader["InterestAmt"]);
                                     objVM.CollPoint = reader["CollPoint"].ToString();
-                                    objVM.PaymentMode = "QR";
+                                    objVM.PaymentMode = reader["PaymentMode"].ToString();
                                     objVM.CollBranchCode = reader["collBranchCode"].ToString();
                                     objVM.TxnId = rcManualVM.TxnId;
                                     objVM.CSOID = reader["CSOID"].ToString();
                                     objVM.VDATE = DateTime.Now;
+                                    objVM.BankRRN =rcManualVM.TxnId;
                                 }
                             }
                         }
