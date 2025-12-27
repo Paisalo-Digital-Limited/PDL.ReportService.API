@@ -942,6 +942,9 @@ namespace PDL.ReportService.Logics.BLL
                                 DrivingLicenseIssueDate = reader["Driving License Issue Date"] == DBNull.Value ? null : reader["Driving License Issue Date"].ToString().Trim(),
                                 DrivingLicenseExpiryDate = reader["Driving License Expiry Date"] == DBNull.Value ? null : reader["Driving License Expiry Date"].ToString().Trim(),
 
+                                RationCardNumber = reader["Ration Card Number"] == DBNull.Value ? null : reader["Ration Card Number"].ToString().Trim(),
+                                UniversalIDNumber = reader["Universal ID Number"] == DBNull.Value ? null : reader["Universal ID Number"].ToString().Trim(),
+                                AdditionalID1 = reader["Additional ID #1"] == DBNull.Value ? null : reader["Additional ID #1"].ToString().Trim(),
                                 AdditionalId2 = reader["Additional ID #2"] == DBNull.Value ? null : reader["Additional ID #2"].ToString().Trim(),
 
                                 TelephoneMobile = reader["Telephone No.Mobile"] == DBNull.Value ? null : reader["Telephone No.Mobile"].ToString().Trim(),
