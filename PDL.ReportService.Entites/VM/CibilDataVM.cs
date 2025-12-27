@@ -23,6 +23,9 @@ namespace PDL.ReportService.Entites.VM
         public string? DrivingLicenseIssueDate { get; set; }
         public string? DrivingLicenseExpiryDate { get; set; }
 
+        public string? RationCardNumber { get; set; }
+        public string? UniversalIDNumber { get; set; }
+        public string? AdditionalID1 { get; set; }
         public string? AdditionalId2 { get; set; }
 
         public string? TelephoneMobile { get; set; }
